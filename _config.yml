@@ -3,9 +3,9 @@
 # ----------------------- #
 
 url: http://imtiger.github.io
-title: My Octopress Blog
-subtitle: A blogging framework for hackers.
-author: Your Name
+title: 我是Tiger，记录生活点滴!
+subtitle: 一个爱折腾有理想的程序员兼老愤青.
+author: imtiger
 simple_search: http://google.com/search
 description:
 
@@ -69,8 +69,8 @@ github_show_profile_link: true
 github_skip_forks: true
 
 # Twitter
-twitter_user:
-twitter_tweet_button: true
+#twitter_user:
+#twitter_tweet_button: true
 
 # Google +1
 google_plus_one: false
