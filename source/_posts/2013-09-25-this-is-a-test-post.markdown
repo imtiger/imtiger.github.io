@@ -1,0 +1,8 @@
+---
+layout: post
+title: "This is a Test Post"
+date: 2013-09-25 18:42
+comments: true
+categories: 
+---
+这是个测帖子！在搭建博客的时候，我们可能会对博客做一些配置，例如添加评论、域名解析、分享等。这些内容我写在另外一篇文章中，会经常更新，请前往观看：你好！github页面。
