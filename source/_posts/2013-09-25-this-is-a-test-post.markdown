@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "This is a Test Post"
+title: "这是一个测试帖子！"
 date: 2013-09-25 18:42
 comments: true
 categories: 
