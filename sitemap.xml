@@ -1,24 +1,36 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'>
     <url>
-        <loc>http://imtiger.github.io/blog/2013/09/25/this-is-a-test-post/</loc>
-        <lastmod>2013-09-25T18:47:00+08:00</lastmod>
+        <loc>http://imtiger.github.io/blog/2013/09/27/java-engineer-recruitment/</loc>
+        <lastmod>2013-09-27T17:54:42+08:00</lastmod>
+    </url>
+    <url>
+        <loc>http://imtiger.github.io/404.html</loc>
+        <lastmod>2013-09-27T18:12:04+08:00</lastmod>
+    </url>
+    <url>
+        <loc>http://imtiger.github.io/about/</loc>
+        <lastmod>2013-09-27T17:53:26+08:00</lastmod>
     </url>
     <url>
         <loc>http://imtiger.github.io/archives/</loc>
-        <lastmod>2013-09-25T18:47:00+08:00</lastmod>
+        <lastmod>2013-09-27T17:54:42+08:00</lastmod>
     </url>
     <url>
         <loc>http://imtiger.github.io/blog/archives/</loc>
-        <lastmod>2013-09-25T18:47:00+08:00</lastmod>
+        <lastmod>2013-09-27T17:54:42+08:00</lastmod>
+    </url>
+    <url>
+        <loc>http://imtiger.github.io/blog/categories/</loc>
+        <lastmod>2013-09-27T15:01:44+08:00</lastmod>
     </url>
     <url>
         <loc>http://imtiger.github.io/blog/</loc>
-        <lastmod>2013-09-25T18:47:00+08:00</lastmod>
+        <lastmod>2013-09-27T17:54:42+08:00</lastmod>
     </url>
     <url>
         <loc>http://imtiger.github.io/</loc>
-        <lastmod>2013-09-25T18:47:00+08:00</lastmod>
+        <lastmod>2013-09-27T17:54:42+08:00</lastmod>
     </url>
     <url>
         <loc>http://imtiger.github.io/robots.txt</loc>
