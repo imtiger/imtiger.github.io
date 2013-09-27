@@ -4,7 +4,7 @@
   <title><![CDATA[Category: 技术 | 我是Tiger，记录生活点滴!]]></title>
   <link href="http://imtiger.github.io/blog/categories/ji-zhu/atom.xml" rel="self"/>
   <link href="http://imtiger.github.io/"/>
-  <updated>2013-09-27T20:47:02+08:00</updated>
+  <updated>2013-09-28T00:40:45+08:00</updated>
   <id>http://imtiger.github.io/</id>
   <author>
     <name><![CDATA[imtiger]]></name>
@@ -26,7 +26,7 @@
 职位名称: 高级Java软件攻城狮<br/>
 月薪:    15k-20k</p>
 
-<p>公司介绍: 我们公司<a href="http://www.ejushang.com">易居尚</a>秉承着<strong>“让品质走进生活”</strong>的理念，致力于打造一个品质、高效、便捷的居家用品网络销售平台.咋们公司不打卡，弹性工作制，每天下午有公司大厨做的下午茶，攻城狮童鞋每周可以自由支配20%的工作时间做自己想做的事情，我们技术团队内部有很强互助和知识分享意识（包括技术骚们喜欢的爱情动作片，嘘&hellip;，其他人我不告诉他）当然了还有很多美女和帅哥，想置身互联网和电子商务有理想的的技术骚们，请你加入我们 一起high，<strong>我们不求改变世界，但求超越自我</strong>。也请各位朋友帮忙推荐，推荐成功有神秘礼物相送哦，有意者请联系:<a href="&#x6d;&#x61;&#105;&#x6c;&#116;&#111;&#x3a;&#116;&#105;&#x67;&#101;&#114;&#46;&#122;&#104;&#x6f;&#x75;&#x40;&#x6b;&#97;&#114;&#105;&#x71;&#117;&#46;&#99;&#x6f;&#x6d;">&#116;&#105;&#103;&#101;&#x72;&#46;&#x7a;&#x68;&#111;&#117;&#x40;&#x6b;&#x61;&#x72;&#x69;&#x71;&#x75;&#x2e;&#99;&#111;&#109;</a> 或者留言给我，另外也可以通过<a href="http://weibo.com/xmuzyq">@krq_tiger</a>新浪微博与我取的联系.</p>
+<p>公司介绍: 我们公司<a href="http://www.ejushang.com">易居尚</a>秉承着<strong>“让品质走进生活”</strong>的理念，致力于打造一个品质、高效、便捷的居家用品网络销售平台.咋们公司不打卡，弹性工作制，每天下午有公司大厨做的下午茶，攻城狮童鞋每周可以自由支配20%的工作时间做自己想做的事情，我们技术团队内部有很强互助和知识分享意识（包括技术骚们喜欢的爱情动作片，嘘&hellip;，其他人我不告诉他）当然了还有很多美女和帅哥，想置身互联网和电子商务有理想的的技术骚们，请你加入我们 一起high，<strong>我们不求改变世界，但求超越自我</strong>。也请各位朋友帮忙推荐，推荐成功有神秘礼物相送哦，有意者请联系:<a href="&#109;&#x61;&#x69;&#x6c;&#x74;&#x6f;&#58;&#x74;&#105;&#103;&#x65;&#x72;&#x2e;&#122;&#104;&#111;&#117;&#64;&#x6b;&#x61;&#114;&#105;&#x71;&#x75;&#46;&#99;&#111;&#109;">&#116;&#105;&#103;&#x65;&#x72;&#x2e;&#122;&#x68;&#x6f;&#117;&#64;&#x6b;&#x61;&#x72;&#105;&#113;&#x75;&#46;&#99;&#x6f;&#109;</a> 或者留言给我，另外也可以通过<a href="http://weibo.com/xmuzyq">@krq_tiger</a>新浪微博与我取的联系.</p>
 
 <!-- more -->
 
@@ -47,6 +47,91 @@
 5. 喜欢去看及尝试最新的技术，追求编写优雅的代码，从技术趋势和思路上能影响技术团队；<br/>
 6. 学习能力强，适应能力好，具备耐心/细心的品质；<br/>
 7. 四年及以上工作经验。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Unix like系统中，查找某个目录下包含特定关键字的文件]]></title>
+    <link href="http://imtiger.github.io/blog/2013/09/26/find-files-with-a-keyword-in-a-dir/"/>
+    <updated>2013-09-26T22:39:00+08:00</updated>
+    <id>http://imtiger.github.io/blog/2013/09/26/find-files-with-a-keyword-in-a-dir</id>
+    <content type="html"><![CDATA[<p><img class="center" src="/images/2013/09/27/2013-09-27-02.jpg"></p>
+
+<p>作为一枚程序猿，咋们经常在工作当中会遇到一种场景：   <br/>
+<strong>查找某个目录中包含某个关键字的文件</strong>，那么我们如何来实现这个需求呢？我个人的习惯是如果某个任务经常要执行，那么我会习惯性的写一个脚本，建立一个alias，然后每次需要的时候，直接调用脚本来完成任务，这才是咋们程序猿应该有的工作态度嘛。</p>
+
+<p>好了，废话不多了，咋们直接show code啦。</p>
+
+<!-- more -->
+
+
+<p>```bash find files in a specific dir with a keyword<br/>
+ #!/bin/bash
+ #find files in a specific dir with a keyword<br/>
+ #write by tiger
+ #2013.09.26</p>
+
+<p>echo -e &ldquo;\nThis script finds files in a specific dir with a keyword.\nOK,Please input a keyword:&rdquo;</p>
+
+<p>read keyword
+if [ &ldquo;$keyword&rdquo; == &ldquo;&rdquo; ]; then</p>
+
+<pre><code>echo  "keyword can not be null!\n" 
+exit 0 
+</code></pre>
+
+<p>fi</p>
+
+<p>echo &ldquo;\nPlease input the dir path:&rdquo;
+read dirPath
+while [ &ldquo;$dirPath&rdquo; == &ldquo;&rdquo; ]
+do</p>
+
+<pre><code>echo  "The dir can't be null,pls input it again"
+read  dirPath
+</code></pre>
+
+<p>done</p>
+
+<p>if [ ! -d &ldquo;$dirPath&rdquo; ]; then
+  echo &ldquo;The $dirPath is not exist!\n\n&rdquo;
+  exit 0
+fi</p>
+
+<p>echo  &ldquo;\n&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&ndash; Find these files &mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&ndash;\n&rdquo;</p>
+
+<p>fileCount=0
+files=<code>ls -R $dirPath 2&gt; /dev/null | grep -v '^$'</code>
+for fileName in $files
+do</p>
+
+<pre><code>temp=`echo $fileName | sed 's/:.*$//g'` 
+if [ "$fileName" != "$temp" ]; then 
+    currentDir=$temp 
+else 
+    fileType=`file $currentDir/$fileName | grep "text"` 
+    if [ "$fileType" != "" ]; then 
+        temp=`grep $keyword $currentDir/$fileName 2&gt; /dev/null` 
+        if [ "$temp" != "" ]; then 
+            echo $currentDir/$fileName  
+            let fileCount++ 
+        fi 
+    fi 
+fi 
+</code></pre>
+
+<p>done
+if [ $fileCount -gt 0 ];then
+  echo &ldquo;\n\nFiles Total: $fileCount&rdquo;
+  echo &ldquo;\nFind Finished!\n&rdquo;
+else</p>
+
+<pre><code>echo "No files found!"      
+</code></pre>
+
+<p>fi</p>
+
+<p>```</p>
 ]]></content>
   </entry>
   
