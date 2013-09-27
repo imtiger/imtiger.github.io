@@ -1,3 +1,47 @@
 // This File is imported last, and will override other styles in the cascade
 // Add styles here to make changes without digging in too much
 @import "footnote";
+
+.post-copyright
+{
+    margin-top:20px;
+    font-size:12px;
+    height: 120px; 
+    background: #F5F5F5;
+    height:120px;
+    border:1px solid #BBBBBB;
+    border-radius:10px;
+}
+.post-copyright .avator
+{
+	float:left;
+	margin:10px;
+}
+
+.post-copyright .avator img
+{
+	border-radius:10px;
+}
+
+.post-copyright .info
+{
+	LINE-HEIGHT: 200%;
+	MARGIN-TOP: 10px;
+	COLOR: #000000
+}
+
+.post-copyright a:link
+{
+    color: #0057b6;
+    text-decoration: none;
+}
+.post-copyright a:visited
+{
+    color: #0057b6;
+    text-decoration: none;
+}
+.post-copyright a:active,a:hover
+{
+    color: #0057b6;
+    text-decoration: underline;
+}

@@ -4,7 +4,7 @@
 
 url: http://imtiger.github.io
 title: 我是Tiger，记录生活点滴!
-subtitle: 一个爱折腾有理想的程序员兼老愤青.
+subtitle:
 author: imtiger
 simple_search: http://google.com/search
 description:
@@ -20,6 +20,7 @@ subscribe_rss: /atom.xml
 subscribe_email:
 # RSS feeds can list your email address if you like
 email:
+email_md5: 80695ffc8afc90667bb292139686239b
 
 # ----------------------- #
 #    Jekyll & Plugins     #
@@ -44,7 +45,7 @@ pygments: false # default python pygments have been replaced by pygments.rb
 paginate: 10          # Posts per page on the blog index
 pagination_dir: blog  # Directory base for pagination URLs eg. /blog/page/2/
 recent_posts: 5       # Posts in the sidebar Recent Posts section
-excerpt_link: "Read on &rarr;"  # "Continue reading" link text at the bottom of excerpted articles
+excerpt_link: "Read on(阅读全文) &rarr;"  # "Continue reading" link text at the bottom of excerpted articles
 
 titlecase: true       # Converts page and post titles to titlecase
 
@@ -72,6 +73,11 @@ github_skip_forks: true
 #twitter_user:
 #twitter_tweet_button: true
 
+# SinaWeibo
+weibo_share: true
+weibo_user: xmuzyq
+
+
 # Google +1
 google_plus_one: false
 google_plus_one_size: medium
@@ -98,3 +104,6 @@ google_analytics_tracking_id:
 
 # Facebook Like
 facebook_like: false
+
+#Post License 
+post_license: true

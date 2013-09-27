@@ -1,0 +1,17 @@
+---
+
+layout: page
+
+title: "额！页面找不到了..."
+
+date: 2013-09-27 02:35
+
+comments: true
+
+sharing: true
+
+footer: true
+
+---
+
+<script type="text/javascript" src="http://www.qq.com/404/search_children.js" charset="utf-8"></script>
