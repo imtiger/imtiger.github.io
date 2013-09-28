@@ -4,7 +4,7 @@
   <title><![CDATA[Category: 技术 | 我是Tiger，记录生活点滴!]]></title>
   <link href="http://imtiger.github.io/blog/categories/ji-zhu/atom.xml" rel="self"/>
   <link href="http://imtiger.github.io/"/>
-  <updated>2013-09-28T15:06:59+08:00</updated>
+  <updated>2013-09-28T15:16:08+08:00</updated>
   <id>http://imtiger.github.io/</id>
   <author>
     <name><![CDATA[imtiger]]></name>
@@ -26,7 +26,7 @@
 职位名称: 高级Java软件攻城狮<br/>
 月薪:    15k-20k</p>
 
-<p>公司介绍: 我们公司<a href="http://www.ejushang.com">易居尚</a>秉承着<code>让品质走进生活的理念</code>，致力于打造一个品质、高效、便捷的居家用品网络销售平台.咋们公司不打卡，弹性工作制，每天下午有公司大厨做的下午茶，攻城狮童鞋每周可以自由支配20%的工作时间做自己想做的事情，我们技术团队内部有很强互助和知识分享意识（包括技术骚们喜欢的爱情动作片，嘘&hellip;，其他人我不告诉他）当然了还有很多美女和帅哥，想置身互联网和电子商务有理想的的技术骚们，请你加入我们 一起high，<strong>我们不求改变世界，但求超越自我</strong>。也请各位朋友帮忙推荐，推荐成功有神秘礼物相送哦，有意者请联系:<a href="&#109;&#x61;&#105;&#x6c;&#x74;&#x6f;&#x3a;&#116;&#x69;&#x67;&#x65;&#114;&#x2e;&#x7a;&#104;&#x6f;&#117;&#64;&#107;&#x61;&#x72;&#x69;&#113;&#x75;&#46;&#x63;&#x6f;&#109;">&#116;&#x69;&#x67;&#x65;&#114;&#46;&#122;&#x68;&#x6f;&#117;&#x40;&#107;&#x61;&#x72;&#105;&#113;&#117;&#x2e;&#x63;&#111;&#x6d;</a> 或者留言给我，另外也可以通过<a href="http://weibo.com/xmuzyq">@krq_tiger</a>新浪微博与我取的联系.</p>
+<p>公司介绍: 我们公司<a href="http://www.ejushang.com">易居尚</a>秉承着<code>让品质走进生活的理念</code>，致力于打造一个品质、高效、便捷的居家用品网络销售平台.咋们公司不打卡，弹性工作制，每天下午有公司大厨做的下午茶，攻城狮童鞋每周可以自由支配20%的工作时间做自己想做的事情，我们技术团队内部有很强互助和知识分享意识（包括技术骚们喜欢的爱情动作片，嘘&hellip;，其他人我不告诉他）当然了还有很多美女和帅哥，想置身互联网和电子商务有理想的的技术骚们，请你加入我们 一起high，<strong>我们不求改变世界，但求超越自我</strong>。也请各位朋友帮忙推荐，推荐成功有神秘礼物相送哦，有意者请联系:<a href="&#x6d;&#x61;&#105;&#108;&#116;&#x6f;&#x3a;&#116;&#105;&#103;&#101;&#114;&#x2e;&#122;&#104;&#111;&#117;&#64;&#107;&#97;&#114;&#x69;&#x71;&#x75;&#46;&#99;&#x6f;&#x6d;">&#x74;&#105;&#103;&#101;&#x72;&#46;&#122;&#104;&#x6f;&#x75;&#64;&#x6b;&#x61;&#114;&#x69;&#x71;&#117;&#x2e;&#x63;&#x6f;&#109;</a> 或者留言给我，另外也可以通过<a href="http://weibo.com/xmuzyq">@krq_tiger</a>新浪微博与我取的联系.</p>
 
 <!-- more -->
 
@@ -140,7 +140,8 @@ else</p>
     <link href="http://imtiger.github.io/blog/2013/01/30/java-class-file-format-demo/"/>
     <updated>2013-01-30T12:16:00+08:00</updated>
     <id>http://imtiger.github.io/blog/2013/01/30/java-class-file-format-demo</id>
-    <content type="html"><![CDATA[<p>在<a href=""><code>实例分析Java Class文件的结构-理论篇</code></a>一文中，我们说了Java Class文件结构的理论知识，接下来我们来通过一个具体的例子来理论结合实践的学习一下。
+    <content type="html"><![CDATA[<p><img class="center" src="/images/2013/01/30/java-logo.jpg" width="500" height="300"><br/>
+在<a href=""><code>实例分析Java Class文件的结构-理论篇</code></a>一文中，我们说了Java Class文件结构的理论知识，接下来我们来通过一个具体的例子来理论结合实践的学习一下。
 首先我们有一个TestClass类，代码如下：
 ```java TestClass.java</p>
 
@@ -261,7 +262,8 @@ methods_count表示方法的数量，而method_info表示的方法表，其中�
     <link href="http://imtiger.github.io/blog/2013/01/30/java-class-file-format/"/>
     <updated>2013-01-30T10:33:00+08:00</updated>
     <id>http://imtiger.github.io/blog/2013/01/30/java-class-file-format</id>
-    <content type="html"><![CDATA[<p>今天把之前在Evernote中的笔记重新整理了一下，发上来供对java class 文件结构的有兴趣的同学参考一下。</p>
+    <content type="html"><![CDATA[<p><img class="center" src="/images/2013/01/30/java-logo.jpg" width="500" height="300">  <br/>
+今天把之前在Evernote中的笔记重新整理了一下，发上来供对java class 文件结构的有兴趣的同学参考一下。</p>
 
 <p>学习Java的朋友应该都知道Java从刚开始的时候就打着平台无关性的旗号，说“一次编写，到处运行”，其实说到无关性，Java平台还有另外一个无关性那就是语言无关性，要实现语言无关性，那么Java体系中的class的文件结构或者说是字节码就显得相当重要了，其实Java从刚开始的时候就有两套规范，一个是Java语言规范，另外一个是Java虚拟机规范，Java语言规范只是规定了Java语言相关的约束以及规则，而虚拟机规范则才是真正从跨平台的角度去设计的。今天我们就以一个实际的例子来看看，到底Java中一个Class文件对应的字节码应该是什么样子。 这篇文章将首先总体上阐述一下Class到底由哪些内容构成，然后再用一个实际的Java类入手去分析class的文件结构。</p>
 
