@@ -6,16 +6,17 @@
 {
     margin-top:20px;
     font-size:12px;
-    height: 120px; 
     background: #F5F5F5;
-    height:120px;
     border:1px solid #BBBBBB;
     border-radius:10px;
+    clear:both;
+    overflow:hidden;
 }
 .post-copyright .avator
 {
 	float:left;
 	margin:10px;
+	width:100px;
 }
 
 .post-copyright .avator img
@@ -27,7 +28,7 @@
 {
 	LINE-HEIGHT: 200%;
 	MARGIN-TOP: 10px;
-	COLOR: #000000
+	COLOR: #000000;
 }
 
 .post-copyright a:link
@@ -45,3 +46,22 @@
     color: #0057b6;
     text-decoration: underline;
 }
+
+@media screen and (max-width: 400px) {
+    .post-copyright .avator {
+        float:none;
+        margin:10px auto;
+    }
+    .post-copyright .info {
+        margin: 10px;
+        text-align:center;
+    }
+}
+
+
+article code,figure.code{
+	border-radius:5px;
+}
+
+
+
