@@ -1,0 +1,65 @@
+---
+layout: post
+title: "Web开发之Http Cache"
+date: 2011-07-07 22:27
+comments: true
+keywords: http,cache,缓存,性能优化
+categories: 
+- Web开发
+- 缓存
+- 技术
+---
+
+在如今的 web 系统中， cache 应该是每个 web 系统架构师或者开发人员必须要掌握的技能。而 cache 在 web 的世界中一般分为客户端 cache( 当然有些人也叫它浏览器 cache) 和服务端 cache, 这篇文章不涉及 服务端 cache 的内容 . 下面我们主要来看看客户端 cache 所涉及 http header 相关联的知识。
+
+##1.Last-modified/if-modified-since
+首先登场的是 `Last-modified/if-modified-since` ，当用户第一次浏览一个网站的时候，服务器会在响应头中增加 Last-modified 这个 http 响应头， Last-modified 的格式如：`Last-modified: Fri, 16 Mar 201 04:00:25 GMT`当用户第二次再请求同样的 url 的时候，浏览器会将 `last-modified` 的值附加到 `if-modified-since` 这个 http 请求头中，服务器端接收到请求后，首先 check 一下 `if-modified-since` 头信息中的时间是否与当前 url 对应的资源的最后修改时间一致，如果一致，则服务器返回 http 304 状态码，这样当浏览器收到 http 304 状态码了以后，就会利用本地缓存的内容来完成对本次用户操作的响应。如果过程的形象点的描述可以通过如下图描述：  
+<!-- more -->
+
+{% img center /images/2011/07/07/HTTP-caching-last-modified_1.png %}
+<center>（上图来自于<a href="http://betterexplained.com">http://betterexplained.com</a>）</center>
+
+对于 `Last-modified/if-modified-since` 的缓存控制，可能有人会问对于动态内容是否有效果？其实这个与动态内容和静态内容没什么关系，浏览器和服务器之间是通过 http 协议通信的，浏览器本身并不关心，也不知道本地缓存中的内容是服务器动态生成的还是仅仅是静态数据，对于浏览器来说，只要服务器在对某此请求设置了 `Last-modified` 的 http 响应头以后，浏览器就会在下次请求的时候带上 `if-modified-since` 的请求头，从而完成和服务器之间的缓存协商控制。如果用 java servlet 为例，服务器只需要通过如下代码： 
+```java Servlet code
+response.addDateHeader("Last-Modified",time)
+``` 
+即可完成将 http 响应头写入响应。另外基于 `Last-modified/if-modified-since` 的客户端缓存，存在一些缺点，比如当你的 web 站点部署在一个集群环境中，而当用户的同样的请求被路由到不同的 web 服务器的时候就有可能会造成缓存失效，因为不同的服务器时间有可能存在不一致的情况。
+
+##2.Etag/if-none-match
+`Etag` 是 http 1.1 规范引入的一个新的 http 实体头， Etag 在规范中仅仅只 etag 可以用来对同一个资源的其它实体头进行对比，没有做进一步的解释，其实我们可以把 Etag 理解为一个服务器在某个资源上面做的一个记号，至于这个记号用来做什么要看服务器如何去解析它，因此我们在设计我们自己的应用的时候，可以借助 Etag 来实现客户端缓存和服务器之间的缓存协商控制。下面我们来看一下 Etag 如何结合到一个 web 的请求之中。当浏览器第一次请求一个资源的时候，服务器在响应头里面加入 Etag 的标识， Etag 的值既是当前响应内容经过计算以后的值（ http 规范没有对 etag 值的计算方式做规定，可以是 md5 或者其它方式）当第二次浏览器发送请求的时候，浏览器便会用原先请求中 Etag 响应头的值作为 if-None-Match 请求头的值，这样服务器接受到此次请求以后，根据 `if-None-Match` 的取值和当前的内容进行对比，如果相同则返回一个 304 not modified 响应码，这样浏览器收到 304 后就会用客户端本地 cache 来完成对本次请求的响应。上述过程可以通过下图形象的描述：  
+
+{% img center /images/2011/07/07/HTTP_caching_if_none_match.png %}
+
+通过以上的描述我们可以看出， Etag 可以避免 Last-Modified 因为服务器时间不同步造成的缓存失效问题，另外值得我们关注的是 `Etag` 和 `last-modified` 仅仅只能节省网络带宽，并不能真正的减少对服务器的 http 请求数，如果要想真正的减少服务器端得请求数，还需要另外的 http  header 的协助，下面我们就来看一下，如何减少对服务器端得请求数。
+
+##3.Expries
+`Expries` 是另外一个与客户端缓存有关系的 http 头，在浏览器请求一个资源的时候，服务器设置了 Expries 头以后，下次浏览器再请求同样资源的时候，如果发现资源 expires 没有超期，则直接用客户端本地 cache 中数据来完成本次响应，不会向服务器再发送请求。此过程可以通过下图形象的描述：
+{% img center /images/2011/07/07/HTTP_caching_expires.png %}
+
+如果在 java servlet 中，则可以通过如下方法来设置一次响应内容的超期时间。
+```java Servlet code
+  response.setDateHeader("Expires", expiresTime);
+```
+对于 Expires 响应头我们需要注意一点，当响应头中已经设置了 Cache-Contrl:max-age 以后， max-age 将覆盖掉 expires 的效果（参见 http1.1 规范）原文如下：
+
+>Note: if a response includes a Cache-Control field with the max-age directive (see section 14.9.3 ), that directive overrides the Expires field. 
+
+对于 `Expires` 特别适合对于网站静态资源的缓存，比如 js,image,logo 等，这些资源不会经常发生变化，另外一个也适合于一些周期性更新的内容。
+
+上面说了 `Expires` ，虽然它可以避免每次都向服务器发送请求，但是它依赖于服务器时间和客户端的时间一致，如果服务器端时间和客户端时间不一致的话，往往会导致缓存失效，接下来我们再来看看另外一个比较重要的 http header: `Cache-Control`.
+
+##4.Cache-Control
+`Cache-Control`采用基于客户端的时间来进行对缓存的控制。 `Cache-Control` 这个 HTTP header 的取值有很多，我们主要来与本主题相关的 max-age: 这个取值代表缓存内容从请求时间开始多久过期，作用类似于 expires 。
+
+另外 `Cache-control : no-cache`: 告诉浏览器，响应的内容不容许缓存，说到`no-cache`, 我们有必要看看另外一个响应头 `Pragma:no-cache`, 可能很多人（包括我之前也是）认为设置了 `Pragma:on-cache` 以后，浏览器将不会对其内容进行缓存，但是我们错了，在 http1.1 规范没有明确的规定 `Pragma:no-cache` 作为响应头的意义，原文如下（来自 http1.1 规范）：
+
+>Note: because the meaning of "Pragma: no-cache as a response header field is not actually specified, it does not provide a reliable replacement for "Cache-Control: no-cache" in a response   
+
+最后我们需要关注另外一个问题：**如何清除浏览器缓存？**假如我们一个资源超期时间设置的太长了，而我们又更新了一些资源怎么办？这里大多数网站都采用资源版本化来解决，通俗一点就是给每个资源分配一个缓存版本，当修改资源以后，只需要增加一下版本号即可。比如 javaeye 的 http://www.iteye.com/javascripts/application.js?1309443254 ， 1309443254 这个既是版本号，当 application.js 发生变化的时候，只需要修改此版本号即可。一般一些前端的MVC框架都会支持框架层面来加版本号。
+
+最后附上一些关于Web缓存相光的文章：
+
+[使用ETags减少Web应用带宽和负载](http://www.infoq.com/cn/articles/etags)  
+[How To Optimize Your Site With HTTP Caching](http://betterexplained.com/articles/how-to-optimize-your-site-with-http-caching/)  
+[Http缓存Last-Modified、ETag和Expires的Java终结解决之道](http://www.jdon.com/jivejdon/thread/40381)  
+[Caching Tutorial](http://www.mnot.net/cache_docs/#CACHE-CONTROL)  
