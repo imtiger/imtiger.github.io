@@ -1,6 +1,10 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'>
     <url>
+        <loc>http://imtiger.github.io/blog/2011/07/07/optimize-your-site-using-http-caching/</loc>
+        <lastmod>2013-09-28T23:24:16+08:00</lastmod>
+    </url>
+    <url>
         <loc>http://imtiger.github.io/blog/2012/10/28/mutil-appservers-manage/</loc>
         <lastmod>2013-09-28T19:13:01+08:00</lastmod>
     </url>
@@ -30,15 +34,15 @@
     </url>
     <url>
         <loc>http://imtiger.github.io/about/</loc>
-        <lastmod>2013-09-27T22:03:57+08:00</lastmod>
+        <lastmod>2013-09-28T22:21:52+08:00</lastmod>
     </url>
     <url>
         <loc>http://imtiger.github.io/archives/</loc>
-        <lastmod>2013-09-28T19:13:01+08:00</lastmod>
+        <lastmod>2013-09-28T23:24:16+08:00</lastmod>
     </url>
     <url>
         <loc>http://imtiger.github.io/blog/archives/</loc>
-        <lastmod>2013-09-28T19:13:01+08:00</lastmod>
+        <lastmod>2013-09-28T23:24:16+08:00</lastmod>
     </url>
     <url>
         <loc>http://imtiger.github.io/blog/categories/</loc>
@@ -46,11 +50,15 @@
     </url>
     <url>
         <loc>http://imtiger.github.io/blog/</loc>
-        <lastmod>2013-09-28T19:13:01+08:00</lastmod>
+        <lastmod>2013-09-28T23:24:16+08:00</lastmod>
     </url>
     <url>
         <loc>http://imtiger.github.io/</loc>
-        <lastmod>2013-09-28T19:13:01+08:00</lastmod>
+        <lastmod>2013-09-28T23:24:16+08:00</lastmod>
+    </url>
+    <url>
+        <loc>http://imtiger.github.io/life/</loc>
+        <lastmod>2013-09-28T22:20:46+08:00</lastmod>
     </url>
     <url>
         <loc>http://imtiger.github.io/robots.txt</loc>

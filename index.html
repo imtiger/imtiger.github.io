@@ -29,6 +29,18 @@
 	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
 	
   
+	<script type="text/javascript">
+		var _gaq = _gaq || [];
+		_gaq.push(['_setAccount', 'UA-44429269-1']);
+		_gaq.push(['_trackPageview']);
+
+		(function() {
+			var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+			ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+			var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+		})();
+	</script>
+
 
 </head>
 
@@ -126,7 +138,7 @@
 职位名称: 高级Java软件攻城狮<br/>
 月薪:    15k-20k</p>
 
-<p>公司介绍: 我们公司<a href="http://www.ejushang.com">易居尚</a>秉承着<code>让品质走进生活的理念</code>，致力于打造一个品质、高效、便捷的居家用品网络销售平台.咋们公司不打卡，弹性工作制，每天下午有公司大厨做的下午茶，攻城狮童鞋每周可以自由支配20%的工作时间做自己想做的事情，我们技术团队内部有很强互助和知识分享意识（包括技术骚们喜欢的爱情动作片，嘘&hellip;，其他人我不告诉他）当然了还有很多美女和帅哥，想置身互联网和电子商务有理想的的技术骚们，请你加入我们 一起high，<strong>我们不求改变世界，但求超越自我</strong>。也请各位朋友帮忙推荐，推荐成功有神秘礼物相送哦，有意者请联系:<a href="&#x6d;&#97;&#x69;&#x6c;&#x74;&#x6f;&#x3a;&#x74;&#x69;&#103;&#101;&#114;&#x2e;&#x7a;&#x68;&#x6f;&#x75;&#64;&#107;&#x61;&#x72;&#x69;&#113;&#x75;&#x2e;&#x63;&#111;&#x6d;">&#116;&#x69;&#x67;&#x65;&#x72;&#46;&#122;&#x68;&#111;&#x75;&#64;&#x6b;&#x61;&#x72;&#x69;&#113;&#117;&#46;&#x63;&#x6f;&#109;</a> 或者留言给我，另外也可以通过<a href="http://weibo.com/xmuzyq">@krq_tiger</a>新浪微博与我取的联系.</p>
+<p>公司介绍: 我们公司<a href="http://www.ejushang.com">易居尚</a>秉承着<code>让品质走进生活的理念</code>，致力于打造一个品质、高效、便捷的居家用品网络销售平台.咋们公司不打卡，弹性工作制，每天下午有公司大厨做的下午茶，攻城狮童鞋每周可以自由支配20%的工作时间做自己想做的事情，我们技术团队内部有很强互助和知识分享意识（包括技术骚们喜欢的爱情动作片，嘘&hellip;，其他人我不告诉他）当然了还有很多美女和帅哥，想置身互联网和电子商务有理想的的技术骚们，请你加入我们 一起high，<strong>我们不求改变世界，但求超越自我</strong>。也请各位朋友帮忙推荐，推荐成功有神秘礼物相送哦，有意者请联系:<a href="&#109;&#x61;&#x69;&#108;&#x74;&#111;&#58;&#116;&#x69;&#x67;&#x65;&#114;&#46;&#x7a;&#x68;&#x6f;&#117;&#x40;&#x6b;&#x61;&#114;&#x69;&#113;&#x75;&#x2e;&#99;&#111;&#x6d;">&#x74;&#105;&#103;&#x65;&#x72;&#x2e;&#x7a;&#104;&#x6f;&#x75;&#64;&#107;&#97;&#x72;&#105;&#113;&#117;&#46;&#x63;&#111;&#x6d;</a> 或者留言给我，另外也可以通过<a href="http://weibo.com/xmuzyq">@krq_tiger</a>新浪微博与我取的联系.</p>
 
 
 		
@@ -373,6 +385,46 @@
 
 </article>
 
+
+    <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
+	<div class="meta">
+		<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-07-07T22:27:00+08:00" data-updated="true" itemprop="datePublished">Jul 7<span>th</span>, 2011</time></div>
+		<div class="tags">
+
+
+	<a class='category' href='/blog/categories/webkai-fa/'>Web开发</a>, <a class='category' href='/blog/categories/ji-zhu/'>技术</a>, <a class='category' href='/blog/categories/huan-cun/'>缓存</a>
+
+
+</div>
+		
+	</div>
+	<h1 class="title" itemprop="name"><a href="/blog/2011/07/07/optimize-your-site-using-http-caching/" itemprop="url">Web开发之Http Cache</a></h1>
+	<div class="entry-content" itemprop="articleBody">
+		<p>在如今的 web 系统中， cache 应该是每个 web 系统架构师或者开发人员必须要掌握的技能。而 cache 在 web 的世界中一般分为客户端 cache( 当然有些人也叫它浏览器 cache) 和服务端 cache, 这篇文章不涉及 服务端 cache 的内容 . 下面我们主要来看看客户端 cache 所涉及 http header 相关联的知识。</p>
+
+<h2>1.Last-modified/if-modified-since</h2>
+
+<p>首先登场的是 <code>Last-modified/if-modified-since</code> ，当用户第一次浏览一个网站的时候，服务器会在响应头中增加 Last-modified 这个 http 响应头， Last-modified 的格式如：<code>Last-modified: Fri, 16 Mar 201 04:00:25 GMT</code>当用户第二次再请求同样的 url 的时候，浏览器会将 <code>last-modified</code> 的值附加到 <code>if-modified-since</code> 这个 http 请求头中，服务器端接收到请求后，首先 check 一下 <code>if-modified-since</code> 头信息中的时间是否与当前 url 对应的资源的最后修改时间一致，如果一致，则服务器返回 http 304 状态码，这样当浏览器收到 http 304 状态码了以后，就会利用本地缓存的内容来完成对本次用户操作的响应。如果过程的形象点的描述可以通过如下图描述：</p>
+
+
+		
+		<a href="/blog/2011/07/07/optimize-your-site-using-http-caching/" class="more-link">Read on(阅读全文) &rarr;</a>
+	</div>
+
+</article>
+
 </div>
 <nav id="pagenavi">
     
@@ -398,6 +450,18 @@ Design credit: <a href="http://shashankmehta.in/archive/2012/greyshade.html">Sha
 
 
 
+
+	<script type="text/javascript">
+		var _gaq = _gaq || [];
+		_gaq.push(['_setAccount', 'UA-44429269-1']);
+		_gaq.push(['_trackPageview']);
+
+		(function() {
+			var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+			ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+			var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+		})();
+	</script>
 
 
 
