@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "通过Shell 脚本简化日常Java web开发中繁琐的打包、部署等重复劳动！"
+title: "Shell 脚本简化Java web开发中繁琐的打包、部署等重复劳动"
 date: 2012-10-28 18:20
 keywords: maven,java,tomcat,shell
 comments: true
