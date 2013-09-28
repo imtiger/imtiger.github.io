@@ -8,7 +8,7 @@ categories:
 - 技术
 ---
 {% img center /images/2013/01/30/java-logo.jpg 500 300 %}  
-在[`实例分析Java Class文件的结构-理论篇`]()一文中，我们说了Java Class文件结构的理论知识，接下来我们来通过一个具体的例子来理论结合实践的学习一下。
+在[`实例分析Java Class文件的结构-理论篇`](/blog/2013/01/30/java-class-file-format/)一文中，我们说了Java Class文件结构的理论知识，接下来我们来通过一个具体的例子来理论结合实践的学习一下。
 首先我们有一个TestClass类，代码如下：
 ```java TestClass.java 
      package com.ejushang.TestClass;
