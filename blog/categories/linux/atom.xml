@@ -4,7 +4,7 @@
   <title><![CDATA[Category: linux | 我是Tiger,一个热生活和技术的创业者!]]></title>
   <link href="http://imtiger.github.io/blog/categories/linux/atom.xml" rel="self"/>
   <link href="http://imtiger.github.io/"/>
-  <updated>2013-09-28T16:50:24+08:00</updated>
+  <updated>2013-09-28T19:07:24+08:00</updated>
   <id>http://imtiger.github.io/</id>
   <author>
     <name><![CDATA[imtiger]]></name>
@@ -95,6 +95,116 @@ else</p>
 <p>fi</p>
 
 <p>```</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[通过Shell 脚本简化日常Java web开发中繁琐的打包、部署等重复劳动！]]></title>
+    <link href="http://imtiger.github.io/blog/2012/10/28/mutil-appservers-manage/"/>
+    <updated>2012-10-28T18:20:00+08:00</updated>
+    <id>http://imtiger.github.io/blog/2012/10/28/mutil-appservers-manage</id>
+    <content type="html"><![CDATA[<p>在平时的开发工作当中，经常会遇到如下一种场景：</p>
+
+<p>本地需要启动多个tomcat实例，多个tomcat实例通过统一的一个apache web server来管理，并且项目是maven管理的，每次修改了文件要部署的时候，一般会重复做如下事情：</p>
+
+<ol>
+<li>maven 打包工程</li>
+<li>删除日志文件</li>
+<li>启动tomcat实例</li>
+</ol>
+
+
+<p>这样的工作做多了，真的既不高效，也不符合优秀的程序猿的习惯，所以我一般会将其写一个脚本，每次运行下脚本，让脚本帮我们来完成这件事情，岂不快哉！</p>
+
+<p>Ok,I will show the code !</p>
+
+<!-- more -->
+
+
+<p>```bash tomcatctl.sh</p>
+
+<h1>!/bin/bash</h1>
+
+<p>PROJECTS_NAME=&ldquo;eboss,boss,buyersystem,open&rdquo;
+DEV_PROJECT_HOME=&ldquo;/Users/tiger/develop/project/kariqu&rdquo;
+APPSERVER_HOME=&ldquo;/Users/tiger/develop/appserver&rdquo;
+APP_LOG_HOME=&ldquo;/Users/tiger/develop/appserver/apache/logs&rdquo;</p>
+
+<h2>1.kill tomcat pid</h2>
+
+<p>appName=$1</p>
+
+<h1>input var is null</h1>
+
+<p>if [ -n &ldquo;$appName&rdquo; ]; then
+   echo &ldquo;stop appServer $appName&rdquo;
+   #get app pid
+   pid=<code>ps aux  |grep ${appName} |awk '{print $2 " " $11}' |grep java |awk '{print $1}'</code>
+   if [ &ldquo;$pid&rdquo; != &ldquo;&rdquo; ]; then</p>
+
+<pre><code>  kill -9 $pid
+</code></pre>
+
+<p>   else</p>
+
+<pre><code>  echo -e "appServer $appName is not yet start !"
+</code></pre>
+
+<p>   fi
+else
+  echo &ldquo;please input appServer name !&rdquo;
+  exit
+fi</p>
+
+<h3>2.complie and package war</h3>
+
+<p>echo &ldquo;comple project and packaging war &hellip;&rdquo;
+current_project_home=$DEV_PROJECT_HOME/<code>echo $PROJECTS_NAME |awk -F"," '{for(i=1;i&lt;=NF;i++) print  $i}' |grep $appName</code>
+if [ ! -d $current_project_home ]; then</p>
+
+<pre><code>echo "error,$current_project_home don't exist"
+exit
+</code></pre>
+
+<p>fi</p>
+
+<p>echo &ldquo;current project home : $current_project_home&rdquo;
+cd $current_project_home
+mvn clean package -Pdev -DskipTests</p>
+
+<h3>3.clean logs</h3>
+
+<p>echo &ldquo;cleaning logs &hellip;&rdquo;
+cd $APP_LOG_HOME/$appName
+rm -rf  *
+cd $APPSERVER_HOME/${appName}-tomcat-7.0.26/logs
+rm -rf <em>.log </em>.txt *.out
+echo &ldquo;clean $logPath success !&rdquo;</p>
+
+<h3>4.start tomcat</h3>
+
+<p>echo &ldquo;starting tomcat &hellip;&rdquo;
+$APPSERVER_HOME/${appName}-tomcat-7.0.26/bin/startup.sh
+sleep 3</p>
+
+<h3>5. check tomcat service</h3>
+
+<p>newpid=<code>ps aux |grep ${appName} |grep -v "grep" | awk '{print $2}'</code>
+if [ -n &ldquo;$newpid&rdquo; ]; then</p>
+
+<pre><code>echo -e "${appName} tomcat service  success !"
+</code></pre>
+
+<p>else</p>
+
+<pre><code>echo "start ${appName} tomcat service failed !" 
+</code></pre>
+
+<p>fi</p>
+
+<p><code>``
+通过如上的脚本后，启动某个系统的命令如下:</code><br/>
+./tomcatctl.sh systemname`</p>
 ]]></content>
   </entry>
   
