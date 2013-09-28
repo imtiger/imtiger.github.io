@@ -77,6 +77,8 @@ github_skip_forks: true
 weibo_share: true
 weibo_user: xmuzyq
 
+# Iteye
+iteye_user: xmuzyq
 
 # Google +1
 google_plus_one: false

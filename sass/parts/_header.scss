@@ -355,6 +355,13 @@ $header-height: 30px;
 					opacity: 1;
 				}
 			}
+			&.iteye{
+				background: image-url('social/iteye.ico') center no-repeat #006699;
+				border: 1px solid #006699;
+				&:hover{
+					opacity: 1;
+				}
+			}
 			&.coderwall{
 				background: image-url('social/coderwall.png') center no-repeat #3E8DCC;
 				border: 1px solid #3E8DCC;
