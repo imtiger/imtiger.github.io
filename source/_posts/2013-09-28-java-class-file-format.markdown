@@ -3,6 +3,8 @@ layout: post
 title: "实例分析Java Class文件的结构-理论篇"
 date: 2013-01-30 10:33
 comments: true
+keywords: java,class文件结构
+description: 本文描述了Java Class的文件结构
 categories: 
 - Java
 - 技术
