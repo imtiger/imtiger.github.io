@@ -1,0 +1,356 @@
+
+<!DOCTYPE HTML>
+
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<title>Jvm内存模型以及垃圾收集策略解析系列（一） - 我是Tiger,一个热爱生活和技术的创业者!</title>
+	<meta name="author" content="imtiger">
+
+	
+	<meta name="description" content="Jvm内存模型以及垃圾收集策略解析系列（一） 本文之前发布在本人Iteye的博客上，换了新博客后，重新整理一下，发布在此，希望对Jvm 内存以及垃圾收集策略感兴趣的朋友有点帮助。 本文主要内容分为如下几部分： Java虚拟机规范规定的Jvm 内存概念模型
+HotSpot Jvm 内存的模型 &hellip;">
+	<meta name="keywords" content="java,jvm，内存模型，垃圾收集">
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<link href="/atom.xml" rel="alternate" title="我是Tiger,一个热爱生活和技术的创业者!" type="application/atom+xml">
+	
+	<link rel="canonical" href="http://imtiger.github.io/blog/2010/02/21/jvm-memory-and-gc/">
+	<link href="/favicon.png" rel="shortcut icon">
+	<link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+	<link href="/stylesheets/font-awesome.min.css" media="screen, projection" rel="stylesheet" type="text/css">
+	<!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+	<link href='http://fonts.googleapis.com/css?family=Open+Sans:400italic,400,700' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+	
+  
+	<script type="text/javascript">
+		var _gaq = _gaq || [];
+		_gaq.push(['_setAccount', 'UA-44429269-1']);
+		_gaq.push(['_trackPageview']);
+
+		(function() {
+			var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+			ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+			var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+		})();
+	</script>
+
+
+</head>
+
+
+<body>
+	<div class="container">
+		<div class="left-col">
+			<div class="intrude-less">
+			<header id="header" class="inner"><div class="profilepic">
+	
+	<a href="#"><img src="http://www.gravatar.com/avatar/80695ffc8afc90667bb292139686239b?s=160" alt="Profile Picture" style="width: 160px;" /></a>
+	
+</div>
+<h1><a href="/">I'm Tiger</a></h1>
+<p class="subtitle">一个热爱生活和技术的创业者!</p>
+
+<nav id="main-nav"><ul>
+	<li><a href="/">Home</a></li>
+	<li><a href="/life">Life</a></li>
+	<li><a href="/archives">Archive</a></li>
+	<li><a href="/about">About Me</a></li>
+</ul>
+
+
+</nav>
+<nav id="sub-nav">
+	<div class="social">
+		
+		
+		
+		
+		
+		<a class="iteye" href="http://xmuzyq.iteye.com" title="我之前的博客">我的Iteye博客</a>
+		
+		
+		<a class="weibo" href="http://weibo.com/xmuzyq" title="新浪微博">新浪微博</a>
+		
+		
+		
+		
+		
+		
+		
+		
+		<a class="rss" href="/atom.xml" title="RSS">RSS</a>
+		
+	</div>
+</nav>
+<p class="subtitle">信心、恒心、爱心、野心兼具者可谓准成功人士!</p>
+<p style="text-align: right;" class="subtitle">-- imTiger</p>
+
+</header>				
+			</div>
+		</div>	
+		<div class="mid-col">
+			
+				
+			
+			<div class="mid-col-container">
+				<div id="content" class="inner"><article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+	<h1 class="title" itemprop="name">Jvm内存模型以及垃圾收集策略解析系列（一）</h1>
+	<div class="entry-content" itemprop="articleBody"><p><img class="center" src="/images/2010/02/21/jvm-original-logo.jpg">
+本文之前发布在本人Iteye的<a href="http://xmuzyq.iteye.com">博客</a>上，换了新博客后，重新整理一下，发布在此，希望对Jvm 内存以及垃圾收集策略感兴趣的朋友有点帮助。</p>
+
+<p>本文主要内容分为如下几部分：</p>
+
+<ol>
+<li><code>Java虚拟机规范规定的Jvm 内存概念模型</code></li>
+<li><code>HotSpot Jvm 内存的模型</code></li>
+<li><code>常见的垃圾收集策略</code></li>
+<li>HotSpot Jvm 垃圾收集策略</li>
+<li>HotSpot Jvm 垃圾收集器的配置策略<br/>
+本篇文章只涉及1，2，3部分，第4和5部分<a href="/blog/2010/02/21/jvm-memory-and-gc-2/">Jvm内存模型以及垃圾收集策略解析系列(二)</a>文章我们再来说。</li>
+</ol>
+
+
+<!-- more -->
+
+
+<h1>1.Java虚拟机内存概念模型</h1>
+
+<p>在本文开始之前，首先我们这里要明确一点，Jvm的内存模型分为<code>Java 虚拟机规范规定的概念模型</code>以及具体厂商的<code>实现模型</code>。不同的厂商的Jvm在实现方式上可能会存在差别，本文中如果没有特别指出，Jvm 默认都指HotSpot Jvm。</p>
+
+<p>OK，明确了上面一点以后，咋们首先来看一下<code>Java 虚拟机规范</code>对Jvm 内存模型的要求，咋们具体可以参考下图：<br/>
+<img class="center" src="/images/2010/02/21/jvm-memory-mode.png"></p>
+
+<p>由上图可以看出Jvm 运行时的内存主要分为两部分：</p>
+
+<ol>
+<li><p>所有线程共享的区域<br/>
+ 线程共享的区域分为又分为下面两部分：</p>
+
+<ol>
+<li>方法区<br/>
+方法区主要存放虚拟机中已经加载的类的信息，静态变量，常量等。方法区中有一块非常重要的区域<code>运行时常量池</code>,我们知道Java Class的文件结构中有一个叫<code>常量池</code>的结构，它主要存放了编译器生成的各种字面常量和符号引用，这部分的内容也将放到运行时常量池。</li>
+<li>堆<br/>
+堆中存放了Java 对象，现代虚拟机，对于堆又进行了进一步的划分，具体细节到下面的HotSpot jvm 的实现中再来说说。</li>
+</ol>
+</li>
+<li><p>线程独享的区域</p>
+
+<ol>
+<li>Java虚拟机栈<br/>
+Java 方法在运行的时候，虚拟机会分配给每次方法调用一个<code>栈帧</code>,栈帧中包含了局部变量表，操作数栈，方法出口等信息。</li>
+<li>本地方法栈<br/>
+本地方法栈是为Java 中执行Native 方法服务的，作用和Java 虚拟机栈是一样的。</li>
+<li>程序计数器 <br/>
+每个线程都会有自己的程序计数器方面在执行Java 方法的时候，能顺利的找到下面要执行的指令。</li>
+</ol>
+</li>
+</ol>
+
+
+<h1>2.HotSpot jvm内存实现模型</h1>
+
+<p>Ok,上面说了Java 虚拟机规范规定的虚拟机概念模型中的内存布局，接下来我们以Sun公司的HopSpot jvm为例（现以及被Oracle 收购），来具体的看看JVM的内存模型和垃圾收集方面的知识。</p>
+
+<p>Java HotSopt jvm 将JVM的堆内存分为了几个区域，我们可以通过下图来形象的描述：
+<img class="center" src="/images/2010/02/21/hotsopt-jvm-memory.jpg"></p>
+
+<p>从上图我们可以清晰的看到HotSpot jvm 将堆分为如下三部分：</p>
+
+<ol>
+<li><p>新生代（Young）<br/>
+新生代被划分为三部分，Eden区和两个大小严格相同的Survivor区，其中Survivor区间，某一时刻只有其中一个是被使用的，另外一个留做垃圾收集时复制对象用，在Young区间变满的时候，minor GC就会将存活的对象移到空闲的Survivor区间中，根据JVM的策略，在经过几次垃圾收集后，仍然存活于Survivor的对象将被移动到Tenured区间。</p></li>
+<li><p>老年代（Tenured）<br/>
+Tenured区主要保存生命周期长的对象，一般是一些老的对象，当一些对象在Young复制转移一定的次数以后，对象就会被转移到Tenured区，一般如果系统中用了application级别的缓存，缓存中的对象往往会被转移到这一区间。</p></li>
+<li><p>持久代（Perm）<br/>
+Perm代主要保存class,method,filed对象，这部分的空间一般不会溢出，除非一次性加载了很多的类，不过在涉及到热部署的应用服务器的时候，有时候会遇到java.lang.OutOfMemoryError : PermGen space 的错误，造成这个错误的很大原因就有可能是每次都重新部署，但是重新部署后，类的class没有被卸载掉，这样就造成了大量的class对象保存在了perm中，这种情况下，一般重新启动应用服务器可以解决问题。</p>
+
+<blockquote><p>说到持久代，我们有必要来说一下虚拟机概念模型和实现模型方面的差异，在HotSpot虚拟机的实现中利用持久代实现了概念模型的方法区。</p></blockquote></li>
+</ol>
+
+
+<p>OK,接下来我们再来看看 HotSpot jvm都给我们提供了哪些参数来对内存进行配置：</p>
+
+<ul>
+<li>配置总内存<br/>
+<code>-Xms</code> ：指定了JVM初始启动以后初始化内存<br/>
+<code>-Xmx</code>：指定JVM堆得最大内存，在JVM启动以后，会分配-Xmx参数指定大小的内存给JVM，但是不一定全部使用，JVM会根据-Xms参数来调节真正用于JVM的内存<br/>
+-Xmx-Xms之差就是三个Virtual空间的大小</li>
+<li>配置新生代 <br/>
+<code>-Xmn</code>: 参数设置了年轻代的大小 <br/>
+<code>-XX:SurvivorRatio</code>: 表示eden和一个surivivor的比例，缺省值为8.假如<code>-XX:SurvivorRatio=32</code>意味着eden和一个survivor的比值是32：1，这样一个Survivor就占Young区的1/34.</li>
+<li>配置老年代  <br/>
+<code>-XX:NewRatio</code>: 表示年老年代和新生代内存的比例，缺省值为2.假如<code>-XX:NewRatio=8</code>意味着tenured 和 young的比值8：1</li>
+<li>配置持久代<br/>
+<code>-XX:MaxPermSize</code>：表示持久代的最大值</li>
+</ul>
+
+
+<p>有了上面虚拟机的内存模型的相关介绍做为铺垫，我们接着来看一下有关垃圾收集方面的知识。</p>
+
+<h1>3.常见的垃圾收集策略</h1>
+
+<p>垃圾收集提供了内存管理的机制，使得应用程序不需要在关注内存如何释放，内存用完后，垃圾收集会进行收集，这样就减轻了因为人为的管理内存而造成的错误，比如在C++语言里，出现内存泄露时很常见的。Java语言是目前使用最多的依赖于垃圾收集器的语言，但是垃圾收集器策略从20世纪60年代就已经流行起来了，比如Smalltalk,Eiffel等编程语言也集成了垃圾收集器的机制。</p>
+
+<p>所有的垃圾收集算法都面临同一个问题，那就是找出应用程序不可到达的内存块，将其释放，这里面得不可到达主要是指应用程序已经没有内存块的引用了，而在JAVA中，某个对象对应用程序是可到达的是指：这个对象被根（根主要是指类的静态变量，常量或者活跃在所有线程栈的对象的引用）引用或者对象被另一个可到达的对象引用，可以通过下图来形象的描述：
+<img class="center" src="/images/2010/02/21/root-avaliable.jpg"></p>
+
+<p>下面我们介绍一下几种常见的垃圾收集策略：</p>
+
+<h2>1. Reference Counting(引用计数）</h2>
+
+<p>引用计数是最简单直接的一种方式，这种方式在每一个对象中增加一个引用的计数，这个计数代表当前程序有多少个引用引用了此对象，如果此对象的引用计数变为0，那么此对象就可以作为垃圾收集器的目标对象来收集。<br/>
+优点：<br/>
+简单，直接，不需要暂停整个应用<br/>
+缺点：<br/>
+需要编译器的配合，编译器要生成特殊的指令来进行引用计数的操作，比如每次将对象赋值给新的引用，或者者对象的引用超出了作用域等。<br/>
+不能处理循环引用的问题</p>
+
+<h2>2. 跟踪收集器</h2>
+
+<p>跟踪收集器首先要暂停整个应用程序，然后开始从根对象扫描整个堆，判断扫描的对象是否有对象引用。
+如果每次扫描整个堆，那么势必让GC的时间变长，从而影响了应用本身的执行。因此在JVM里面采用了分代收集，在新生代收集的时候minor gc只需要扫描新生代，而不需要扫描老生代。<br/>
+JVM采用了分代收集以后，minor gc只扫描新生代，但是minor gc怎么判断是否有老生代的对象引用了新生代的对象，JVM采用了卡片标记的策略，卡片标记将老生代分成了一块一块的，划分以后的每一个块就叫做一个卡片，JVM采用卡表维护了每一个块的状态，当JAVA程序运行的时候，如果发现老生代对象引用或者释放了新生代对象的引用，那么就JVM就将卡表的状态设置为脏状态，这样每次minor gc的时候就会只扫描被标记为脏状态的卡片，而不需要扫描整个堆。具体如下图：<br/>
+<img class="center" src="/images/2010/02/21/jvm-memory-table-card.jpg">
+上面说了Jvm 需要判断对象是否有引用存在，而Java 中的引用又分为了如下几种，不同种类的引用对垃圾收集有不同的影响，下面我们分开描述一下：<br/>
+<code>1.Strong Reference(强引用)</code><br/>
+强引用是JAVA中默认采用的一种方式，我们平时创建的引用都属于强引用。如果一个对象没有强引用，那么对象就会被回收。<br/>
+<code>2.Soft Reference(软引用)</code>
+软引用的对象在GC的时候不会被回收，只有当内存不够用的时候才会真正的回收，因此软引用适合缓存的场合，这样使得缓存中的对象可以尽量的再内存中待长久一点。 <br/>
+<code>3.Weak Reference(弱引用)</code><br/>
+弱引用有利于对象更快的被回收，假如一个对象没有强引用只有弱引用，那么在GC后，这个对象肯定会被回收。<br/>
+<code>4.Phantom reference(幽灵引用)</code><br/>
+跟踪收集器常见的有如下几种：</p>
+
+<h3>2.1 Mark-Sweep Collector(标记-清除收集器）</h3>
+
+<p>标记清除收集器最早由Lisp的发明人于1960年提出，标记清除收集器停止所有的工作，从根扫描每个活跃的对象，然后标记扫描过的对象，标记完成以后，清除那些没有被标记的对象。<br/>
+优点：<br/>
+解决循环引用的问题<br/>
+不需要编译器的配合，从而就不执行额外的指令<br/>
+缺点：  <br/>
+每个活跃的对象都要进行扫描，收集暂停的时间比较长。</p>
+
+<h3>2.2 Copying Collector(复制收集器）</h3>
+
+<p>复制收集器将内存分为两块一样大小空间，某一个时刻，只有一个空间处于活跃的状态，当活跃的空间满的时候，GC就会将活跃的对象复制到未使用的空间中去，原来不活跃的空间就变为了活跃的空间。复制收集器具体过程可以参考下图：
+<img class="center" src="/images/2010/02/21/copy-gc.jpg">
+优点： <br/>
+只扫描可以到达的对象，不需要扫描所有的对象，从而减少了应用暂停的时间<br/>
+缺点：<br/>
+需要额外的空间消耗，某一个时刻，总是有一块内存处于未使用状态<br/>
+复制对象需要一定的开销</p>
+
+<h3>2.3 Mark-Compact Collector(标记-整理收集器）</h3>
+
+<p>标记整理收集器汲取了标记清除和复制收集器的优点，它分两个阶段执行，在第一个阶段，首先扫描所有活跃的对象，并标记所有活跃的对象，第二个阶段首先清除未标记的对象，然后将活跃的的对象复制到堆得底部。标记整理收集器的过程示意图请参考下图：
+<img class="center" src="/images/2010/02/21/mark-compact-collector.jpg">
+Mark-compact策略极大的减少了内存碎片，并且不需要像Copy Collector一样需要两倍的空间。</p>
+
+<p>本篇文章介绍了Jvm内存的概念模型，HotSpot jvm内存实现模型，以及常见的垃圾收集策略，本系列的下篇文章将介绍，HotSpot jvm中的内存模型以及HotSpot Jvm 垃圾收集器的配置策略。下篇请参加如下文章：<br/>
+<a href="/blog/2010/02/21/jvm-memory-and-gc-2/">Jvm内存模型以及垃圾收集策略解析系列（二)</a></p>
+
+<p>最后附上一些JVM 垃圾收集方面的文章供大家参考：<br/>
+<a href="http://www.ibm.com/developerworks/library/j-jtp10283/index.html?S_TACT=105AGX52&amp;S_CMP=cn-a-j">Java theory and practice: A brief history of garbage collection</a> <br/>
+<a href="http://www.ibm.com/developerworks/library/j-jtp11253/index.html?S_TACT=105AGX52&amp;S_CMP=cn-a-j">Java theory and practice: Garbage collection in the HotSpot JVM</a><br/>
+<a href="https://blogs.oracle.com/poonam/entry/understanding_cms_gc_logs"> Understanding CMS GC Logs </a> <br/>
+<a href="http://www.oracle.com/technetwork/java/javase/tech/vmoptions-jsp-140102.html">Java HotSpot VM Options</a></p>
+</div>
+
+</article>
+
+
+
+<div class="post-copyright">
+	<div class="avator" style="">
+		<img alt="" src="http://www.gravatar.com/avatar/80695ffc8afc90667bb292139686239b?s=160" width="100" height="100"/>
+	</div>
+	<div class="info">
+			作者： <A href="http://imtiger.github.com/">Tiger</A> <br>
+			出处： <A href="http://imtiger.github.com/">http://imtiger.github.com/</A>
+			<br>欢迎转载或用于商业目的，但是必须保留本文的署名和连接，谢谢配合！
+			<a href="http://imtiger.github.com/">Tiger</a>。 
+	</div>
+</div>
+
+
+
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	
+	
+	  <!-- JiaThis Button BEGIN -->
+<div class="jiathis_style">
+	<span class="jiathis_txt"></span>
+  <a class="jiathis_button_tsina"></a>
+	<a class="jiathis_button_qzone">QQ</a>
+	<a class="jiathis_button_tqq"></a>
+	<a class="jiathis_button_weixin"></a>
+	<a href="http://www.jiathis.com/share?uid=1845643" class="jiathis jiathis_txt jiathis_separator jtico jtico_jiathis" target="_blank"></a>
+	<a class="jiathis_counter_style"></a>
+</div>
+<script type="text/javascript">
+var jiathis_config = {data_track_clickback:'true'};
+</script>
+<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js?uid=1372156002529710" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+
+<!-- UY BEGIN -->
+<div id="uyan_frame"></div>
+<script type="text/javascript" src="http://v2.uyan.cc/code/uyan.js?uid=1845643"></script>
+<!-- UY END -->
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <!-- <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid="></script> -->
+</div>
+
+
+</div>
+			</div>
+			<footer id="footer" class="inner">Copyright &copy; 2013
+
+    imtiger
+
+<br>
+Powered by Octopress.
+
+Design credit: <a href="http://shashankmehta.in/archive/2012/greyshade.html">Shashank Mehta</a></footer>
+			<script src="/javascripts/slash.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script> <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+
+	<script type="text/javascript">
+		var _gaq = _gaq || [];
+		_gaq.push(['_setAccount', 'UA-44429269-1']);
+		_gaq.push(['_trackPageview']);
+
+		(function() {
+			var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+			ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+			var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+		})();
+	</script>
+
+
+
+		</div>
+	</div>
+</body>
+</html>

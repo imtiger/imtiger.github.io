@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Java | 我是Tiger,一个热爱生活和技术的创业者!]]></title>
   <link href="http://imtiger.github.io/blog/categories/java/atom.xml" rel="self"/>
   <link href="http://imtiger.github.io/"/>
-  <updated>2013-09-29T10:44:32+08:00</updated>
+  <updated>2013-09-30T15:36:50+08:00</updated>
   <id>http://imtiger.github.io/</id>
   <author>
     <name><![CDATA[imtiger]]></name>
@@ -200,6 +200,318 @@ CONSTANT_NameAndType_info tag 标志位为12，字段和方法的名称以及类
 
 <p>本篇文章描述了Java Class文件方面的理论知识，下面一篇文章将通过一个实际的例子来详细解释一下Class文件内部到底长什么样。具体请参考本系列的第二篇文章：<br/>
 <a href="/blog/2013/01/30/java-class-file-format-demo/">实例分析Java Class文件的结构-实践篇</a></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Jvm内存模型以及垃圾收集策略解析系列（二）]]></title>
+    <link href="http://imtiger.github.io/blog/2010/02/21/jvm-memory-and-gc-2/"/>
+    <updated>2010-02-21T13:40:00+08:00</updated>
+    <id>http://imtiger.github.io/blog/2010/02/21/jvm-memory-and-gc-2</id>
+    <content type="html"><![CDATA[<p><img class="center" src="/images/2010/02/21/jvm-original-logo.jpg"></p>
+
+<p>本文是<code>Jvm内存模型以及垃圾收集策略解析系列</code>第二篇，第一篇为<a href="/blog/2010/02/21/jvm-memory-and-gc/">Jvm内存模型以及垃圾收集策略解析系列(一)</a>。<br/>
+本文之前发布在本人Iteye的<a href="http://xmuzyq.iteye.com">博客</a>上，换了新博客后，重新整理一下，发布在此，希望对Jvm 内存以及垃圾收集策略感兴趣的朋友有点帮助。</p>
+
+<p><a href="/blog/2010/02/21/jvm-memory-and-gc/">Jvm内存模型以及垃圾收集策略解析系列(一)</a>介绍了下面的前3部分，本篇文章将介绍第4和第5部分</p>
+
+<ol>
+<li>Java虚拟机规范规定的Jvm 内存概念模型</li>
+<li>HotSpot Jvm 内存的模型</li>
+<li>常见的垃圾收集策略</li>
+<li><code>HotSpot Jvm 垃圾收集策略</code></li>
+<li><code>HotSpot Jvm 垃圾收集器的配置策略</code></li>
+</ol>
+
+
+<!-- more -->
+
+
+<h1>4.HotSpot Jvm 垃圾收集策略</h1>
+
+<p>GC的执行时要耗费一定的CPU资源和时间的，因此在JDK1.2以后，JVM引入了分代收集的策略，其中对新生代采用"Mark-Compact"策略，而对老生代采用了“Mark-Sweep"的策略。其中新生代的垃圾收集器命名为“minor gc”，老生代的GC命名为"Full Gc 或者Major GC".其中用System.gc()强制执行的是Full Gc.
+HotSpot Jvm的垃圾收集器按照并发性可以分为如下三种类型：</p>
+
+<h2>4.1 串行收集器（Serial Collector）</h2>
+
+<p>Serial Collector是指任何时刻都只有一个线程进行垃圾收集，这种策略有一个名字“stop the whole world",它需要停止整个应用的执行。这种类型的收集器适合于单CPU的机器。
+Serial Collector 有如下两个：</p>
+
+<ol>
+<li><p>Serial Copying Collector:<br/>
+此种GC用-XX:UseSerialGC选项配置，它只用于<code>新生代</code>对象的收集。1.5.0以后.<br/>
+<code>-XX:MaxTenuringThreshold</code>来设置对象复制的次数。当eden空间不够的时候，GC会将eden的活跃对象和一个名叫From survivor空间中尚不够资格放入Old代的对象复制到另外一个名字叫To Survivor的空间。而此参数就是用来说明到底From survivor中的哪些对象不够资格，假如这个参数设置为31，那么也就是说只有对象复制31次以后才算是有资格的对象。</p>
+
+<blockquote><p>这里需要注意几个个问题：<br/>
+From Survivor和To survivor的角色是不断的变化的，同一时间只有一块空间处于使用状态，这个空间就叫做From Survivor区，当复制一次后角色就发生了变化。<br/>
+如果复制的过程中发现To survivor空间已经满了，那么就直接复制到old generation.<br/>
+比较大的对象也会直接复制到Old generation,在开发中，我们应该尽量避免这种情况的发生。</p></blockquote></li>
+<li><p>Serial  Mark-Compact Collector： <br/>
+串行的标记-整理收集器是JDK5 update6之前默认的<code>老生代</code>的垃圾收集器，此收集使得内存碎片最少化，但是它需要暂停的时间比较长</p></li>
+</ol>
+
+
+<h2>4.2 并行收集器（Parallel Collector）</h2>
+
+<p>Parallel Collector主要是为了应对多CPU，大数据量的环境。<br/>
+Parallel Collector又可以分为以下三种：</p>
+
+<ol>
+<li>Parallel Copying Collector<br/>
+此种GC用-XX:UseParNewGC参数配置,它主要用于<code>新生代</code>的收集,此GC可以配合CMS一起使用，适用于1.4.1以后。</li>
+<li>Parallel Mark-Compact Collector<br/>
+此种GC用-XX:UseParallelOldGC参数配置，此GC主要用于<code>老生代</code>对象的收集。适用于1.6.0以后。</li>
+<li>Parallel scavenging Collector<br/>
+此种GC用-XX:UseParallelGC参数配置，它是对<code>新生代</code>对象的垃圾收集器，但是它不能和CMS配合使用，它适合于比较大新生代的情况，此收集器起始于jdk 1.4.0。它比较适合于对吞吐量高于暂停时间的场合。</li>
+</ol>
+
+
+<p>串行收集器和并行收集器可以通过如下的图来表示：</p>
+
+<p><img class="center" src="/images/2010/02/21/serial-and-parallel-gc.jpg"></p>
+
+<h2>4.3 并发收集器 (Concurrent Collector)</h2>
+
+<p>Concurrent Collector通过并行的方式进行垃圾收集，这样就减少了垃圾收集器收集一次的时间，在HotSpot Jvm中，我们称之为CMS GC,这种GC在实时性要求高于吞吐量的时候比较有用。此种GC可以用参数-XX:UseConcMarkSweepGC配置，此GC主要用于老生代和Perm代的收集。
+并发收集器可以通过下图形象的描述：
+<img class="center" src="/images/2010/02/21/concurrent-gc.jpg"></p>
+
+<p>CMS GC有可能出现并发模型失败：</p>
+
+<blockquote><p>并发模型失败：我们CMS GC在运行的时候，用户线程也在运行，当gc的速度比新增对象的速度慢的时候，或者说当正在GC的时候，老年代的空间不能满足用户线程内存分配的需求的时候，就会出现并发模型失败，出现并发模型失败的时候，JVM会触发一次stop-the-world的Full GC这将导致暂停时间过长。不过CMS GC提供了一个参数<code>-XX:CMSInitiatingOccupancyFraction</code>来指定当老年代的空间超过某个值的时候即触发GC。因此如果此参数设置的过高，可能会导致更多的并发模型失败。</p></blockquote>
+
+<p>并发和并行收集器区别：</p>
+
+<blockquote><p>对于并发和并行收集器，我们需要注意一点：并发收集器是指垃圾收集器线程和应用线程可以并发的执行，也就是清除的时候不需要stop the world，但是并行收集器指的的是可以多个线程并行的进行垃圾收集，并行收集器还是要暂停应用的（即所谓的stop the world）</p></blockquote>
+
+<h1>5.HotSpot Jvm 垃圾收集器的配置策略</h1>
+
+<p>通过上面的描述，我们知道HotSpot Jvm中都有哪些垃圾收集器供我们使用，接下来我们总结一下如何配置垃圾收集器。在继续之前我们需要明白，上面所讲的垃圾收集器有些用于新生代，有些用于老年代，并且不是任何两个都可以配对使用的，下面我们通过下图来形象的描述一下哪些收集器可以配对使用：
+<img class="center" src="/images/2010/02/21/hotspot-gc-collectors.png"></p>
+
+<p>Ok,知道新生代和老年代垃圾收集器都有哪些收集器以后，咋们接下来看看具体如何来选择垃圾收集器。这需要根据我们的应用特点来进行选择。下面我们分两种情况来分别描述一下不同情况下的垃圾收集配置策略。</p>
+
+<h2>5.1 吞吐量优先</h2>
+
+<p>吞吐量是指GC的时间与运行总时间的比值，比如系统运行了100分钟，而GC占用了一分钟，那么吞吐量就是99%，吞吐量优先一般运用于对响应性要求不高的场合，比如web应用，因为网络传输本来就有延迟的问题，GC造成的短暂的暂停使得用户以为是网络阻塞所致。<br/>
+吞吐量优先可以通过-XX:GCTimeRatio来指定。当通过-XX:GCTimeRatio不能满足系统的要求以后，我们可以更加细致的来对JVM进行调优。<br/>
+首先因为要求高吞吐量，这样就需要一个较大的Young generation，此时就需要引入“<code>Parallel scavenging Collector</code>”,可以通过参数：<code>-XX:UseParallelGC</code>来配置。<br/>
+<code>java Jvm config
+java -server -Xms3072m -Xmx3072m -XX:NewSize=2560m -XX:MaxNewSize=2560 XX:SurvivorRatio=2 - XX:+UseParallelGC
+</code>
+当年轻代使用了"<code>Parallel scavenge collector</code>&ldquo;后，老生代就不能使用"CMS"GC了，在JDK1.6之前，此时老生代只能采用串行收集，而JDK1.6引入了并行版本的老生代收集器，可以用参数<code>-XX:UseParallelOldGC</code>来配置。</p>
+
+<p>1.控制并行的线程数  <br/>
+缺省情况下，Parallel scavenging Collector 会开启与cpu数量相同的线程进行并行的收集，但是也可以调节并行的线程数。假如你想用4个并行的线程去收集Young generation的话，那么就可以配置-XX:ParallelGCThreads=4,此时JVM的配置参数如下：
+<code>java Jvm config
+java -server -Xms3072m -Xmx3072m -XX:NewSize=2560m -XX:MaxNewSize=2560 XX:SurvivorRatio=2 -XX:+UseParallelGC -XX:ParallelGCThreads=4
+</code>
+2.自动调节新生代    <br/>
+在采用了"Parallel scavenge collector"后，此GC会根据运行时的情况自动调节survivor ratio来使得性能最优，因此"Parallel scavenge collector"应该总是开启此参数。此时JVM的参数配置如下：
+<code>java Jvm config
+java -server -Xms3072m -Xmx3072m -XX:+UseParallelGC -XX:ParallelGCThreads=4 -XX:+UseAdaptiveSizePolicy
+</code></p>
+
+<h2>5.2 响应时间优先</h2>
+
+<p>响应时间优先是指GC每次运行的时间不能太久，这种情况一般使用与对及时性要求很高的系统，比如股票系统等。</p>
+
+<p>响应时间优先可以通过参数-XX:MaxGCPauseMillis来配置，配置以后JVM将会自动调节年轻代，老生代的内存分配来满足参数设置。</p>
+
+<p>在一般情况下，JVM的默认配置就可以满足要求，只有默认配置不能满足系统的要求时候，才会根据具体的情况来对JVM进行性能调优。如果采用默认的配置不能满足系统的要求，那么此时就可以自己动手来调节。此时"Young generation"可以采用"Parallel copying collector"，而"Old generation"则可以采用"Concurrent Collector".<br/>
+举个例子来说，以下参数设置了新生代用Parallel Copying Collector，老生代采用CMS收集器。<br/>
+<code>java
+java -server -Xms512m -Xmx512m  -XX:NewSize=64m -XX:MaxNewSize=64m -XX:SurvivorRatio=2  -XX:+UseConcMarkSweepGC -XX:+UseParNewGC
+</code></p>
+
+<blockquote><p>此时需要注意两个问题：<br/>
+1.如果没有指定-XX:+UseParNewGC，则采用默认的非并行版本的copy collector.<br/>
+2.如果在一个单CPU的系统上设置了-XX:+UseParNewGC ,则默认还是采用缺省的copy collector.</p></blockquote>
+
+<p>1.控制并行的线程数<br/>
+默认情况下，Parallel copy collector启动和CPU数量一样的线程，也可以通过参数-XX:ParallelGCThreads来指定，比如你想用3个线程去进行并发的复制收集，那么可以改变上述参数如下：
+<code>java
+java -server -Xms512m -Xmx512m -XX:NewSize=64m  -XX:MaxNewSize=64m -XX:SurvivorRatio=2        -XX:ParallelGCThreads=4 -XX:+UseConcMarkSweepGC -XX:+UseParNewGC
+</code></p>
+
+<p>2.控制并发收集的临界值 <br/>
+默认情况下，CMS gc在"old generation"空间占用率高于68%的时候，就会进行垃圾收集，而如果想控制收集的临界值，可以通过参数：-XX:CMSInitiatingOccupancyFraction来控制，比如改变上述的JVM配置如下：
+<code>java
+java -server -Xms512m -Xmx512m -XX:NewSize=64m -XX:MaxNewSize=64m -XX:SurvivorRatio=2  -XX:ParallelGCThreads=4 -XX:+UseConcMarkSweepGC -XX:+UseParNewGC -XX:CMSInitiatingOccupancyFraction=35
+</code></p>
+
+<p>最后附上一些JVM 垃圾收集方面的文章供大家参考：<br/>
+<a href="http://www.ibm.com/developerworks/library/j-jtp10283/index.html?S_TACT=105AGX52&amp;S_CMP=cn-a-j">Java theory and practice: A brief history of garbage collection</a> <br/>
+<a href="http://www.ibm.com/developerworks/library/j-jtp11253/index.html?S_TACT=105AGX52&amp;S_CMP=cn-a-j">Java theory and practice: Garbage collection in the HotSpot JVM</a><br/>
+<a href="https://blogs.oracle.com/poonam/entry/understanding_cms_gc_logs"> Understanding CMS GC Logs </a> <br/>
+<a href="http://www.oracle.com/technetwork/java/javase/tech/vmoptions-jsp-140102.html">Java HotSpot VM Options</a></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Jvm内存模型以及垃圾收集策略解析系列（一）]]></title>
+    <link href="http://imtiger.github.io/blog/2010/02/21/jvm-memory-and-gc/"/>
+    <updated>2010-02-21T09:33:00+08:00</updated>
+    <id>http://imtiger.github.io/blog/2010/02/21/jvm-memory-and-gc</id>
+    <content type="html"><![CDATA[<p><img class="center" src="/images/2010/02/21/jvm-original-logo.jpg">
+本文之前发布在本人Iteye的<a href="http://xmuzyq.iteye.com">博客</a>上，换了新博客后，重新整理一下，发布在此，希望对Jvm 内存以及垃圾收集策略感兴趣的朋友有点帮助。</p>
+
+<p>本文主要内容分为如下几部分：</p>
+
+<ol>
+<li><code>Java虚拟机规范规定的Jvm 内存概念模型</code></li>
+<li><code>HotSpot Jvm 内存的模型</code></li>
+<li><code>常见的垃圾收集策略</code></li>
+<li>HotSpot Jvm 垃圾收集策略</li>
+<li>HotSpot Jvm 垃圾收集器的配置策略<br/>
+本篇文章只涉及1，2，3部分，第4和5部分<a href="/blog/2010/02/21/jvm-memory-and-gc-2/">Jvm内存模型以及垃圾收集策略解析系列(二)</a>文章我们再来说。</li>
+</ol>
+
+
+<!-- more -->
+
+
+<h1>1.Java虚拟机内存概念模型</h1>
+
+<p>在本文开始之前，首先我们这里要明确一点，Jvm的内存模型分为<code>Java 虚拟机规范规定的概念模型</code>以及具体厂商的<code>实现模型</code>。不同的厂商的Jvm在实现方式上可能会存在差别，本文中如果没有特别指出，Jvm 默认都指HotSpot Jvm。</p>
+
+<p>OK，明确了上面一点以后，咋们首先来看一下<code>Java 虚拟机规范</code>对Jvm 内存模型的要求，咋们具体可以参考下图：<br/>
+<img class="center" src="/images/2010/02/21/jvm-memory-mode.png"></p>
+
+<p>由上图可以看出Jvm 运行时的内存主要分为两部分：</p>
+
+<ol>
+<li><p>所有线程共享的区域<br/>
+ 线程共享的区域分为又分为下面两部分：</p>
+
+<ol>
+<li>方法区<br/>
+方法区主要存放虚拟机中已经加载的类的信息，静态变量，常量等。方法区中有一块非常重要的区域<code>运行时常量池</code>,我们知道Java Class的文件结构中有一个叫<code>常量池</code>的结构，它主要存放了编译器生成的各种字面常量和符号引用，这部分的内容也将放到运行时常量池。</li>
+<li>堆<br/>
+堆中存放了Java 对象，现代虚拟机，对于堆又进行了进一步的划分，具体细节到下面的HotSpot jvm 的实现中再来说说。</li>
+</ol>
+</li>
+<li><p>线程独享的区域</p>
+
+<ol>
+<li>Java虚拟机栈<br/>
+Java 方法在运行的时候，虚拟机会分配给每次方法调用一个<code>栈帧</code>,栈帧中包含了局部变量表，操作数栈，方法出口等信息。</li>
+<li>本地方法栈<br/>
+本地方法栈是为Java 中执行Native 方法服务的，作用和Java 虚拟机栈是一样的。</li>
+<li>程序计数器 <br/>
+每个线程都会有自己的程序计数器方面在执行Java 方法的时候，能顺利的找到下面要执行的指令。</li>
+</ol>
+</li>
+</ol>
+
+
+<h1>2.HotSpot jvm内存实现模型</h1>
+
+<p>Ok,上面说了Java 虚拟机规范规定的虚拟机概念模型中的内存布局，接下来我们以Sun公司的HopSpot jvm为例（现以及被Oracle 收购），来具体的看看JVM的内存模型和垃圾收集方面的知识。</p>
+
+<p>Java HotSopt jvm 将JVM的堆内存分为了几个区域，我们可以通过下图来形象的描述：
+<img class="center" src="/images/2010/02/21/hotsopt-jvm-memory.jpg"></p>
+
+<p>从上图我们可以清晰的看到HotSpot jvm 将堆分为如下三部分：</p>
+
+<ol>
+<li><p>新生代（Young）<br/>
+新生代被划分为三部分，Eden区和两个大小严格相同的Survivor区，其中Survivor区间，某一时刻只有其中一个是被使用的，另外一个留做垃圾收集时复制对象用，在Young区间变满的时候，minor GC就会将存活的对象移到空闲的Survivor区间中，根据JVM的策略，在经过几次垃圾收集后，仍然存活于Survivor的对象将被移动到Tenured区间。</p></li>
+<li><p>老年代（Tenured）<br/>
+Tenured区主要保存生命周期长的对象，一般是一些老的对象，当一些对象在Young复制转移一定的次数以后，对象就会被转移到Tenured区，一般如果系统中用了application级别的缓存，缓存中的对象往往会被转移到这一区间。</p></li>
+<li><p>持久代（Perm）<br/>
+Perm代主要保存class,method,filed对象，这部分的空间一般不会溢出，除非一次性加载了很多的类，不过在涉及到热部署的应用服务器的时候，有时候会遇到java.lang.OutOfMemoryError : PermGen space 的错误，造成这个错误的很大原因就有可能是每次都重新部署，但是重新部署后，类的class没有被卸载掉，这样就造成了大量的class对象保存在了perm中，这种情况下，一般重新启动应用服务器可以解决问题。</p>
+
+<blockquote><p>说到持久代，我们有必要来说一下虚拟机概念模型和实现模型方面的差异，在HotSpot虚拟机的实现中利用持久代实现了概念模型的方法区。</p></blockquote></li>
+</ol>
+
+
+<p>OK,接下来我们再来看看 HotSpot jvm都给我们提供了哪些参数来对内存进行配置：</p>
+
+<ul>
+<li>配置总内存<br/>
+<code>-Xms</code> ：指定了JVM初始启动以后初始化内存<br/>
+<code>-Xmx</code>：指定JVM堆得最大内存，在JVM启动以后，会分配-Xmx参数指定大小的内存给JVM，但是不一定全部使用，JVM会根据-Xms参数来调节真正用于JVM的内存<br/>
+-Xmx-Xms之差就是三个Virtual空间的大小</li>
+<li>配置新生代 <br/>
+<code>-Xmn</code>: 参数设置了年轻代的大小 <br/>
+<code>-XX:SurvivorRatio</code>: 表示eden和一个surivivor的比例，缺省值为8.假如<code>-XX:SurvivorRatio=32</code>意味着eden和一个survivor的比值是32：1，这样一个Survivor就占Young区的1/34.</li>
+<li>配置老年代  <br/>
+<code>-XX:NewRatio</code>: 表示年老年代和新生代内存的比例，缺省值为2.假如<code>-XX:NewRatio=8</code>意味着tenured 和 young的比值8：1</li>
+<li>配置持久代<br/>
+<code>-XX:MaxPermSize</code>：表示持久代的最大值</li>
+</ul>
+
+
+<p>有了上面虚拟机的内存模型的相关介绍做为铺垫，我们接着来看一下有关垃圾收集方面的知识。</p>
+
+<h1>3.常见的垃圾收集策略</h1>
+
+<p>垃圾收集提供了内存管理的机制，使得应用程序不需要在关注内存如何释放，内存用完后，垃圾收集会进行收集，这样就减轻了因为人为的管理内存而造成的错误，比如在C++语言里，出现内存泄露时很常见的。Java语言是目前使用最多的依赖于垃圾收集器的语言，但是垃圾收集器策略从20世纪60年代就已经流行起来了，比如Smalltalk,Eiffel等编程语言也集成了垃圾收集器的机制。</p>
+
+<p>所有的垃圾收集算法都面临同一个问题，那就是找出应用程序不可到达的内存块，将其释放，这里面得不可到达主要是指应用程序已经没有内存块的引用了，而在JAVA中，某个对象对应用程序是可到达的是指：这个对象被根（根主要是指类的静态变量，常量或者活跃在所有线程栈的对象的引用）引用或者对象被另一个可到达的对象引用，可以通过下图来形象的描述：
+<img class="center" src="/images/2010/02/21/root-avaliable.jpg"></p>
+
+<p>下面我们介绍一下几种常见的垃圾收集策略：</p>
+
+<h2>1. Reference Counting(引用计数）</h2>
+
+<p>引用计数是最简单直接的一种方式，这种方式在每一个对象中增加一个引用的计数，这个计数代表当前程序有多少个引用引用了此对象，如果此对象的引用计数变为0，那么此对象就可以作为垃圾收集器的目标对象来收集。<br/>
+优点：<br/>
+简单，直接，不需要暂停整个应用<br/>
+缺点：<br/>
+需要编译器的配合，编译器要生成特殊的指令来进行引用计数的操作，比如每次将对象赋值给新的引用，或者者对象的引用超出了作用域等。<br/>
+不能处理循环引用的问题</p>
+
+<h2>2. 跟踪收集器</h2>
+
+<p>跟踪收集器首先要暂停整个应用程序，然后开始从根对象扫描整个堆，判断扫描的对象是否有对象引用。
+如果每次扫描整个堆，那么势必让GC的时间变长，从而影响了应用本身的执行。因此在JVM里面采用了分代收集，在新生代收集的时候minor gc只需要扫描新生代，而不需要扫描老生代。<br/>
+JVM采用了分代收集以后，minor gc只扫描新生代，但是minor gc怎么判断是否有老生代的对象引用了新生代的对象，JVM采用了卡片标记的策略，卡片标记将老生代分成了一块一块的，划分以后的每一个块就叫做一个卡片，JVM采用卡表维护了每一个块的状态，当JAVA程序运行的时候，如果发现老生代对象引用或者释放了新生代对象的引用，那么就JVM就将卡表的状态设置为脏状态，这样每次minor gc的时候就会只扫描被标记为脏状态的卡片，而不需要扫描整个堆。具体如下图：<br/>
+<img class="center" src="/images/2010/02/21/jvm-memory-table-card.jpg">
+上面说了Jvm 需要判断对象是否有引用存在，而Java 中的引用又分为了如下几种，不同种类的引用对垃圾收集有不同的影响，下面我们分开描述一下：<br/>
+<code>1.Strong Reference(强引用)</code><br/>
+强引用是JAVA中默认采用的一种方式，我们平时创建的引用都属于强引用。如果一个对象没有强引用，那么对象就会被回收。<br/>
+<code>2.Soft Reference(软引用)</code>
+软引用的对象在GC的时候不会被回收，只有当内存不够用的时候才会真正的回收，因此软引用适合缓存的场合，这样使得缓存中的对象可以尽量的再内存中待长久一点。 <br/>
+<code>3.Weak Reference(弱引用)</code><br/>
+弱引用有利于对象更快的被回收，假如一个对象没有强引用只有弱引用，那么在GC后，这个对象肯定会被回收。<br/>
+<code>4.Phantom reference(幽灵引用)</code><br/>
+跟踪收集器常见的有如下几种：</p>
+
+<h3>2.1 Mark-Sweep Collector(标记-清除收集器）</h3>
+
+<p>标记清除收集器最早由Lisp的发明人于1960年提出，标记清除收集器停止所有的工作，从根扫描每个活跃的对象，然后标记扫描过的对象，标记完成以后，清除那些没有被标记的对象。<br/>
+优点：<br/>
+解决循环引用的问题<br/>
+不需要编译器的配合，从而就不执行额外的指令<br/>
+缺点：  <br/>
+每个活跃的对象都要进行扫描，收集暂停的时间比较长。</p>
+
+<h3>2.2 Copying Collector(复制收集器）</h3>
+
+<p>复制收集器将内存分为两块一样大小空间，某一个时刻，只有一个空间处于活跃的状态，当活跃的空间满的时候，GC就会将活跃的对象复制到未使用的空间中去，原来不活跃的空间就变为了活跃的空间。复制收集器具体过程可以参考下图：
+<img class="center" src="/images/2010/02/21/copy-gc.jpg">
+优点： <br/>
+只扫描可以到达的对象，不需要扫描所有的对象，从而减少了应用暂停的时间<br/>
+缺点：<br/>
+需要额外的空间消耗，某一个时刻，总是有一块内存处于未使用状态<br/>
+复制对象需要一定的开销</p>
+
+<h3>2.3 Mark-Compact Collector(标记-整理收集器）</h3>
+
+<p>标记整理收集器汲取了标记清除和复制收集器的优点，它分两个阶段执行，在第一个阶段，首先扫描所有活跃的对象，并标记所有活跃的对象，第二个阶段首先清除未标记的对象，然后将活跃的的对象复制到堆得底部。标记整理收集器的过程示意图请参考下图：
+<img class="center" src="/images/2010/02/21/mark-compact-collector.jpg">
+Mark-compact策略极大的减少了内存碎片，并且不需要像Copy Collector一样需要两倍的空间。</p>
+
+<p>本篇文章介绍了Jvm内存的概念模型，HotSpot jvm内存实现模型，以及常见的垃圾收集策略，本系列的下篇文章将介绍，HotSpot jvm中的内存模型以及HotSpot Jvm 垃圾收集器的配置策略。下篇请参加如下文章：<br/>
+<a href="/blog/2010/02/21/jvm-memory-and-gc-2/">Jvm内存模型以及垃圾收集策略解析系列（二)</a></p>
+
+<p>最后附上一些JVM 垃圾收集方面的文章供大家参考：<br/>
+<a href="http://www.ibm.com/developerworks/library/j-jtp10283/index.html?S_TACT=105AGX52&amp;S_CMP=cn-a-j">Java theory and practice: A brief history of garbage collection</a> <br/>
+<a href="http://www.ibm.com/developerworks/library/j-jtp11253/index.html?S_TACT=105AGX52&amp;S_CMP=cn-a-j">Java theory and practice: Garbage collection in the HotSpot JVM</a><br/>
+<a href="https://blogs.oracle.com/poonam/entry/understanding_cms_gc_logs"> Understanding CMS GC Logs </a> <br/>
+<a href="http://www.oracle.com/technetwork/java/javase/tech/vmoptions-jsp-140102.html">Java HotSpot VM Options</a></p>
 ]]></content>
   </entry>
   
