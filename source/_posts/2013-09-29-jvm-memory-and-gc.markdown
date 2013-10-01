@@ -3,11 +3,12 @@ layout: post
 title: "Jvm内存模型以及垃圾收集策略解析系列（一）"
 date: 2010-02-21 09:33
 comments: true
-keywords: java,jvm，内存模型，垃圾收集
+keywords: java,jvm,内存模型,垃圾收集
 categories:
 - Java
 - 技术 
 ---
+{% img center /images/2010/02/21/jvm-original-logo.jpg %}
 本文之前发布在本人Iteye的[博客](http://xmuzyq.iteye.com)上，换了新博客后，重新整理一下，发布在此，希望对Jvm 内存以及垃圾收集策略感兴趣的朋友有点帮助。  
 
 本文主要内容分为如下几部分：
@@ -125,8 +126,15 @@ JVM采用了分代收集以后，minor gc只扫描新生代，但是minor gc怎�
 {% img center /images/2010/02/21/mark-compact-collector.jpg %}
 Mark-compact策略极大的减少了内存碎片，并且不需要像Copy Collector一样需要两倍的空间。 
 
-本篇文章介绍了Jvm内存的概念模型，HotSpot jvm内存实现模型，以及常见的垃圾收集策略，本系列的下篇文章将介绍，HotSpot jvm中的内存模型以及常见的内存溢出异常分析。下篇请参加如下文章：  
+本篇文章介绍了Jvm内存的概念模型，HotSpot jvm内存实现模型，以及常见的垃圾收集策略，本系列的下篇文章将介绍，HotSpot jvm中的内存模型以及HotSpot Jvm 垃圾收集器的配置策略。下篇请参加如下文章：  
 [Jvm内存模型以及垃圾收集策略解析系列（二)](/blog/2010/02/21/jvm-memory-and-gc-2/)
+
+
+最后附上一些JVM 垃圾收集方面的文章供大家参考：  
+[Java theory and practice: A brief history of garbage collection](http://www.ibm.com/developerworks/library/j-jtp10283/index.html?S_TACT=105AGX52&S_CMP=cn-a-j)   
+[Java theory and practice: Garbage collection in the HotSpot JVM](http://www.ibm.com/developerworks/library/j-jtp11253/index.html?S_TACT=105AGX52&S_CMP=cn-a-j)  
+[ Understanding CMS GC Logs ](https://blogs.oracle.com/poonam/entry/understanding_cms_gc_logs)   
+[Java HotSpot VM Options](http://www.oracle.com/technetwork/java/javase/tech/vmoptions-jsp-140102.html)
 
 
 
