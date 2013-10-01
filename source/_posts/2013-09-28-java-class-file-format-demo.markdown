@@ -3,6 +3,7 @@ layout: post
 title: "实例分析Java Class文件的结构-实践篇"
 date: 2013-01-30 12:16
 comments: true
+keywords: jvm,java,class文件结构
 categories: 
 - Java
 - 技术
