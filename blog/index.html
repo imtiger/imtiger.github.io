@@ -137,7 +137,7 @@
 职位名称: 高级Java软件攻城狮<br/>
 月薪:    15k-20k</p>
 
-<p>公司介绍: 我们公司<a href="http://www.ejushang.com">易居尚</a>秉承着<code>让品质走进生活的理念</code>，致力于打造一个品质、高效、便捷的居家用品网络销售平台.咋们公司不打卡，弹性工作制，每天下午有公司大厨做的下午茶，攻城狮童鞋每周可以自由支配20%的工作时间做自己想做的事情，我们技术团队内部有很强互助和知识分享意识（包括技术骚们喜欢的爱情动作片，嘘&hellip;，其他人我不告诉他）当然了还有很多美女和帅哥，想置身互联网和电子商务有理想的的技术骚们，请你加入我们 一起high，<strong>我们不求改变世界，但求超越自我</strong>。也请各位朋友帮忙推荐，推荐成功有神秘礼物相送哦，有意者请联系:<a href="&#109;&#97;&#x69;&#108;&#116;&#x6f;&#58;&#116;&#x69;&#103;&#x65;&#114;&#46;&#122;&#104;&#111;&#x75;&#64;&#x6b;&#97;&#x72;&#105;&#x71;&#x75;&#46;&#x63;&#111;&#109;">&#x74;&#105;&#x67;&#x65;&#x72;&#46;&#x7a;&#x68;&#x6f;&#117;&#x40;&#107;&#97;&#x72;&#x69;&#113;&#x75;&#x2e;&#99;&#x6f;&#x6d;</a> 或者留言给我，另外也可以通过<a href="http://weibo.com/xmuzyq">@krq_tiger</a>新浪微博与我取的联系.</p>
+<p>公司介绍: 我们公司<a href="http://www.ejushang.com">易居尚</a>秉承着<code>让品质走进生活的理念</code>，致力于打造一个品质、高效、便捷的居家用品网络销售平台.咋们公司不打卡，弹性工作制，每天下午有公司大厨做的下午茶，攻城狮童鞋每周可以自由支配20%的工作时间做自己想做的事情，我们技术团队内部有很强互助和知识分享意识（包括技术骚们喜欢的爱情动作片，嘘&hellip;，其他人我不告诉他）当然了还有很多美女和帅哥，想置身互联网和电子商务有理想的的技术骚们，请你加入我们 一起high，<strong>我们不求改变世界，但求超越自我</strong>。也请各位朋友帮忙推荐，推荐成功有神秘礼物相送哦，有意者请联系:<a href="&#109;&#97;&#x69;&#x6c;&#116;&#x6f;&#x3a;&#x74;&#x69;&#103;&#101;&#114;&#46;&#x7a;&#104;&#111;&#x75;&#64;&#x6b;&#x61;&#x72;&#x69;&#x71;&#x75;&#x2e;&#99;&#x6f;&#x6d;">&#x74;&#x69;&#x67;&#x65;&#x72;&#x2e;&#x7a;&#104;&#111;&#117;&#x40;&#x6b;&#97;&#x72;&#x69;&#x71;&#117;&#x2e;&#x63;&#111;&#x6d;</a> 或者留言给我，另外也可以通过<a href="http://weibo.com/xmuzyq">@krq_tiger</a>新浪微博与我取的联系.</p>
 
 
 		
@@ -516,37 +516,31 @@
   
 
 
-<time datetime="2010-02-21T13:40:00+08:00" data-updated="true" itemprop="datePublished">Feb 21<span>st</span>, 2010</time></div>
+<time datetime="2010-07-12T15:52:00+08:00" data-updated="true" itemprop="datePublished">Jul 12<span>th</span>, 2010</time></div>
 		<div class="tags">
 
 
-	<a class='category' href='/blog/categories/java/'>Java</a>, <a class='category' href='/blog/categories/ji-zhu/'>技术</a>
+	<a class='category' href='/blog/categories/ji-zhu/'>技术</a>, <a class='category' href='/blog/categories/xi-tong-jia-gou/'>系统架构</a>
 
 
 </div>
 		
 	</div>
-	<h1 class="title" itemprop="name"><a href="/blog/2010/02/21/jvm-memory-and-gc-2/" itemprop="url">Jvm内存模型以及垃圾收集策略解析系列（二）</a></h1>
+	<h1 class="title" itemprop="name"><a href="/blog/2010/07/12/scalable-and-high-performance-system/" itemprop="url">构建可伸缩、高性能的互联网应用</a></h1>
 	<div class="entry-content" itemprop="articleBody">
-		<p><img class="center" src="/images/2010/02/21/jvm-original-logo.jpg"></p>
+		<p><img class="center" src="/images/2010/07/12/high-scalability.jpg"></p>
 
-<p>本文是<code>Jvm内存模型以及垃圾收集策略解析系列</code>第二篇，第一篇为<a href="/blog/2010/02/21/jvm-memory-and-gc/">Jvm内存模型以及垃圾收集策略解析系列(一)</a>。<br/>
-本文之前发布在本人Iteye的<a href="http://xmuzyq.iteye.com">博客</a>上，换了新博客后，重新整理一下，发布在此，希望对Jvm 内存以及垃圾收集策略感兴趣的朋友有点帮助。</p>
+<blockquote><p>本文发布在我原来的博客上面，后来换博客了，重新整理一下，发布在新的博客上。</p></blockquote>
 
-<p><a href="/blog/2010/02/21/jvm-memory-and-gc/">Jvm内存模型以及垃圾收集策略解析系列(一)</a>介绍了下面的前3部分，本篇文章将介绍第4和第5部分</p>
+<p>本文结合本人的工作经验分析一下，如何构建一个可伸缩，高性能的互联网应用？下面从几个方面来谈谈个人的一些浅见，供有兴趣的同学参考下，也欢迎大家一起讨论。</p>
 
-<ol>
-<li>Java虚拟机规范规定的Jvm 内存概念模型</li>
-<li>HotSpot Jvm 内存的模型</li>
-<li>常见的垃圾收集策略</li>
-<li><code>HotSpot Jvm 垃圾收集策略</code></li>
-<li><code>HotSpot Jvm 垃圾收集器的配置策略</code></li>
-</ol>
+<h1>1. 应用无状态</h1>
 
+<p>俗话说，一个系统的伸缩性的好坏取决于应用的状态如何管理。为什么这么说呢？咱们试想一下，假如我们在session中保存了大量与客户端的状态信息的话，那么当保存状态信息的server宕机的时候，我们怎么办？通常来说，我们都是通过集群来解决这个问题，而通常所说的集群，不仅有负载均衡，更重要的是要有失效恢复failover,比如tomcat采用的集群节点广播复制，jboss采用的配对复制等session状态复制策略，但是集群中的状态恢复也有其缺点，那就是严重影响了系统的伸缩性，系统不能通过增加更多的机器来达到良好的水平伸缩，因为集群节点间session的通信会随着节点的增多而开销增大，因此要想做到应用本身的伸缩性，我们需要保证应用的无状态性，这样集群中的各个节点来说都是相同的，从而是的系统更好的水平伸缩。</p>
 
 
 		
-		<a href="/blog/2010/02/21/jvm-memory-and-gc-2/" class="more-link">Read on(阅读全文) &rarr;</a>
+		<a href="/blog/2010/07/12/scalable-and-high-performance-system/" class="more-link">Read on(阅读全文) &rarr;</a>
 	</div>
 
 </article>
