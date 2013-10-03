@@ -1,0 +1,102 @@
+---
+layout: post
+title: "JavaScript 作用域和作用域链解析"
+date: 2011-10-17 18:26
+comments: true
+keywords: JavaScript,作用域，作用域链，执行上下文
+categories: 
+- JavaScript
+- 技术
+---
+
+{% img center /images/2011/10/17/JavaScript-Logo.png %}
+最近看了下JavaScript方面的几本书，把里面的一些核心概念按照自己的理解做个总结。
+
+JavaScript 中有 Scope( 作用域 ) ， Scope chain( 作用域链 ) ， Execute context( 执行上下文 ) ， Active Object ( 活动对象 ),Dynamic Scope( 动态作用域 ) ， Closure( 闭包 ) 这些概念，要理解这些概念，我们从静态和动态两个方面去分析一下。
+
+首先我们写一个简单的 function 来做一个例子：
+
+```javascript JavaScript code
+function add(num1, num2){
+	var sum = num1 + num2;
+	return sum;
+}
+```
+<!-- more -->
+
+我们定义了一个具有两个形参的 add 函数。
+
+**静态方面：**
+
+当创建 add 函数的时候， Javascript 引擎会创建 add 函数的 `Scope chain`, 这个作用域链指向了 `Global Context( 全局上下文 )` 。如果用图形形象化的表述如下图所示：
+
+{% img center /images/2011/10/17/add-method.jpg %}
+ 
+
+从上图可以看出，当 add 函数创建的时候，作用域链就已经创建了，因此可以得出一个结论:
+>函数的作用域链是创建函数的时候就已经创建了，而不是动态运行期。
+
+下面就来看看动态运行期的时候会发生什么事情。 
+
+**动态方面：**
+
+当执行 add 函数的时候， JavaScript 会创建一个 `Execute context （执行上下文）`，执行上下文中就包含了 add 函数运行期所需要的所有信息。 Execute context 也有自己的 Scope chain, 当函数运行的时候， JavaScript 引擎会首先从用 add 函数的作用域链来初始化执行上下文的作用域链，然后 JavaScript 引擎又会创建一个 Active Object, 这个对象里面包含了函数运行期的所有局部变量，参数以及 this 等变量。
+
+如果形象的描述 add 函数动态运行期会发生什么，可以用如下图来描述：
+{% img center /images/2011/10/17/add-method-runtime.jpg %}
+
+从上图可以看出，执行上下文是一个动态的概念，它是当函数运行的时候创建的，同时 Active Object 对象也是一个动态的概念，它是被执行上下文的作用域链引用的。因此可以得出一个结论：
+>执行上下文和活动对象都是动态概念，并且执行上下文的作用域链是由函数作用域链初始化的。
+
+上面说了函数作用域和执行上下文作用域，下面接着说一下动态作用域的问题.  
+当在 JavaScript 通过 with 语句， try-catch 的 catch 子句，以及 eval 方法的时候， JavaScript 引擎就会动态的改变执行上下文的作用域。下面还是通过一个例子来看看：
+
+```javascript JavaScript Code
+function initUI(){
+
+	with (document){ //avoid!
+		var bd = body,
+		links = getElementsByTagName("a"),
+		i= 0,
+		len = links.length;
+		while(i < len){
+		update(links[i++]);
+	}
+	
+	getElementById("go-btn").onclick = function(){
+		start();
+	};
+
+	bd.className = "active";
+}
+```
+
+当执行上面的 initUI 函数的时候， JavaScript 会动态的创建一个 with 语句对应的作用域放到执行上下文作用域链的最前端，通过下图可以形象的描述上述过程，下图红色标注的区域就显示了 with 语句产生的作用域。
+{% img center /images/2011/10/17/initui-method.jpg %}
+
+最后，我们来看看 JavaScript 最神秘的 Closure （闭包），闭包在 JavaScript 其实就是一个函数，闭包是在函数运行期被创建的，下面还是以一个实例来看看：
+
+```javascript JavaScript Code
+function assignEvents(){
+	var id = "xdi9592";
+	document.getElementById("save-btn").onclick = function(event){
+		saveDocument(id);
+	};
+}
+```
+ 
+当上面的 assignEvents 函数被执行的时候，会创建一个闭包，而这个闭包会引用 assignEvents 作用域中的 id 变量，如果按照传统的编程语言的方式， id 是存储在堆栈上的一个变量，当函数执行完了以后 id 就消失，那么怎么可能再次引用呢？显然这里 JavaScript 采用了另外的方式。  
+下面就来看看 JavaScript 是如何来实现闭包的。当执行 assignEvents 函数的时候， JavaScript 引擎会创建assignEvents函数执行上下文的作用域链，这个作用域链包含了 assignEvents 执行时的活动对象，而同时 JavaScript 引擎也会创建一个闭包，而闭包的作用域链也会引用 assignEvent 执行时候的活动对象，这样当 assignEvents 执行完的时候，虽然它本身执行上下文的作用域链不再引用活动对象了，但是闭包还是引用着 assignEvents 运行期对应的活动对象，这就解释了 JavaScipt 内部的闭包机制。可以用下图形象的表述上面 assignEvents 函数运行期的情形：
+{% img center /images/2011/10/17/assignevents-method.jpg %}
+
+
+从上面可以看出，当 assignEvents 函数执行完毕以后， document.getElementById("save-btn").onclick 引用了闭包，这样当用户点击 save-btn 的时候，就会触发闭包的执行，那么下面就来看看闭包执行时的情形。前面也说了 JavaScript 中闭包其实就是函数，因此闭包执行和函数执行时的情形是一致的，通过下图来形象的描述上述 onclick 事件所关联的闭包。 
+{% img center /images/2011/10/17/closure-runtime.jpg %}
+
+从上图可以看出 JavaScript 引擎首先创建了闭包的执行上下文，然后用闭包作用域链来初始化闭包的执行上下文作用域链，最后再将闭包执行时对应的活动对象放入到作用域的最前端，这也进一步验证了闭包就是函数的论断。
+
+ 
+参考资料：
+
+1. [High Performance JavaScript](http://book.douban.com/subject/5362856/)
+2. [JavaScript高级程序设计](http://book.douban.com/subject/4886879/)
