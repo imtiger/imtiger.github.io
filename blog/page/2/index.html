@@ -9,8 +9,7 @@
 	<meta name="author" content="imtiger">
 
 	
-	<meta name="description" content="Feb 21st, 2010 Java, 技术 Jvm内存模型以及垃圾收集策略解析系列（二） 本文是Jvm内存模型以及垃圾收集策略解析系列第二篇，第一篇为Jvm内存模型以及垃圾收集策略解析系列(一)。
-本文之前发布在本人Iteye的博客上，换了新博客后，重新整理一下，发布在此，希望对Jvm &hellip;">
+	<meta name="description" content="Jul 12th, 2010 技术, 系统架构 构建可伸缩、高性能的互联网应用 本文发布在我原来的博客上面，后来换博客了，重新整理一下，发布在新的博客上。 本文结合本人的工作经验分析一下，如何构建一个可伸缩，高性能的互联网应用？下面从几个方面来谈谈个人的一些浅见，供有兴趣的同学参考下， &hellip;">
 	<meta name="keywords" content="java,ios,mac,linux,objective-c,软件设计,软件架构，摄影.">
 
   <!-- http://t.co/dKP3o1e -->
@@ -118,6 +117,50 @@
   
 
 
+<time datetime="2010-07-12T15:52:00+08:00" data-updated="true" itemprop="datePublished">Jul 12<span>th</span>, 2010</time></div>
+		<div class="tags">
+
+
+	<a class='category' href='/blog/categories/ji-zhu/'>技术</a>, <a class='category' href='/blog/categories/xi-tong-jia-gou/'>系统架构</a>
+
+
+</div>
+		
+	</div>
+	<h1 class="title" itemprop="name"><a href="/blog/2010/07/12/scalable-and-high-performance-system/" itemprop="url">构建可伸缩、高性能的互联网应用</a></h1>
+	<div class="entry-content" itemprop="articleBody">
+		<p><img class="center" src="/images/2010/07/12/high-scalability.jpg"></p>
+
+<blockquote><p>本文发布在我原来的博客上面，后来换博客了，重新整理一下，发布在新的博客上。</p></blockquote>
+
+<p>本文结合本人的工作经验分析一下，如何构建一个可伸缩，高性能的互联网应用？下面从几个方面来谈谈个人的一些浅见，供有兴趣的同学参考下，也欢迎大家一起讨论。</p>
+
+<h1>1. 应用无状态</h1>
+
+<p>俗话说，一个系统的伸缩性的好坏取决于应用的状态如何管理。为什么这么说呢？咱们试想一下，假如我们在session中保存了大量与客户端的状态信息的话，那么当保存状态信息的server宕机的时候，我们怎么办？通常来说，我们都是通过集群来解决这个问题，而通常所说的集群，不仅有负载均衡，更重要的是要有失效恢复failover,比如tomcat采用的集群节点广播复制，jboss采用的配对复制等session状态复制策略，但是集群中的状态恢复也有其缺点，那就是严重影响了系统的伸缩性，系统不能通过增加更多的机器来达到良好的水平伸缩，因为集群节点间session的通信会随着节点的增多而开销增大，因此要想做到应用本身的伸缩性，我们需要保证应用的无状态性，这样集群中的各个节点来说都是相同的，从而是的系统更好的水平伸缩。</p>
+
+
+		
+		<a href="/blog/2010/07/12/scalable-and-high-performance-system/" class="more-link">Read on(阅读全文) &rarr;</a>
+	</div>
+
+</article>
+
+
+    <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
+	<div class="meta">
+		<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
 <time datetime="2010-02-21T13:40:00+08:00" data-updated="true" itemprop="datePublished">Feb 21<span>st</span>, 2010</time></div>
 		<div class="tags">
 
@@ -198,6 +241,46 @@
 
 		
 		<a href="/blog/2010/02/21/jvm-memory-and-gc/" class="more-link">Read on(阅读全文) &rarr;</a>
+	</div>
+
+</article>
+
+
+    <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
+	<div class="meta">
+		<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2008-12-07T20:40:00+08:00" data-updated="true" itemprop="datePublished">Dec 7<span>th</span>, 2008</time></div>
+		<div class="tags">
+
+
+	<a class='category' href='/blog/categories/java/'>Java</a>, <a class='category' href='/blog/categories/ji-zhu/'>技术</a>
+
+
+</div>
+		
+	</div>
+	<h1 class="title" itemprop="name"><a href="/blog/2008/12/07/javaee-resource-manager-strategy-summary/" itemprop="url">JavaEE资源管理常见策略总结</a></h1>
+	<div class="entry-content" itemprop="articleBody">
+		<p>公所周知JavaEE是多线程的，同时资源管理的策略都是与线程相关的，因此通过合理的资源管理来应对多线程的环境是非常关键的。下面我们就来总结一下JavaEE中常见的资源管理策略。</p>
+
+<h1>第一种：实例池</h1>
+
+<p>实例池管理策略就是通过将我们的业务组件的实例保存到池中，这样可以达到重用的目的。说到实例池，需要明确一下单线程模型的概念，所谓单线程模型就是一个实例在某一时间只能服务于同一个线程，单线程模型使得无状态的业务组件不需要关注复杂的线程问题（通俗点讲，单线程模型使得业务开发人员可以采用不需要显示的同步机制来编写业务组件代码，但是业务组件可以安全的运行与多线程环境之下）。如果采用实例池将有助于实现单线程模型。比如EJB对于无状态的会话bean的管理就采取的是实例池的管理策略，这样以来我们的SLSB中是不需要同步的（这也是为什么EJB组件中不能有显示的同步代码的原因，因为EJB本来就是单线程的模型），从而减轻了业务开发人员的负担。</p>
+
+
+		
+		<a href="/blog/2008/12/07/javaee-resource-manager-strategy-summary/" class="more-link">Read on(阅读全文) &rarr;</a>
 	</div>
 
 </article>

@@ -1,0 +1,318 @@
+
+<!DOCTYPE HTML>
+
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<title>JavaScript 作用域和作用域链解析 - I'm Tiger,一个热爱生活和技术的创业者!</title>
+	<meta name="author" content="imtiger">
+
+	
+	<meta name="description" content="JavaScript 作用域和作用域链解析 最近看了下JavaScript方面的几本书，把里面的一些核心概念按照自己的理解做个总结。 JavaScript 中有 Scope( 作用域 ) ， Scope chain( 作用域链 ) ， Execute context( 执行上下文 ) ， &hellip;">
+	<meta name="keywords" content="JavaScript,作用域，作用域链，执行上下文">
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<link href="/atom.xml" rel="alternate" title="I'm Tiger,一个热爱生活和技术的创业者!" type="application/atom+xml">
+	
+	<link rel="canonical" href="http://imtiger.github.io/blog/2011/10/17/javascript-scope-and-scope-chain-explain/">
+	<link href="/favicon.png" rel="shortcut icon">
+	<link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+	<link href="/stylesheets/font-awesome.min.css" media="screen, projection" rel="stylesheet" type="text/css">
+	<!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+	<link href='http://fonts.googleapis.com/css?family=Open+Sans:400italic,400,700' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+	
+  
+	<script type="text/javascript">
+		var _gaq = _gaq || [];
+		_gaq.push(['_setAccount', 'UA-44429269-1']);
+		_gaq.push(['_trackPageview']);
+
+		(function() {
+			var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+			ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+			var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+		})();
+	</script>
+
+
+</head>
+
+
+<body>
+	<div class="container">
+		<div class="left-col">
+			<div class="intrude-less">
+			<header id="header" class="inner"><div class="profilepic">
+	
+	<a href="#"><img src="http://www.gravatar.com/avatar/80695ffc8afc90667bb292139686239b?s=160" alt="Profile Picture" style="width: 160px;" /></a>
+	
+</div>
+<h1><a href="/">I'm Tiger</a></h1>
+<p class="subtitle">一个热爱生活和技术的创业者!</p>
+
+<nav id="main-nav"><ul>
+	<li><a href="/">Home</a></li>
+	<li><a href="/life">Life</a></li>
+	<li><a href="/archives">Archive</a></li>
+	<li><a href="/about">About Me</a></li>
+</ul>
+
+
+</nav>
+<nav id="sub-nav">
+	<div class="social">
+		
+		
+		
+		
+		
+		<a class="iteye" href="http://xmuzyq.iteye.com" title="我之前的博客">我的Iteye博客</a>
+		
+		
+		<a class="weibo" href="http://weibo.com/xmuzyq" title="新浪微博">新浪微博</a>
+		
+		
+		
+		
+		
+		
+		
+		
+		<a class="rss" href="/atom.xml" title="RSS">RSS</a>
+		
+	</div>
+</nav>
+<p class="subtitle">信心、恒心、爱心、野心兼具者可谓准成功人士!</p>
+<p style="text-align: right;" class="subtitle">-- imTiger</p>
+
+</header>				
+			</div>
+		</div>	
+		<div class="mid-col">
+			
+				
+			
+			<div class="mid-col-container">
+				<div id="content" class="inner"><article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+	<h1 class="title" itemprop="name">JavaScript 作用域和作用域链解析</h1>
+	<div class="entry-content" itemprop="articleBody"><p><img class="center" src="/images/2011/10/17/JavaScript-Logo.png">
+最近看了下JavaScript方面的几本书，把里面的一些核心概念按照自己的理解做个总结。</p>
+
+<p>JavaScript 中有 Scope( 作用域 ) ， Scope chain( 作用域链 ) ， Execute context( 执行上下文 ) ， Active Object ( 活动对象 ),Dynamic Scope( 动态作用域 ) ， Closure( 闭包 ) 这些概念，要理解这些概念，我们从静态和动态两个方面去分析一下。</p>
+
+<p>首先我们写一个简单的 function 来做一个例子：</p>
+
+<figure class='code'><figcaption><span>JavaScript code</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">function</span> <span class="nx">add</span><span class="p">(</span><span class="nx">num1</span><span class="p">,</span> <span class="nx">num2</span><span class="p">){</span>
+</span><span class='line'>  <span class="kd">var</span> <span class="nx">sum</span> <span class="o">=</span> <span class="nx">num1</span> <span class="o">+</span> <span class="nx">num2</span><span class="p">;</span>
+</span><span class='line'>  <span class="k">return</span> <span class="nx">sum</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<!-- more -->
+
+
+<p>我们定义了一个具有两个形参的 add 函数。</p>
+
+<p><strong>静态方面：</strong></p>
+
+<p>当创建 add 函数的时候， Javascript 引擎会创建 add 函数的 <code>Scope chain</code>, 这个作用域链指向了 <code>Global Context( 全局上下文 )</code> 。如果用图形形象化的表述如下图所示：</p>
+
+<p><img class="center" src="/images/2011/10/17/add-method.jpg"></p>
+
+<p>从上图可以看出，当 add 函数创建的时候，作用域链就已经创建了，因此可以得出一个结论:</p>
+
+<blockquote><p>函数的作用域链是创建函数的时候就已经创建了，而不是动态运行期。</p></blockquote>
+
+<p>下面就来看看动态运行期的时候会发生什么事情。</p>
+
+<p><strong>动态方面：</strong></p>
+
+<p>当执行 add 函数的时候， JavaScript 会创建一个 <code>Execute context （执行上下文）</code>，执行上下文中就包含了 add 函数运行期所需要的所有信息。 Execute context 也有自己的 Scope chain, 当函数运行的时候， JavaScript 引擎会首先从用 add 函数的作用域链来初始化执行上下文的作用域链，然后 JavaScript 引擎又会创建一个 Active Object, 这个对象里面包含了函数运行期的所有局部变量，参数以及 this 等变量。</p>
+
+<p>如果形象的描述 add 函数动态运行期会发生什么，可以用如下图来描述：
+<img class="center" src="/images/2011/10/17/add-method-runtime.jpg"></p>
+
+<p>从上图可以看出，执行上下文是一个动态的概念，它是当函数运行的时候创建的，同时 Active Object 对象也是一个动态的概念，它是被执行上下文的作用域链引用的。因此可以得出一个结论：</p>
+
+<blockquote><p>执行上下文和活动对象都是动态概念，并且执行上下文的作用域链是由函数作用域链初始化的。</p></blockquote>
+
+<p>上面说了函数作用域和执行上下文作用域，下面接着说一下动态作用域的问题.<br/>
+当在 JavaScript 通过 with 语句， try-catch 的 catch 子句，以及 eval 方法的时候， JavaScript 引擎就会动态的改变执行上下文的作用域。下面还是通过一个例子来看看：</p>
+
+<figure class='code'><figcaption><span>JavaScript Code</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">function</span> <span class="nx">initUI</span><span class="p">(){</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="kd">with</span> <span class="p">(</span><span class="nb">document</span><span class="p">){</span> <span class="c1">//avoid!</span>
+</span><span class='line'>      <span class="kd">var</span> <span class="nx">bd</span> <span class="o">=</span> <span class="nx">body</span><span class="p">,</span>
+</span><span class='line'>      <span class="nx">links</span> <span class="o">=</span> <span class="nx">getElementsByTagName</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">),</span>
+</span><span class='line'>      <span class="nx">i</span><span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+</span><span class='line'>      <span class="nx">len</span> <span class="o">=</span> <span class="nx">links</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span>
+</span><span class='line'>      <span class="k">while</span><span class="p">(</span><span class="nx">i</span> <span class="o">&lt;</span> <span class="nx">len</span><span class="p">){</span>
+</span><span class='line'>      <span class="nx">update</span><span class="p">(</span><span class="nx">links</span><span class="p">[</span><span class="nx">i</span><span class="o">++</span><span class="p">]);</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>  
+</span><span class='line'>  <span class="nx">getElementById</span><span class="p">(</span><span class="s2">&quot;go-btn&quot;</span><span class="p">).</span><span class="nx">onclick</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(){</span>
+</span><span class='line'>      <span class="nx">start</span><span class="p">();</span>
+</span><span class='line'>  <span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nx">bd</span><span class="p">.</span><span class="nx">className</span> <span class="o">=</span> <span class="s2">&quot;active&quot;</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>当执行上面的 initUI 函数的时候， JavaScript 会动态的创建一个 with 语句对应的作用域放到执行上下文作用域链的最前端，通过下图可以形象的描述上述过程，下图红色标注的区域就显示了 with 语句产生的作用域。
+<img class="center" src="/images/2011/10/17/initui-method.jpg"></p>
+
+<p>最后，我们来看看 JavaScript 最神秘的 Closure （闭包），闭包在 JavaScript 其实就是一个函数，闭包是在函数运行期被创建的，下面还是以一个实例来看看：</p>
+
+<figure class='code'><figcaption><span>JavaScript Code</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">function</span> <span class="nx">assignEvents</span><span class="p">(){</span>
+</span><span class='line'>  <span class="kd">var</span> <span class="nx">id</span> <span class="o">=</span> <span class="s2">&quot;xdi9592&quot;</span><span class="p">;</span>
+</span><span class='line'>  <span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s2">&quot;save-btn&quot;</span><span class="p">).</span><span class="nx">onclick</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">event</span><span class="p">){</span>
+</span><span class='line'>      <span class="nx">saveDocument</span><span class="p">(</span><span class="nx">id</span><span class="p">);</span>
+</span><span class='line'>  <span class="p">};</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>当上面的 assignEvents 函数被执行的时候，会创建一个闭包，而这个闭包会引用 assignEvents 作用域中的 id 变量，如果按照传统的编程语言的方式， id 是存储在堆栈上的一个变量，当函数执行完了以后 id 就消失，那么怎么可能再次引用呢？显然这里 JavaScript 采用了另外的方式。<br/>
+下面就来看看 JavaScript 是如何来实现闭包的。当执行 assignEvents 函数的时候， JavaScript 引擎会创建assignEvents函数执行上下文的作用域链，这个作用域链包含了 assignEvents 执行时的活动对象，而同时 JavaScript 引擎也会创建一个闭包，而闭包的作用域链也会引用 assignEvent 执行时候的活动对象，这样当 assignEvents 执行完的时候，虽然它本身执行上下文的作用域链不再引用活动对象了，但是闭包还是引用着 assignEvents 运行期对应的活动对象，这就解释了 JavaScipt 内部的闭包机制。可以用下图形象的表述上面 assignEvents 函数运行期的情形：
+<img class="center" src="/images/2011/10/17/assignevents-method.jpg"></p>
+
+<p>从上面可以看出，当 assignEvents 函数执行完毕以后， document.getElementById(&ldquo;save-btn&rdquo;).onclick 引用了闭包，这样当用户点击 save-btn 的时候，就会触发闭包的执行，那么下面就来看看闭包执行时的情形。前面也说了 JavaScript 中闭包其实就是函数，因此闭包执行和函数执行时的情形是一致的，通过下图来形象的描述上述 onclick 事件所关联的闭包。
+<img class="center" src="/images/2011/10/17/closure-runtime.jpg"></p>
+
+<p>从上图可以看出 JavaScript 引擎首先创建了闭包的执行上下文，然后用闭包作用域链来初始化闭包的执行上下文作用域链，最后再将闭包执行时对应的活动对象放入到作用域的最前端，这也进一步验证了闭包就是函数的论断。</p>
+
+<p>参考资料：</p>
+
+<ol>
+<li><a href="http://book.douban.com/subject/5362856/">High Performance JavaScript</a></li>
+<li><a href="http://book.douban.com/subject/4886879/">JavaScript高级程序设计</a></li>
+</ol>
+
+</div>
+
+</article>
+
+
+
+<div class="post-copyright">
+	<div class="avator" style="">
+		<img alt="" src="http://www.gravatar.com/avatar/80695ffc8afc90667bb292139686239b?s=160" width="100" height="100"/>
+	</div>
+	<div class="info">
+			作者： <A href="http://imtiger.net/">Tiger</A> <br>
+			出处： <A href="http://imtiger.net/">http://imtiger.net/</A>
+			<br>欢迎转载或用于商业目的，但是必须保留本文的署名和连接，谢谢配合！
+			<a href="http://imtiger.net">Tiger</a>。 
+	</div>
+</div>
+
+
+
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	
+	
+	  <!-- JiaThis Button BEGIN -->
+<div class="jiathis_style">
+	<span class="jiathis_txt"></span>
+  <a class="jiathis_button_tsina"></a>
+	<a class="jiathis_button_qzone">QQ</a>
+	<a class="jiathis_button_tqq"></a>
+	<a class="jiathis_button_weixin"></a>
+	<a href="http://www.jiathis.com/share?uid=1845643" class="jiathis jiathis_txt jiathis_separator jtico jtico_jiathis" target="_blank"></a>
+	<a class="jiathis_counter_style"></a>
+</div>
+<script type="text/javascript">
+var jiathis_config = {data_track_clickback:'true'};
+</script>
+<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js?uid=1372156002529710" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+
+<!-- UY BEGIN -->
+<div id="uyan_frame"></div>
+<script type="text/javascript" src="http://v2.uyan.cc/code/uyan.js?uid=1845643"></script>
+<!-- UY END -->
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <!-- <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid="></script> -->
+</div>
+
+
+</div>
+			</div>
+			<footer id="footer" class="inner">Copyright &copy; 2013
+
+    imtiger
+
+<br>
+Powered by Octopress.
+
+Design credit: <a href="http://shashankmehta.in/archive/2012/greyshade.html">Shashank Mehta</a></footer>
+			<script src="/javascripts/slash.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script> <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+
+	<script type="text/javascript">
+		var _gaq = _gaq || [];
+		_gaq.push(['_setAccount', 'UA-44429269-1']);
+		_gaq.push(['_trackPageview']);
+
+		(function() {
+			var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+			ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+			var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+		})();
+	</script>
+
+
+
+		</div>
+	</div>
+</body>
+</html>

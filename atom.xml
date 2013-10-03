@@ -4,7 +4,7 @@
   <title><![CDATA[I'm Tiger,一个热爱生活和技术的创业者!]]></title>
   <link href="http://imtiger.github.io/atom.xml" rel="self"/>
   <link href="http://imtiger.github.io/"/>
-  <updated>2013-10-03T13:35:45+08:00</updated>
+  <updated>2013-10-03T18:01:44+08:00</updated>
   <id>http://imtiger.github.io/</id>
   <author>
     <name><![CDATA[imtiger]]></name>
@@ -27,7 +27,7 @@
 月薪:    15k-20k</p>
 
 <p>公司介绍: <br/>
-我们公司<a href="http://www.ejushang.com">易居尚</a>秉承着<code>让品质走进生活的理念</code>，致力于打造一个品质、高效、便捷的居家用品网络销售平台.咋们公司不打卡，弹性工作制，每天下午有公司大厨做的下午茶，攻城狮童鞋每周可以自由支配20%的工作时间做自己想做的事情，我们技术团队内部有很强互助和知识分享意识（包括技术骚们喜欢的爱情动作片，嘘&hellip;，其他人我不告诉他）当然了还有很多美女和帅哥，想置身互联网和电子商务有理想的的技术骚们，请你加入我们 一起high，<strong>我们不求改变世界，但求超越自我</strong>。也请各位朋友帮忙推荐，推荐成功有神秘礼物相送哦，有意者请联系:<a href="&#x6d;&#97;&#105;&#108;&#116;&#111;&#x3a;&#x74;&#x69;&#x67;&#101;&#x72;&#x2e;&#x7a;&#x68;&#x6f;&#x75;&#x40;&#x6b;&#97;&#114;&#x69;&#x71;&#x75;&#x2e;&#x63;&#111;&#109;">&#116;&#105;&#x67;&#x65;&#114;&#46;&#122;&#104;&#111;&#x75;&#64;&#x6b;&#97;&#114;&#105;&#113;&#117;&#x2e;&#x63;&#x6f;&#x6d;</a> 或者留言给我，另外也可以通过<a href="http://weibo.com/xmuzyq">@krq_tiger</a>新浪微博与我取的联系.</p>
+我们公司<a href="http://www.ejushang.com">易居尚</a>秉承着<code>让品质走进生活的理念</code>，致力于打造一个品质、高效、便捷的居家用品网络销售平台.咋们公司不打卡，弹性工作制，每天下午有公司大厨做的下午茶，攻城狮童鞋每周可以自由支配20%的工作时间做自己想做的事情，我们技术团队内部有很强互助和知识分享意识（包括技术骚们喜欢的爱情动作片，嘘&hellip;，其他人我不告诉他）当然了还有很多美女和帅哥，想置身互联网和电子商务有理想的的技术骚们，请你加入我们 一起high，<strong>我们不求改变世界，但求超越自我</strong>。也请各位朋友帮忙推荐，推荐成功有神秘礼物相送哦，有意者请联系:<a href="&#x6d;&#x61;&#105;&#x6c;&#x74;&#111;&#58;&#x74;&#105;&#103;&#x65;&#114;&#46;&#x7a;&#104;&#x6f;&#x75;&#x40;&#x6b;&#97;&#114;&#105;&#113;&#x75;&#x2e;&#x63;&#111;&#x6d;">&#116;&#x69;&#103;&#x65;&#114;&#46;&#x7a;&#x68;&#111;&#x75;&#x40;&#107;&#97;&#114;&#105;&#113;&#117;&#46;&#x63;&#x6f;&#x6d;</a> 或者留言给我，另外也可以通过<a href="http://weibo.com/xmuzyq">@krq_tiger</a>新浪微博与我取的联系.</p>
 
 <!-- more -->
 
@@ -649,6 +649,136 @@ CONSTANT_NameAndType_info tag 标志位为12，字段和方法的名称以及类
   </entry>
   
   <entry>
+    <title type="html"><![CDATA[JavaScript 作用域和作用域链解析]]></title>
+    <link href="http://imtiger.github.io/blog/2011/10/17/javascript-scope-and-scope-chain-explain/"/>
+    <updated>2011-10-17T18:26:00+08:00</updated>
+    <id>http://imtiger.github.io/blog/2011/10/17/javascript-scope-and-scope-chain-explain</id>
+    <content type="html"><![CDATA[<p><img class="center" src="http://imtiger.github.io/images/2011/10/17/JavaScript-Logo.png">
+最近看了下JavaScript方面的几本书，把里面的一些核心概念按照自己的理解做个总结。</p>
+
+<p>JavaScript 中有 Scope( 作用域 ) ， Scope chain( 作用域链 ) ， Execute context( 执行上下文 ) ， Active Object ( 活动对象 ),Dynamic Scope( 动态作用域 ) ， Closure( 闭包 ) 这些概念，要理解这些概念，我们从静态和动态两个方面去分析一下。</p>
+
+<p>首先我们写一个简单的 function 来做一个例子：</p>
+
+<figure class='code'><figcaption><span>JavaScript code</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">function</span> <span class="nx">add</span><span class="p">(</span><span class="nx">num1</span><span class="p">,</span> <span class="nx">num2</span><span class="p">){</span>
+</span><span class='line'>  <span class="kd">var</span> <span class="nx">sum</span> <span class="o">=</span> <span class="nx">num1</span> <span class="o">+</span> <span class="nx">num2</span><span class="p">;</span>
+</span><span class='line'>  <span class="k">return</span> <span class="nx">sum</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<!-- more -->
+
+
+<p>我们定义了一个具有两个形参的 add 函数。</p>
+
+<p><strong>静态方面：</strong></p>
+
+<p>当创建 add 函数的时候， Javascript 引擎会创建 add 函数的 <code>Scope chain</code>, 这个作用域链指向了 <code>Global Context( 全局上下文 )</code> 。如果用图形形象化的表述如下图所示：</p>
+
+<p><img class="center" src="http://imtiger.github.io/images/2011/10/17/add-method.jpg"></p>
+
+<p>从上图可以看出，当 add 函数创建的时候，作用域链就已经创建了，因此可以得出一个结论:</p>
+
+<blockquote><p>函数的作用域链是创建函数的时候就已经创建了，而不是动态运行期。</p></blockquote>
+
+<p>下面就来看看动态运行期的时候会发生什么事情。</p>
+
+<p><strong>动态方面：</strong></p>
+
+<p>当执行 add 函数的时候， JavaScript 会创建一个 <code>Execute context （执行上下文）</code>，执行上下文中就包含了 add 函数运行期所需要的所有信息。 Execute context 也有自己的 Scope chain, 当函数运行的时候， JavaScript 引擎会首先从用 add 函数的作用域链来初始化执行上下文的作用域链，然后 JavaScript 引擎又会创建一个 Active Object, 这个对象里面包含了函数运行期的所有局部变量，参数以及 this 等变量。</p>
+
+<p>如果形象的描述 add 函数动态运行期会发生什么，可以用如下图来描述：
+<img class="center" src="http://imtiger.github.io/images/2011/10/17/add-method-runtime.jpg"></p>
+
+<p>从上图可以看出，执行上下文是一个动态的概念，它是当函数运行的时候创建的，同时 Active Object 对象也是一个动态的概念，它是被执行上下文的作用域链引用的。因此可以得出一个结论：</p>
+
+<blockquote><p>执行上下文和活动对象都是动态概念，并且执行上下文的作用域链是由函数作用域链初始化的。</p></blockquote>
+
+<p>上面说了函数作用域和执行上下文作用域，下面接着说一下动态作用域的问题.<br/>
+当在 JavaScript 通过 with 语句， try-catch 的 catch 子句，以及 eval 方法的时候， JavaScript 引擎就会动态的改变执行上下文的作用域。下面还是通过一个例子来看看：</p>
+
+<figure class='code'><figcaption><span>JavaScript Code</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">function</span> <span class="nx">initUI</span><span class="p">(){</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="kd">with</span> <span class="p">(</span><span class="nb">document</span><span class="p">){</span> <span class="c1">//avoid!</span>
+</span><span class='line'>      <span class="kd">var</span> <span class="nx">bd</span> <span class="o">=</span> <span class="nx">body</span><span class="p">,</span>
+</span><span class='line'>      <span class="nx">links</span> <span class="o">=</span> <span class="nx">getElementsByTagName</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">),</span>
+</span><span class='line'>      <span class="nx">i</span><span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+</span><span class='line'>      <span class="nx">len</span> <span class="o">=</span> <span class="nx">links</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span>
+</span><span class='line'>      <span class="k">while</span><span class="p">(</span><span class="nx">i</span> <span class="o">&lt;</span> <span class="nx">len</span><span class="p">){</span>
+</span><span class='line'>      <span class="nx">update</span><span class="p">(</span><span class="nx">links</span><span class="p">[</span><span class="nx">i</span><span class="o">++</span><span class="p">]);</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>  
+</span><span class='line'>  <span class="nx">getElementById</span><span class="p">(</span><span class="s2">&quot;go-btn&quot;</span><span class="p">).</span><span class="nx">onclick</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(){</span>
+</span><span class='line'>      <span class="nx">start</span><span class="p">();</span>
+</span><span class='line'>  <span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nx">bd</span><span class="p">.</span><span class="nx">className</span> <span class="o">=</span> <span class="s2">&quot;active&quot;</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>当执行上面的 initUI 函数的时候， JavaScript 会动态的创建一个 with 语句对应的作用域放到执行上下文作用域链的最前端，通过下图可以形象的描述上述过程，下图红色标注的区域就显示了 with 语句产生的作用域。
+<img class="center" src="http://imtiger.github.io/images/2011/10/17/initui-method.jpg"></p>
+
+<p>最后，我们来看看 JavaScript 最神秘的 Closure （闭包），闭包在 JavaScript 其实就是一个函数，闭包是在函数运行期被创建的，下面还是以一个实例来看看：</p>
+
+<figure class='code'><figcaption><span>JavaScript Code</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">function</span> <span class="nx">assignEvents</span><span class="p">(){</span>
+</span><span class='line'>  <span class="kd">var</span> <span class="nx">id</span> <span class="o">=</span> <span class="s2">&quot;xdi9592&quot;</span><span class="p">;</span>
+</span><span class='line'>  <span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s2">&quot;save-btn&quot;</span><span class="p">).</span><span class="nx">onclick</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">event</span><span class="p">){</span>
+</span><span class='line'>      <span class="nx">saveDocument</span><span class="p">(</span><span class="nx">id</span><span class="p">);</span>
+</span><span class='line'>  <span class="p">};</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>当上面的 assignEvents 函数被执行的时候，会创建一个闭包，而这个闭包会引用 assignEvents 作用域中的 id 变量，如果按照传统的编程语言的方式， id 是存储在堆栈上的一个变量，当函数执行完了以后 id 就消失，那么怎么可能再次引用呢？显然这里 JavaScript 采用了另外的方式。<br/>
+下面就来看看 JavaScript 是如何来实现闭包的。当执行 assignEvents 函数的时候， JavaScript 引擎会创建assignEvents函数执行上下文的作用域链，这个作用域链包含了 assignEvents 执行时的活动对象，而同时 JavaScript 引擎也会创建一个闭包，而闭包的作用域链也会引用 assignEvent 执行时候的活动对象，这样当 assignEvents 执行完的时候，虽然它本身执行上下文的作用域链不再引用活动对象了，但是闭包还是引用着 assignEvents 运行期对应的活动对象，这就解释了 JavaScipt 内部的闭包机制。可以用下图形象的表述上面 assignEvents 函数运行期的情形：
+<img class="center" src="http://imtiger.github.io/images/2011/10/17/assignevents-method.jpg"></p>
+
+<p>从上面可以看出，当 assignEvents 函数执行完毕以后， document.getElementById(&ldquo;save-btn&rdquo;).onclick 引用了闭包，这样当用户点击 save-btn 的时候，就会触发闭包的执行，那么下面就来看看闭包执行时的情形。前面也说了 JavaScript 中闭包其实就是函数，因此闭包执行和函数执行时的情形是一致的，通过下图来形象的描述上述 onclick 事件所关联的闭包。
+<img class="center" src="http://imtiger.github.io/images/2011/10/17/closure-runtime.jpg"></p>
+
+<p>从上图可以看出 JavaScript 引擎首先创建了闭包的执行上下文，然后用闭包作用域链来初始化闭包的执行上下文作用域链，最后再将闭包执行时对应的活动对象放入到作用域的最前端，这也进一步验证了闭包就是函数的论断。</p>
+
+<p>参考资料：</p>
+
+<ol>
+<li><a href="http://book.douban.com/subject/5362856/">High Performance JavaScript</a></li>
+<li><a href="http://book.douban.com/subject/4886879/">JavaScript高级程序设计</a></li>
+</ol>
+
+]]></content>
+  </entry>
+  
+  <entry>
     <title type="html"><![CDATA[Web开发之Http Cache]]></title>
     <link href="http://imtiger.github.io/blog/2011/07/07/optimize-your-site-using-http-caching/"/>
     <updated>2011-07-07T22:27:00+08:00</updated>
@@ -1179,6 +1309,110 @@ Mark-compact策略极大的减少了内存碎片，并且不需要像Copy Collec
 <a href="http://www.ibm.com/developerworks/library/j-jtp11253/index.html?S_TACT=105AGX52&amp;S_CMP=cn-a-j">Java theory and practice: Garbage collection in the HotSpot JVM</a><br/>
 <a href="https://blogs.oracle.com/poonam/entry/understanding_cms_gc_logs"> Understanding CMS GC Logs </a> <br/>
 <a href="http://www.oracle.com/technetwork/java/javase/tech/vmoptions-jsp-140102.html">Java HotSpot VM Options</a></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[ JavaEE资源管理常见策略总结]]></title>
+    <link href="http://imtiger.github.io/blog/2008/12/07/javaee-resource-manager-strategy-summary/"/>
+    <updated>2008-12-07T20:40:00+08:00</updated>
+    <id>http://imtiger.github.io/blog/2008/12/07/javaee-resource-manager-strategy-summary</id>
+    <content type="html"><![CDATA[<p>公所周知JavaEE是多线程的，同时资源管理的策略都是与线程相关的，因此通过合理的资源管理来应对多线程的环境是非常关键的。下面我们就来总结一下JavaEE中常见的资源管理策略。</p>
+
+<h1>第一种：实例池</h1>
+
+<p>实例池管理策略就是通过将我们的业务组件的实例保存到池中，这样可以达到重用的目的。说到实例池，需要明确一下单线程模型的概念，所谓单线程模型就是一个实例在某一时间只能服务于同一个线程，单线程模型使得无状态的业务组件不需要关注复杂的线程问题（通俗点讲，单线程模型使得业务开发人员可以采用不需要显示的同步机制来编写业务组件代码，但是业务组件可以安全的运行与多线程环境之下）。如果采用实例池将有助于实现单线程模型。比如EJB对于无状态的会话bean的管理就采取的是实例池的管理策略，这样以来我们的SLSB中是不需要同步的（这也是为什么EJB组件中不能有显示的同步代码的原因，因为EJB本来就是单线程的模型），从而减轻了业务开发人员的负担。</p>
+
+<!-- more -->
+
+
+<p>下面总结一下这种方法的优缺点：</p>
+
+<h2>优点：</h2>
+
+<ol>
+<li>采用实例池可以使得无状态的业务组件不需要同步，这样就减轻了业务开发人员的负担。</li>
+<li>采用实例池可以限制并发执行的线程的数量，当实例池没有可用的实例可用时，线程就需要挂起，这样防止大的并发对服务器造成的压力。</li>
+</ol>
+
+
+<h2>缺点：</h2>
+
+<ol>
+<li>因为采用了实例池，增加了管理实例池的开销，增加了系统的复杂性。</li>
+<li>采用实例池还是没有从根本上解决线程的问题，因为虽然实例池的实例不用同步，但是实例池的实例需要其它的组件来协作，这样其它组件的实例还是需要同步的。</li>
+</ol>
+
+
+<h2>具体的应用：</h2>
+
+<p>EJB的无状态会话bean<br/>
+数据库连接池技术<br/>
+TCP连接技术<br/>
+web容器和ejb容器的线程池等</p>
+
+<blockquote><p><a href="http://book.douban.com/subject/1444890/">&lt;&lt;面向模式的软件体系结构-卷3>></a>对<code>“实例池”</code>有详细的描述。</p></blockquote>
+
+<h1>第二种：容器管理的单例</h1>
+
+<p>目前各种IOC容器一般都采取了此种概念，系统只维护一个无状态业务组件的实例。比如目前流行的IOC容器（spring,Picocontainer等)，它们都有将业务组件设置为单例的功能。这样以来减轻了维护实例池的开销，并且通过容器可以管理组件的生命周期，不是像以前那样用完了就丢给垃圾收集器，同时还减轻了一些复杂的初始化的开销。</p>
+
+<p>下面是此种方式的优缺点：</p>
+
+<h2>优点：</h2>
+
+<ol>
+<li>减轻了一些需要复杂初始化的实例创建开销，从而提高了系统性能。</li>
+<li>通过IOC进行了组件的生命周期管理，减低了开发人员的负担。</li>
+</ol>
+
+
+<h2>缺点：</h2>
+
+<ol>
+<li>需要我们业务人员确保每个实例是无状态的，如果业务组件是有状态的，那么就要进行显示的同步，而多线程编程不是每个业务开发人员都能胜任的。</li>
+<li>任意多的线程都可以进行并发调用，这样以来服务器也许无法应对巨大的负载而崩溃。</li>
+</ol>
+
+
+<h2>具体的应用：</h2>
+
+<p>目前的Servlet规范就采用一个实例（抛弃了以前的servlet单线程模型）来服务于多线程调用，这样我们必须确保servlet内部的线程安全性。
+各种IOC容器（spring,Picocontainer等)</p>
+
+<h1>第三种：每个session一个实例</h1>
+
+<p>在开发过程中，我们的业务状态如何保存？这就涉及到了业务状态管理的问题，那么我们就可以采取每个session一个实例来进行，比如httpsession，但是在当今的分层架构下，用httpsession来保存业务状态是有缺点的，首先导致了业务状态泄露到了表现层，不利于层的内聚性，并且httpsession中保存的状态太大的话，会造成内存浪费太多。另外还有就是EJB中的statefull session bean，也采取了这种模式，每个有状态的会话bean只为一个客户服务，并且好的一点是statefull session bean支持钝化技术，并且它还支持完整的事务语义，所以它将业务状态的管理和事务结合了起来，这一点是比较好的，唯一不好的地方就是因为EJB是组件，要想运行必须要结合容器才行。</p>
+
+<h1>具体的应用：</h1>
+
+<p>Web中的httpsession<br/>
+EJB中statefull session bean</p>
+
+<h1>第四种：每个请求一个实例</h1>
+
+<p>每个请求一个实例也是一种比较常用的方式，对于一些初始化不是很复杂的实例，我们就可以采用这种方法。采用这种方式得力与JVM性能的改进，在以前垃圾收集器算法还不成熟的时候，如果采用这种方式将会对系统性能产生很大的影响。但是现在垃圾收集器算法优化已经抵消了一定的开销。比如表现层框架webwork、struts2，它们的xwork内核就是在每个请求过来，都新建一个命令实例（action），目前也没有出现严重的性能问题。</p>
+
+<p>下面总结一下此种方式的优缺点：</p>
+
+<h2>优点：</h2>
+
+<p>因为是每个请求（也就是每个线程）一个实例，那么业务开发人员就不需要对业务对象进行显示的同步，这样减轻了业务开发人员的负担。</p>
+
+<h2>缺点：</h2>
+
+<p>对于一些需要复杂初始化的实例，这样会给系统性能带来负面的影响。</p>
+
+<h2>具体的应用：</h2>
+
+<p>Webwork以及struts2的action都采取如此的策略 <br/>
+Spring框架的prototype方式。</p>
+
+<h1>第五种：ThreadLocal策略</h1>
+
+<p>此种策略在J2EE中也是比较常用的。它是以线程管理来驱动资源管理的方式，每个线程都独自保存面向自己的变量，这样以来就可以避免多线程访问造成对共享变量的破坏。比如hibernate中，当我们采用JDBC事务的时候，配置hibernate.current_session_context_class=thread,内部就将当前的session与线程绑定，这样以来在同一个线程中操作将是当前绑定的session。还比如webwork中对于ActionContext的管理也采取了Treadlocal的策略，这样以来ActionContext（action的执行上下文）就与当前线程绑定（具体实现是采用一个ActionContext内部类来实现，以前看的源代码，记得不是很清楚了。。），避免多线程访问带来的复杂性。</p>
+
+<p>以上的各种策略看起来是资源管理的策略，但是它们都是与多线程环境有密切关系的，每一种都有自己的优点和缺点，虽然目前框架已经为我们做好了资源管理工作，但是理解它们管理的方式对于业务开发人员还是大有裨益的。以上这些策略也是目前J2EE中常用的，不能确定那个方案比较好，具体的问题具体分析才是上上策。</p>
 ]]></content>
   </entry>
   

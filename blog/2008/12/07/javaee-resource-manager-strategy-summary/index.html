@@ -1,0 +1,292 @@
+
+<!DOCTYPE HTML>
+
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<title> JavaEE资源管理常见策略总结 - I'm Tiger,一个热爱生活和技术的创业者!</title>
+	<meta name="author" content="imtiger">
+
+	
+	<meta name="description" content="JavaEE资源管理常见策略总结 公所周知JavaEE是多线程的，同时资源管理的策略都是与线程相关的，因此通过合理的资源管理来应对多线程的环境是非常关键的。下面我们就来总结一下JavaEE中常见的资源管理策略。 第一种：实例池 实例池管理策略就是通过将我们的业务组件的实例保存到池中， &hellip;">
+	<meta name="keywords" content="实例池，单例，session,request,threadlocal">
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<link href="/atom.xml" rel="alternate" title="I'm Tiger,一个热爱生活和技术的创业者!" type="application/atom+xml">
+	
+	<link rel="canonical" href="http://imtiger.github.io/blog/2008/12/07/javaee-resource-manager-strategy-summary/">
+	<link href="/favicon.png" rel="shortcut icon">
+	<link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+	<link href="/stylesheets/font-awesome.min.css" media="screen, projection" rel="stylesheet" type="text/css">
+	<!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+	<link href='http://fonts.googleapis.com/css?family=Open+Sans:400italic,400,700' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+	
+  
+	<script type="text/javascript">
+		var _gaq = _gaq || [];
+		_gaq.push(['_setAccount', 'UA-44429269-1']);
+		_gaq.push(['_trackPageview']);
+
+		(function() {
+			var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+			ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+			var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+		})();
+	</script>
+
+
+</head>
+
+
+<body>
+	<div class="container">
+		<div class="left-col">
+			<div class="intrude-less">
+			<header id="header" class="inner"><div class="profilepic">
+	
+	<a href="#"><img src="http://www.gravatar.com/avatar/80695ffc8afc90667bb292139686239b?s=160" alt="Profile Picture" style="width: 160px;" /></a>
+	
+</div>
+<h1><a href="/">I'm Tiger</a></h1>
+<p class="subtitle">一个热爱生活和技术的创业者!</p>
+
+<nav id="main-nav"><ul>
+	<li><a href="/">Home</a></li>
+	<li><a href="/life">Life</a></li>
+	<li><a href="/archives">Archive</a></li>
+	<li><a href="/about">About Me</a></li>
+</ul>
+
+
+</nav>
+<nav id="sub-nav">
+	<div class="social">
+		
+		
+		
+		
+		
+		<a class="iteye" href="http://xmuzyq.iteye.com" title="我之前的博客">我的Iteye博客</a>
+		
+		
+		<a class="weibo" href="http://weibo.com/xmuzyq" title="新浪微博">新浪微博</a>
+		
+		
+		
+		
+		
+		
+		
+		
+		<a class="rss" href="/atom.xml" title="RSS">RSS</a>
+		
+	</div>
+</nav>
+<p class="subtitle">信心、恒心、爱心、野心兼具者可谓准成功人士!</p>
+<p style="text-align: right;" class="subtitle">-- imTiger</p>
+
+</header>				
+			</div>
+		</div>	
+		<div class="mid-col">
+			
+				
+			
+			<div class="mid-col-container">
+				<div id="content" class="inner"><article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+	<h1 class="title" itemprop="name">JavaEE资源管理常见策略总结</h1>
+	<div class="entry-content" itemprop="articleBody"><p>公所周知JavaEE是多线程的，同时资源管理的策略都是与线程相关的，因此通过合理的资源管理来应对多线程的环境是非常关键的。下面我们就来总结一下JavaEE中常见的资源管理策略。</p>
+
+<h1>第一种：实例池</h1>
+
+<p>实例池管理策略就是通过将我们的业务组件的实例保存到池中，这样可以达到重用的目的。说到实例池，需要明确一下单线程模型的概念，所谓单线程模型就是一个实例在某一时间只能服务于同一个线程，单线程模型使得无状态的业务组件不需要关注复杂的线程问题（通俗点讲，单线程模型使得业务开发人员可以采用不需要显示的同步机制来编写业务组件代码，但是业务组件可以安全的运行与多线程环境之下）。如果采用实例池将有助于实现单线程模型。比如EJB对于无状态的会话bean的管理就采取的是实例池的管理策略，这样以来我们的SLSB中是不需要同步的（这也是为什么EJB组件中不能有显示的同步代码的原因，因为EJB本来就是单线程的模型），从而减轻了业务开发人员的负担。</p>
+
+<!-- more -->
+
+
+<p>下面总结一下这种方法的优缺点：</p>
+
+<h2>优点：</h2>
+
+<ol>
+<li>采用实例池可以使得无状态的业务组件不需要同步，这样就减轻了业务开发人员的负担。</li>
+<li>采用实例池可以限制并发执行的线程的数量，当实例池没有可用的实例可用时，线程就需要挂起，这样防止大的并发对服务器造成的压力。</li>
+</ol>
+
+
+<h2>缺点：</h2>
+
+<ol>
+<li>因为采用了实例池，增加了管理实例池的开销，增加了系统的复杂性。</li>
+<li>采用实例池还是没有从根本上解决线程的问题，因为虽然实例池的实例不用同步，但是实例池的实例需要其它的组件来协作，这样其它组件的实例还是需要同步的。</li>
+</ol>
+
+
+<h2>具体的应用：</h2>
+
+<p>EJB的无状态会话bean<br/>
+数据库连接池技术<br/>
+TCP连接技术<br/>
+web容器和ejb容器的线程池等</p>
+
+<blockquote><p><a href="http://book.douban.com/subject/1444890/">&lt;&lt;面向模式的软件体系结构-卷3>></a>对<code>“实例池”</code>有详细的描述。</p></blockquote>
+
+<h1>第二种：容器管理的单例</h1>
+
+<p>目前各种IOC容器一般都采取了此种概念，系统只维护一个无状态业务组件的实例。比如目前流行的IOC容器（spring,Picocontainer等)，它们都有将业务组件设置为单例的功能。这样以来减轻了维护实例池的开销，并且通过容器可以管理组件的生命周期，不是像以前那样用完了就丢给垃圾收集器，同时还减轻了一些复杂的初始化的开销。</p>
+
+<p>下面是此种方式的优缺点：</p>
+
+<h2>优点：</h2>
+
+<ol>
+<li>减轻了一些需要复杂初始化的实例创建开销，从而提高了系统性能。</li>
+<li>通过IOC进行了组件的生命周期管理，减低了开发人员的负担。</li>
+</ol>
+
+
+<h2>缺点：</h2>
+
+<ol>
+<li>需要我们业务人员确保每个实例是无状态的，如果业务组件是有状态的，那么就要进行显示的同步，而多线程编程不是每个业务开发人员都能胜任的。</li>
+<li>任意多的线程都可以进行并发调用，这样以来服务器也许无法应对巨大的负载而崩溃。</li>
+</ol>
+
+
+<h2>具体的应用：</h2>
+
+<p>目前的Servlet规范就采用一个实例（抛弃了以前的servlet单线程模型）来服务于多线程调用，这样我们必须确保servlet内部的线程安全性。
+各种IOC容器（spring,Picocontainer等)</p>
+
+<h1>第三种：每个session一个实例</h1>
+
+<p>在开发过程中，我们的业务状态如何保存？这就涉及到了业务状态管理的问题，那么我们就可以采取每个session一个实例来进行，比如httpsession，但是在当今的分层架构下，用httpsession来保存业务状态是有缺点的，首先导致了业务状态泄露到了表现层，不利于层的内聚性，并且httpsession中保存的状态太大的话，会造成内存浪费太多。另外还有就是EJB中的statefull session bean，也采取了这种模式，每个有状态的会话bean只为一个客户服务，并且好的一点是statefull session bean支持钝化技术，并且它还支持完整的事务语义，所以它将业务状态的管理和事务结合了起来，这一点是比较好的，唯一不好的地方就是因为EJB是组件，要想运行必须要结合容器才行。</p>
+
+<h1>具体的应用：</h1>
+
+<p>Web中的httpsession<br/>
+EJB中statefull session bean</p>
+
+<h1>第四种：每个请求一个实例</h1>
+
+<p>每个请求一个实例也是一种比较常用的方式，对于一些初始化不是很复杂的实例，我们就可以采用这种方法。采用这种方式得力与JVM性能的改进，在以前垃圾收集器算法还不成熟的时候，如果采用这种方式将会对系统性能产生很大的影响。但是现在垃圾收集器算法优化已经抵消了一定的开销。比如表现层框架webwork、struts2，它们的xwork内核就是在每个请求过来，都新建一个命令实例（action），目前也没有出现严重的性能问题。</p>
+
+<p>下面总结一下此种方式的优缺点：</p>
+
+<h2>优点：</h2>
+
+<p>因为是每个请求（也就是每个线程）一个实例，那么业务开发人员就不需要对业务对象进行显示的同步，这样减轻了业务开发人员的负担。</p>
+
+<h2>缺点：</h2>
+
+<p>对于一些需要复杂初始化的实例，这样会给系统性能带来负面的影响。</p>
+
+<h2>具体的应用：</h2>
+
+<p>Webwork以及struts2的action都采取如此的策略 <br/>
+Spring框架的prototype方式。</p>
+
+<h1>第五种：ThreadLocal策略</h1>
+
+<p>此种策略在J2EE中也是比较常用的。它是以线程管理来驱动资源管理的方式，每个线程都独自保存面向自己的变量，这样以来就可以避免多线程访问造成对共享变量的破坏。比如hibernate中，当我们采用JDBC事务的时候，配置hibernate.current_session_context_class=thread,内部就将当前的session与线程绑定，这样以来在同一个线程中操作将是当前绑定的session。还比如webwork中对于ActionContext的管理也采取了Treadlocal的策略，这样以来ActionContext（action的执行上下文）就与当前线程绑定（具体实现是采用一个ActionContext内部类来实现，以前看的源代码，记得不是很清楚了。。），避免多线程访问带来的复杂性。</p>
+
+<p>以上的各种策略看起来是资源管理的策略，但是它们都是与多线程环境有密切关系的，每一种都有自己的优点和缺点，虽然目前框架已经为我们做好了资源管理工作，但是理解它们管理的方式对于业务开发人员还是大有裨益的。以上这些策略也是目前J2EE中常用的，不能确定那个方案比较好，具体的问题具体分析才是上上策。</p>
+</div>
+
+</article>
+
+
+
+<div class="post-copyright">
+	<div class="avator" style="">
+		<img alt="" src="http://www.gravatar.com/avatar/80695ffc8afc90667bb292139686239b?s=160" width="100" height="100"/>
+	</div>
+	<div class="info">
+			作者： <A href="http://imtiger.net/">Tiger</A> <br>
+			出处： <A href="http://imtiger.net/">http://imtiger.net/</A>
+			<br>欢迎转载或用于商业目的，但是必须保留本文的署名和连接，谢谢配合！
+			<a href="http://imtiger.net">Tiger</a>。 
+	</div>
+</div>
+
+
+
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	
+	
+	  <!-- JiaThis Button BEGIN -->
+<div class="jiathis_style">
+	<span class="jiathis_txt"></span>
+  <a class="jiathis_button_tsina"></a>
+	<a class="jiathis_button_qzone">QQ</a>
+	<a class="jiathis_button_tqq"></a>
+	<a class="jiathis_button_weixin"></a>
+	<a href="http://www.jiathis.com/share?uid=1845643" class="jiathis jiathis_txt jiathis_separator jtico jtico_jiathis" target="_blank"></a>
+	<a class="jiathis_counter_style"></a>
+</div>
+<script type="text/javascript">
+var jiathis_config = {data_track_clickback:'true'};
+</script>
+<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js?uid=1372156002529710" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+
+<!-- UY BEGIN -->
+<div id="uyan_frame"></div>
+<script type="text/javascript" src="http://v2.uyan.cc/code/uyan.js?uid=1845643"></script>
+<!-- UY END -->
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <!-- <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid="></script> -->
+</div>
+
+
+</div>
+			</div>
+			<footer id="footer" class="inner">Copyright &copy; 2013
+
+    imtiger
+
+<br>
+Powered by Octopress.
+
+Design credit: <a href="http://shashankmehta.in/archive/2012/greyshade.html">Shashank Mehta</a></footer>
+			<script src="/javascripts/slash.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script> <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+
+	<script type="text/javascript">
+		var _gaq = _gaq || [];
+		_gaq.push(['_setAccount', 'UA-44429269-1']);
+		_gaq.push(['_trackPageview']);
+
+		(function() {
+			var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+			ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+			var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+		})();
+	</script>
+
+
+
+		</div>
+	</div>
+</body>
+</html>
