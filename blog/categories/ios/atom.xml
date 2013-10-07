@@ -4,7 +4,7 @@
   <title><![CDATA[Category: iOS | I'm Tiger,一个热爱生活和技术的创业者!]]></title>
   <link href="http://imtiger.github.io/blog/categories/ios/atom.xml" rel="self"/>
   <link href="http://imtiger.github.io/"/>
-  <updated>2013-10-03T18:01:44+08:00</updated>
+  <updated>2013-10-07T16:13:07+08:00</updated>
   <id>http://imtiger.github.io/</id>
   <author>
     <name><![CDATA[imtiger]]></name>
@@ -14,7 +14,7 @@
 
   
   <entry>
-    <title type="html"><![CDATA[我做的“美剧英语每日一句” iOS app]]></title>
+    <title type="html"><![CDATA['美剧英语每日一句' iOS app（已开源）]]></title>
     <link href="http://imtiger.github.io/blog/2013/09/03/happyenglish-ios-app/"/>
     <updated>2013-09-03T15:28:00+08:00</updated>
     <id>http://imtiger.github.io/blog/2013/09/03/happyenglish-ios-app</id>
@@ -25,7 +25,9 @@
 <!-- more -->
 
 
-<p>这个app刚开始只是方便自己学习英语用的，后来做完了经过公共账号维护者<a href="http://weibo.com/myajia"><code>@吴彧Allen</code></a>的许可，就分享出来给大家伙一起用用，欢迎各位使用，有什么意见也可以提提额。</p>
+<p>这个app刚开始只是方便自己学习英语用的，做完了以后，经过公共账号维护者<a href="http://weibo.com/myajia"><code>@吴彧Allen</code></a>的许可，分享出来给大家伙一起用用，欢迎各位使用，有什么意见也可以提提额。</p>
+
+<p>另外本app已经在github上面开源，地址：<a href="https://github.com/imtiger/HappyEnglish">HappyEnglish</a>. 对本app感兴趣的同学可以一起参与一起完善它。</p>
 
 <p>如果大家想关注微信公共账号，可以扫描如下二维码：<br/>
 <img src="/images/2013/09/03/weixin.jpg"></p>
