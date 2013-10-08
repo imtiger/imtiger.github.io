@@ -225,7 +225,8 @@ JVM采用了分代收集以后，minor gc只扫描新生代，但是minor gc怎�
 软引用的对象在GC的时候不会被回收，只有当内存不够用的时候才会真正的回收，因此软引用适合缓存的场合，这样使得缓存中的对象可以尽量的再内存中待长久一点。 <br/>
 <code>3.Weak Reference(弱引用)</code><br/>
 弱引用有利于对象更快的被回收，假如一个对象没有强引用只有弱引用，那么在GC后，这个对象肯定会被回收。<br/>
-<code>4.Phantom reference(幽灵引用)</code><br/>
+<code>4.Phantom reference(幽灵引用)</code> <br/>
+幽灵引用说是引用，但是你不能通过幽灵引用来获取对象实例，它主要目的是为了当设置了幽灵引用的对象在被回收的时候可以收到通知。 <br/>
 跟踪收集器常见的有如下几种：</p>
 
 <h3>2.1 Mark-Sweep Collector(标记-清除收集器）</h3>
@@ -274,10 +275,11 @@ Mark-compact策略极大的减少了内存碎片，并且不需要像Copy Collec
 	<div class="info">
 			作者： <A href="http://imtiger.net/">Tiger</A> <br>
 			出处： <A href="http://imtiger.net/">http://imtiger.net/</A>
-			<br>欢迎转载或用于商业目的，但是必须保留本文的署名和连接，谢谢配合！
+			<br>本文通<a href="http://creativecommons.org/licenses/by-nc/3.0/deed.zh">署名-非商业性使用 3.0</a>进行许可,欢迎转载，但是必须保留本文的署名和连接，谢谢配合！
 			<a href="http://imtiger.net">Tiger</a>。 
 	</div>
 </div>
+
 
 
 
@@ -317,7 +319,10 @@ var jiathis_config = {data_track_clickback:'true'};
 
 </div>
 			</div>
-			<footer id="footer" class="inner">Copyright &copy; 2013
+			<footer id="footer" class="inner"><p>
+</a>本站点采用<a href="http://creativecommons.org/licenses/by-nc/3.0/deed.zh" rel="license">知识共享署名-非商业性使用 3.0 国际版本许可协议</a>进行许可
+</p>
+Copyright &copy; 2013
 
     imtiger
 

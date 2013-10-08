@@ -4,7 +4,7 @@
   <title><![CDATA[I'm Tiger,一个热爱生活和技术的创业者!]]></title>
   <link href="http://imtiger.github.io/atom.xml" rel="self"/>
   <link href="http://imtiger.github.io/"/>
-  <updated>2013-10-07T16:13:07+08:00</updated>
+  <updated>2013-10-08T13:39:45+08:00</updated>
   <id>http://imtiger.github.io/</id>
   <author>
     <name><![CDATA[imtiger]]></name>
@@ -27,7 +27,7 @@
 月薪:    15k-20k</p>
 
 <p>公司介绍: <br/>
-我们公司<a href="http://www.ejushang.com">易居尚</a>秉承着<code>让品质走进生活的理念</code>，致力于打造一个品质、高效、便捷的居家用品网络销售平台.咋们公司不打卡，弹性工作制，每天下午有公司大厨做的下午茶，攻城狮童鞋每周可以自由支配20%的工作时间做自己想做的事情，我们技术团队内部有很强互助和知识分享意识（包括技术骚们喜欢的爱情动作片，嘘&hellip;，其他人我不告诉他）当然了还有很多美女和帅哥，想置身互联网和电子商务有理想的的技术骚们，请你加入我们 一起high，<strong>我们不求改变世界，但求超越自我</strong>。也请各位朋友帮忙推荐，推荐成功有神秘礼物相送哦，有意者请联系:<a href="&#x6d;&#97;&#105;&#x6c;&#x74;&#111;&#58;&#x74;&#x69;&#x67;&#x65;&#114;&#x2e;&#122;&#x68;&#111;&#117;&#x40;&#x6b;&#97;&#114;&#x69;&#x71;&#x75;&#46;&#x63;&#111;&#x6d;">&#116;&#105;&#103;&#101;&#114;&#46;&#x7a;&#104;&#111;&#x75;&#x40;&#x6b;&#x61;&#114;&#105;&#113;&#x75;&#x2e;&#99;&#x6f;&#x6d;</a> 或者留言给我，另外也可以通过<a href="http://weibo.com/xmuzyq">@krq_tiger</a>新浪微博与我取的联系.</p>
+我们公司<a href="http://www.ejushang.com">易居尚</a>秉承着<code>让品质走进生活的理念</code>，致力于打造一个品质、高效、便捷的居家用品网络销售平台.咋们公司不打卡，弹性工作制，每天下午有公司大厨做的下午茶，攻城狮童鞋每周可以自由支配20%的工作时间做自己想做的事情，我们技术团队内部有很强互助和知识分享意识（包括技术骚们喜欢的爱情动作片，嘘&hellip;，其他人我不告诉他）当然了还有很多美女和帅哥，想置身互联网和电子商务有理想的的技术骚们，请你加入我们 一起high，<strong>我们不求改变世界，但求超越自我</strong>。也请各位朋友帮忙推荐，推荐成功有神秘礼物相送哦，有意者请联系:<a href="&#109;&#97;&#x69;&#x6c;&#116;&#x6f;&#x3a;&#116;&#x69;&#103;&#x65;&#114;&#x2e;&#122;&#x68;&#x6f;&#117;&#64;&#x6b;&#x61;&#x72;&#105;&#x71;&#117;&#46;&#x63;&#x6f;&#x6d;">&#116;&#105;&#103;&#x65;&#114;&#x2e;&#122;&#104;&#x6f;&#x75;&#x40;&#107;&#97;&#114;&#105;&#x71;&#117;&#x2e;&#x63;&#111;&#109;</a> 或者留言给我，另外也可以通过<a href="http://weibo.com/xmuzyq">@krq_tiger</a>新浪微博与我取的联系.</p>
 
 <!-- more -->
 
@@ -1275,7 +1275,8 @@ JVM采用了分代收集以后，minor gc只扫描新生代，但是minor gc怎�
 软引用的对象在GC的时候不会被回收，只有当内存不够用的时候才会真正的回收，因此软引用适合缓存的场合，这样使得缓存中的对象可以尽量的再内存中待长久一点。 <br/>
 <code>3.Weak Reference(弱引用)</code><br/>
 弱引用有利于对象更快的被回收，假如一个对象没有强引用只有弱引用，那么在GC后，这个对象肯定会被回收。<br/>
-<code>4.Phantom reference(幽灵引用)</code><br/>
+<code>4.Phantom reference(幽灵引用)</code> <br/>
+幽灵引用说是引用，但是你不能通过幽灵引用来获取对象实例，它主要目的是为了当设置了幽灵引用的对象在被回收的时候可以收到通知。 <br/>
 跟踪收集器常见的有如下几种：</p>
 
 <h3>2.1 Mark-Sweep Collector(标记-清除收集器）</h3>
@@ -1311,6 +1312,188 @@ Mark-compact策略极大的减少了内存碎片，并且不需要像Copy Collec
 <a href="http://www.ibm.com/developerworks/library/j-jtp11253/index.html?S_TACT=105AGX52&amp;S_CMP=cn-a-j">Java theory and practice: Garbage collection in the HotSpot JVM</a><br/>
 <a href="https://blogs.oracle.com/poonam/entry/understanding_cms_gc_logs"> Understanding CMS GC Logs </a> <br/>
 <a href="http://www.oracle.com/technetwork/java/javase/tech/vmoptions-jsp-140102.html">Java HotSpot VM Options</a></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Java常见内存溢出异常分析]]></title>
+    <link href="http://imtiger.github.io/blog/2009/10/02/java-oom-summary/"/>
+    <updated>2009-10-02T16:28:00+08:00</updated>
+    <id>http://imtiger.github.io/blog/2009/10/02/java-oom-summary</id>
+    <content type="html"><![CDATA[<p><img class="center" src="http://ww4.sinaimg.cn/bmiddle/a43155b1gw1e69q8sbp0eg20b4080b1n.gif">
+Java虚拟机规范规定JVM的内存分为了好几块，比如堆，栈，程序计数器，方法区等，而Hotspot jvm的实现中，将堆内存分为了三部分，新生代，老年代，持久带，其中持久带实现了规范中规定的方法区，而内存模型中不同的部分都会出现相应的OOM错误，接下来我们就分开来讨论一下。</p>
+
+<h1>栈溢出(StackOverflowError)</h1>
+
+<p>栈溢出抛出<code>java.lang.StackOverflowError</code>错误，出现此种情况是因为方法运行的时候栈的深度超过了虚拟机容许的最大深度所致。</p>
+
+<p>出现这种情况，一般情况下是程序错误所致的，比如写了一个死递归，就有可能造成此种情况。
+下面我们通过一段代码来模拟一下此种情况的内存溢出。</p>
+
+<figure class='code'><figcaption><span>OOMTest.java</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">import</span> <span class="nn">java.util.*</span><span class="o">;</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">java.lang.*</span><span class="o">;</span>
+</span><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">OOMTest</span><span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">stackOverFlowMethod</span><span class="o">(){</span>
+</span><span class='line'>      <span class="n">stackOverFlowMethod</span><span class="o">();</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">...</span> <span class="n">args</span><span class="o">){</span>
+</span><span class='line'>      <span class="n">OOMTest</span> <span class="n">oom</span> <span class="o">=</span> <span class="k">new</span> <span class="n">OOMTest</span><span class="o">();</span>
+</span><span class='line'>      <span class="n">oom</span><span class="o">.</span><span class="na">stackOverFlowMethod</span><span class="o">();</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>运行上面的代码，会抛出如下的异常：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">Exception</span> <span class="n">in</span> <span class="n">thread</span> <span class="s">&quot;main&quot;</span> <span class="n">java</span><span class="o">.</span><span class="na">lang</span><span class="o">.</span><span class="na">StackOverflowError</span>
+</span><span class='line'>        <span class="n">at</span> <span class="n">OOMTest</span><span class="o">.</span><span class="na">stackOverFlowMethod</span><span class="o">(</span><span class="n">OOMTest</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">6</span><span class="o">)</span>    
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h1>堆溢出(OutOfMemoryError:java heap space)</h1>
+
+<p>堆内存溢出的时候，虚拟机会抛出<code>java.lang.OutOfMemoryError:java heap space</code>,出现此种情况的时候，我们需要根据内存溢出的时候产生的dump文件来具体分析（需要增加<code>-XX:+HeapDumpOnOutOfMemoryError</code>jvm启动参数）。出现此种问题的时候有可能是内存泄露，也有可能是内存溢出了。<br/>
+如果内存泄露，我们要找出泄露的对象是怎么被GC ROOT引用起来，然后通过引用链来具体分析泄露的原因。<br/>
+如果出现了内存溢出问题，这往往是程序本生需要的内存大于了我们给虚拟机配置的内存，这种情况下，我们可以采用调大-Xmx来解决这种问题。</p>
+
+<p>下面我们通过如下的代码来演示一下此种情况的溢出：</p>
+
+<figure class='code'><figcaption><span>OOMTest.java</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">import</span> <span class="nn">java.util.*</span><span class="o">;</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">java.lang.*</span><span class="o">;</span>
+</span><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">OOMTest</span><span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">...</span> <span class="n">args</span><span class="o">){</span>
+</span><span class='line'>                <span class="n">List</span><span class="o">&lt;</span><span class="kt">byte</span><span class="o">[]&gt;</span> <span class="n">buffer</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ArrayList</span><span class="o">&lt;</span><span class="kt">byte</span><span class="o">[]&gt;();</span>
+</span><span class='line'>                <span class="n">buffer</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="k">new</span> <span class="kt">byte</span><span class="o">[</span><span class="mi">10</span><span class="o">*</span><span class="mi">1024</span><span class="o">*</span><span class="mi">1024</span><span class="o">]);</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">}</span>  
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>我们通过如下的命令运行上面的代码：</p>
+
+<p><code>java -verbose:gc -Xmn10M -Xms20M -Xmx20M -XX:+PrintGC OOMTest</code></p>
+
+<p>程序输入如下的信息：</p>
+
+<figure class='code'><figcaption><span>Terminal output</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="o">[</span><span class="n">GC</span> <span class="mi">1180</span><span class="n">K</span><span class="o">-&gt;</span><span class="mi">366</span><span class="n">K</span><span class="o">(</span><span class="mi">19456</span><span class="n">K</span><span class="o">),</span> <span class="mf">0.0037311</span> <span class="n">secs</span><span class="o">]</span>
+</span><span class='line'><span class="o">[</span><span class="n">Full</span> <span class="n">GC</span> <span class="mi">366</span><span class="n">K</span><span class="o">-&gt;</span><span class="mi">330</span><span class="n">K</span><span class="o">(</span><span class="mi">19456</span><span class="n">K</span><span class="o">),</span> <span class="mf">0.0098740</span> <span class="n">secs</span><span class="o">]</span>
+</span><span class='line'><span class="o">[</span><span class="n">Full</span> <span class="n">GC</span> <span class="mi">330</span><span class="n">K</span><span class="o">-&gt;</span><span class="mi">292</span><span class="n">K</span><span class="o">(</span><span class="mi">19456</span><span class="n">K</span><span class="o">),</span> <span class="mf">0.0090244</span> <span class="n">secs</span><span class="o">]</span>
+</span><span class='line'><span class="n">Exception</span> <span class="n">in</span> <span class="n">thread</span> <span class="s">&quot;main&quot;</span> <span class="n">java</span><span class="o">.</span><span class="na">lang</span><span class="o">.</span><span class="na">OutOfMemoryError</span><span class="o">:</span> <span class="n">Java</span> <span class="n">heap</span> <span class="n">space</span>
+</span><span class='line'>        <span class="n">at</span> <span class="n">OOMTest</span><span class="o">.</span><span class="na">main</span><span class="o">(</span><span class="n">OOMTest</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">7</span><span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>从运行结果可以看出，JVM进行了一次Minor gc和两次的Major gc，从Major gc的输出可以看出，gc以后old区使用率为134K，而字节数组为10M，加起来大于了old generation的空间，所以抛出了异常，如果调整-Xms21M,-Xmx21M,那么就不会触发gc操作也不会出现异常了。</p>
+
+<blockquote><p>通过上面的实验其实也从侧面验证了一个结论：<strong>当对象大于新生代剩余内存的时候，将直接放入老年代，当老年代剩余内存还是无法放下的时候，出发垃圾收集，收集后还是不能放下就会抛出内存溢出异常了</strong></p></blockquote>
+
+<h1>持久带溢出(OutOfMemoryError: PermGen space)</h1>
+
+<p>我们知道Hotspot jvm通过持久带实现了Java虚拟机规范中的方法区，而运行时的常量池就是保存在方法区中的，因此持久带溢出有可能是运行时常量池溢出，也有可能是方法区中保存的class对象没有被及时回收掉或者class信息占用的内存超过了我们配置。当持久带溢出的时候抛出<code>java.lang.OutOfMemoryError: PermGen space</code>。 <br/>
+我在工作可能在如下几种场景下出现此问题。</p>
+
+<ol>
+<li>使用一些应用服务器的热部署的时候，我们就会遇到热部署几次以后发现内存溢出了，这种情况就是因为每次热部署的后，原来的class没有被卸载掉。</li>
+<li>如果应用程序本身比较大，涉及的类库比较多，但是我们分配给持久带的内存（通过-XX:PermSize和-XX:MaxPermSize来设置）比较小的时候也可能出现此种问题。</li>
+<li>一些第三方框架，比如spring,hibernate都通过字节码生成技术（比如CGLib）来实现一些增强的功能，这种情况可能需要更大的方法区来存储动态生成的Class文件。</li>
+</ol>
+
+
+<p>我们知道Java中字符串常量是放在常量池中的，String.intern()这个方法运行的时候，会检查常量池中是否存和本字符串相等的对象，如果存在直接返回对常量池中对象的引用，不存在的话，先把此字符串加入常量池，然后再返回字符串的引用。那么我们就可以通过String.intern方法来模拟一下运行时常量区的溢出.下面我们通过如下的代码来模拟此种情况：</p>
+
+<figure class='code'><figcaption><span>OOMTest.java</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">import</span> <span class="nn">java.util.*</span><span class="o">;</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">java.lang.*</span><span class="o">;</span>
+</span><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">OOMTest</span><span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">...</span> <span class="n">args</span><span class="o">){</span>
+</span><span class='line'>                <span class="n">List</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">list</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ArrayList</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;();</span>
+</span><span class='line'>                <span class="k">while</span><span class="o">(</span><span class="kc">true</span><span class="o">){</span>
+</span><span class='line'>                        <span class="n">list</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">UUID</span><span class="o">.</span><span class="na">randomUUID</span><span class="o">().</span><span class="na">toString</span><span class="o">().</span><span class="na">intern</span><span class="o">());</span>
+</span><span class='line'>                <span class="o">}</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">}</span>  
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>我们通过如下的命令运行上面代码：</p>
+
+<p><code>java -verbose:gc -Xmn5M -Xms10M -Xmx10M -XX:MaxPermSize=1M -XX:+PrintGC OOMTest</code></p>
+
+<p>运行后的输入如下图所示:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">Exception</span> <span class="n">in</span> <span class="n">thread</span> <span class="s">&quot;main&quot;</span> <span class="n">java</span><span class="o">.</span><span class="na">lang</span><span class="o">.</span><span class="na">OutOfMemoryError</span><span class="o">:</span> <span class="n">PermGen</span> <span class="n">space</span>
+</span><span class='line'>        <span class="n">at</span> <span class="n">java</span><span class="o">.</span><span class="na">lang</span><span class="o">.</span><span class="na">String</span><span class="o">.</span><span class="na">intern</span><span class="o">(</span><span class="n">Native</span> <span class="n">Method</span><span class="o">)</span>
+</span><span class='line'>        <span class="n">at</span> <span class="n">OOMTest</span><span class="o">.</span><span class="na">main</span><span class="o">(</span><span class="n">OOMTest</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">8</span><span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>通过上面的代码，我们成功模拟了运行时常量池溢出的情况，从输出中的<strong>PermGen space</strong>可以看出确实是持久带发生了溢出，这也验证了，我们前面说的Hotspot jvm通过持久带来实现方法区的说法。</p>
+
+<h1>OutOfMemoryError:unable to create native thread</h1>
+
+<p>最后我们在来看看<code>java.lang.OutOfMemoryError:unable to create natvie thread</code>这种错误。
+出现这种情况的时候，一般是下面两种情况导致的：</p>
+
+<ol>
+<li>程序创建的线程数超过了操作系统的限制。对于Linux系统，我们可以通过ulimit -u来查看此限制。</li>
+<li>给虚拟机分配的内存过大，导致创建线程的时候需要的native内存太少。我们都知道操作系统对每个进程的内存是有限制的，我们启动Jvm,相当于启动了一个进程，假如我们一个进程占用了4G的内存，那么通过下面的公式计算出来的剩余内存就是建立线程栈的时候可以用的内存。
+<code>线程栈总可用内存=4G-（-Xmx的值）- （-XX:MaxPermSize的值）- 程序计数器占用的内存</code>
+通过上面的公式我们可以看出，-Xmx 和 MaxPermSize的值越大，那么留给线程栈可用的空间就越小，在-Xss参数配置的栈容量不变的情况下，可以创建的线程数也就越小。因此如果是因为这种情况导致的<code>unable to create native thread</code>,那么要么我们增大进程所占用的总内存，或者减少-Xmx或者-Xss来达到创建更多线程的目的。</li>
+</ol>
+
 ]]></content>
   </entry>
   
