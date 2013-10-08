@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "我做的“美剧英语每日一句” iOS app"
+title: "'美剧英语每日一句' iOS app（已开源）"
 date: 2013-09-03 15:28
 comments: true
 categories: 
@@ -13,7 +13,9 @@ categories:
 [`点我下载app`](https://itunes.apple.com/us/app/happyenglish/id669934718?ls=1&amp;mt=8)
 
 <!-- more -->
-这个app刚开始只是方便自己学习英语用的，后来做完了经过公共账号维护者[`@吴彧Allen`](http://weibo.com/myajia)的许可，就分享出来给大家伙一起用用，欢迎各位使用，有什么意见也可以提提额。
+这个app刚开始只是方便自己学习英语用的，做完了以后，经过公共账号维护者[`@吴彧Allen`](http://weibo.com/myajia)的许可，分享出来给大家伙一起用用，欢迎各位使用，有什么意见也可以提提额。
+
+另外本app已经在github上面开源，地址：[HappyEnglish](https://github.com/imtiger/HappyEnglish). 对本app感兴趣的同学可以一起参与一起完善它。
 
 
 如果大家想关注微信公共账号，可以扫描如下二维码：  
