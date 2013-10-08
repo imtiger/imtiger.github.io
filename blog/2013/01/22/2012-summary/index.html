@@ -27,20 +27,6 @@
 	<link href='http://fonts.googleapis.com/css?family=Open+Sans:400italic,400,700' rel='stylesheet' type='text/css'>
 	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
 	
-  
-	<script type="text/javascript">
-		var _gaq = _gaq || [];
-		_gaq.push(['_setAccount', 'UA-44429269-1']);
-		_gaq.push(['_trackPageview']);
-
-		(function() {
-			var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-			ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-			var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-		})();
-	</script>
-
-
 </head>
 
 
@@ -211,7 +197,7 @@
 	<div class="info">
 			作者： <A href="http://imtiger.net/">Tiger</A> <br>
 			出处： <A href="http://imtiger.net/">http://imtiger.net/</A>
-			<br>本文通<a href="http://creativecommons.org/licenses/by-nc/3.0/deed.zh">署名-非商业性使用 3.0</a>进行许可,欢迎转载，但是必须保留本文的署名和连接，谢谢配合！
+			<br>本文通过<a href="http://creativecommons.org/licenses/by-nc/3.0/deed.zh">署名-非商业性使用 3.0</a>进行许可,欢迎转载,但是必须保留本文的署名和连接,谢谢配合！
 			<a href="http://imtiger.net">Tiger</a>。 
 	</div>
 </div>
@@ -290,6 +276,45 @@ Design credit: <a href="http://shashankmehta.in/archive/2012/greyshade.html">Sha
 	</script>
 
 
+<script type="text/javascript">
+(function($){
+
+	function isPC() {
+        var userAgentInfo = navigator.userAgent;
+        var Agents = new Array("Android", "iPhone", "SymbianOS", "Windows Phone", "iPad", "iPod");
+        var flag = true;
+        for (var v = 0; v < Agents.length; v++) {
+            if (userAgentInfo.indexOf(Agents[v]) > 0) {
+                flag = false;
+                break;
+            }
+        }
+        return flag;
+    }
+
+    function addSwitchPanel(){
+    	var leftCol = $(".left-col"),
+    		midCol = $(".mid-col"),
+    		intrude = leftCol.find(".intrude-less"),
+    		switchPanel = $('<a class="switchPanel"></a>');
+    	leftCol.append(switchPanel);
+    	switchPanel.toggle(function(){
+    		leftCol.animate({"width": "3%"}, 200);
+    		intrude.hide();
+    		midCol.animate({"width": "97%"}, 200);
+    		switchPanel.animate({"right": "5px"}, 50).addClass("hover");;
+    	},function(){
+    		leftCol.animate({"width": "23%"}, 200);
+    		midCol.animate({"width": "77%"}, 200);
+    		intrude.show();
+    		switchPanel.animate({"right": "20px"}, 50).removeClass("hover");
+    	});
+    }
+
+   // isPC() && addSwitchPanel();
+
+})(jQuery);
+</script>
 
 		</div>
 	</div>
