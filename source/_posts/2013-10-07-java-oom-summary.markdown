@@ -8,7 +8,7 @@ categories:
 - Java
 - 技术
 ---
-{% img center http://ww4.sinaimg.cn/bmiddle/a43155b1gw1e69q8sbp0eg20b4080b1n.gif %}
+{% img center http://ww3.sinaimg.cn/bmiddle/a43155b1gw1e32ay9f202g.gif %}
 Java虚拟机规范规定JVM的内存分为了好几块，比如堆，栈，程序计数器，方法区等，而Hotspot jvm的实现中，将堆内存分为了三部分，新生代，老年代，持久带，其中持久带实现了规范中规定的方法区，而内存模型中不同的部分都会出现相应的OOM错误，接下来我们就分开来讨论一下。
 
 #栈溢出(StackOverflowError)
@@ -16,6 +16,7 @@ Java虚拟机规范规定JVM的内存分为了好几块，比如堆，栈，程�
 
 出现这种情况，一般情况下是程序错误所致的，比如写了一个死递归，就有可能造成此种情况。
 下面我们通过一段代码来模拟一下此种情况的内存溢出。
+<!-- more -->
 ```java OOMTest.java
 import java.util.*;
 import java.lang.*;
