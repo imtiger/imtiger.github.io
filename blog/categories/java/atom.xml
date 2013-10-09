@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Java | I'm Tiger,一个热爱生活和技术的创业者!]]></title>
   <link href="http://imtiger.github.io/blog/categories/java/atom.xml" rel="self"/>
   <link href="http://imtiger.github.io/"/>
-  <updated>2013-10-09T14:24:45+08:00</updated>
+  <updated>2013-10-09T15:03:59+08:00</updated>
   <id>http://imtiger.github.io/</id>
   <author>
     <name><![CDATA[imtiger]]></name>
@@ -374,13 +374,23 @@ java -server -Xms512m -Xmx512m -XX:NewSize=64m  -XX:MaxNewSize=64m -XX:SurvivorR
 默认情况下，CMS gc在"old generation"空间占用率高于68%的时候，就会进行垃圾收集，而如果想控制收集的临界值，可以通过参数：-XX:CMSInitiatingOccupancyFraction来控制，比如改变上述的JVM配置如下：
 <code>java
 java -server -Xms512m -Xmx512m -XX:NewSize=64m -XX:MaxNewSize=64m -XX:SurvivorRatio=2  -XX:ParallelGCThreads=4 -XX:+UseConcMarkSweepGC -XX:+UseParNewGC -XX:CMSInitiatingOccupancyFraction=35
-</code></p>
+</code>
+此外顺便说一个参数：<code>-XX:+PrintCommandLineFlags</code> 通过此参数可以知道在没有显示指定内存配置和垃圾收集算法的情况下，JVM采用的默认配置。<br/>
+比如我在自己的机器上面通过如下命令<code>java -XX:+PrintCommandLineFlags -version</code>得到的结果如下所示：
+<code>java
+-XX:InitialHeapSize=524747648 -XX:MaxHeapSize=8395962368 -XX:ParallelGCThreads=23 -XX:+PrintCommandLineFlags -XX:+UseCompressedOops -XX:+UseParallelGC
+java version "1.6.0_25"
+Java(TM) SE Runtime Environment (build 1.6.0_25-b06)
+Java HotSpot(TM) 64-Bit Server VM (build 20.0-b11, mixed mode)
+</code>
+从输出可以清楚的看到JVM通过自己检测硬件配置而给出的缺省配置。</p>
 
 <p>最后附上一些JVM 垃圾收集方面的文章供大家参考：<br/>
 <a href="http://www.ibm.com/developerworks/library/j-jtp10283/index.html?S_TACT=105AGX52&amp;S_CMP=cn-a-j">Java theory and practice: A brief history of garbage collection</a> <br/>
 <a href="http://www.ibm.com/developerworks/library/j-jtp11253/index.html?S_TACT=105AGX52&amp;S_CMP=cn-a-j">Java theory and practice: Garbage collection in the HotSpot JVM</a><br/>
 <a href="https://blogs.oracle.com/poonam/entry/understanding_cms_gc_logs"> Understanding CMS GC Logs </a> <br/>
-<a href="http://www.oracle.com/technetwork/java/javase/tech/vmoptions-jsp-140102.html">Java HotSpot VM Options</a></p>
+<a href="http://www.oracle.com/technetwork/java/javase/tech/vmoptions-jsp-140102.html">Java HotSpot VM Options</a>
+<a href="http://docs.oracle.com/javase/6/docs/technotes/guides/vm/server-class.html">Server-Class Machine Detection</a></p>
 ]]></content>
   </entry>
   

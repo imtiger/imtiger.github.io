@@ -26,7 +26,7 @@
 	<link href="/stylesheets/font-awesome.min.css" media="screen, projection" rel="stylesheet" type="text/css">
 	<!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
 	<link href='http://fonts.googleapis.com/css?family=Open+Sans:400italic,400,700' rel='stylesheet' type='text/css'>
-	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+	<script type="text/javascript" src="http://codeorigin.jquery.com/jquery-1.10.2.min.js"></script> 
 	
 </head>
 
@@ -235,11 +235,28 @@ Parallel Collector又可以分为以下三种：</p>
 </span></code></pre></td></tr></table></div></figure>
 
 
+<p>此外顺便说一个参数：<code>-XX:+PrintCommandLineFlags</code> 通过此参数可以知道在没有显示指定内存配置和垃圾收集算法的情况下，JVM采用的默认配置。<br/>
+比如我在自己的机器上面通过如下命令<code>java -XX:+PrintCommandLineFlags -version</code>得到的结果如下所示：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="o">-</span><span class="nl">XX:</span><span class="n">InitialHeapSize</span><span class="o">=</span><span class="mi">524747648</span> <span class="o">-</span><span class="nl">XX:</span><span class="n">MaxHeapSize</span><span class="o">=</span><span class="mi">8395962368</span> <span class="o">-</span><span class="nl">XX:</span><span class="n">ParallelGCThreads</span><span class="o">=</span><span class="mi">23</span> <span class="o">-</span><span class="nl">XX:</span><span class="o">+</span><span class="n">PrintCommandLineFlags</span> <span class="o">-</span><span class="nl">XX:</span><span class="o">+</span><span class="n">UseCompressedOops</span> <span class="o">-</span><span class="nl">XX:</span><span class="o">+</span><span class="n">UseParallelGC</span>
+</span><span class='line'><span class="n">java</span> <span class="n">version</span> <span class="s">&quot;1.6.0_25&quot;</span>
+</span><span class='line'><span class="n">Java</span><span class="o">(</span><span class="n">TM</span><span class="o">)</span> <span class="n">SE</span> <span class="n">Runtime</span> <span class="n">Environment</span> <span class="o">(</span><span class="n">build</span> <span class="mf">1.6</span><span class="o">.</span><span class="mi">0</span><span class="n">_25</span><span class="o">-</span><span class="n">b06</span><span class="o">)</span>
+</span><span class='line'><span class="n">Java</span> <span class="nf">HotSpot</span><span class="o">(</span><span class="n">TM</span><span class="o">)</span> <span class="mi">64</span><span class="o">-</span><span class="n">Bit</span> <span class="n">Server</span> <span class="n">VM</span> <span class="o">(</span><span class="n">build</span> <span class="mf">20.0</span><span class="o">-</span><span class="n">b11</span><span class="o">,</span> <span class="n">mixed</span> <span class="n">mode</span><span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>从输出可以清楚的看到JVM通过自己检测硬件配置而给出的缺省配置。</p>
+
 <p>最后附上一些JVM 垃圾收集方面的文章供大家参考：<br/>
 <a href="http://www.ibm.com/developerworks/library/j-jtp10283/index.html?S_TACT=105AGX52&amp;S_CMP=cn-a-j">Java theory and practice: A brief history of garbage collection</a> <br/>
 <a href="http://www.ibm.com/developerworks/library/j-jtp11253/index.html?S_TACT=105AGX52&amp;S_CMP=cn-a-j">Java theory and practice: Garbage collection in the HotSpot JVM</a><br/>
 <a href="https://blogs.oracle.com/poonam/entry/understanding_cms_gc_logs"> Understanding CMS GC Logs </a> <br/>
-<a href="http://www.oracle.com/technetwork/java/javase/tech/vmoptions-jsp-140102.html">Java HotSpot VM Options</a></p>
+<a href="http://www.oracle.com/technetwork/java/javase/tech/vmoptions-jsp-140102.html">Java HotSpot VM Options</a>
+<a href="http://docs.oracle.com/javase/6/docs/technotes/guides/vm/server-class.html">Server-Class Machine Detection</a></p>
 </div>
 
 </article>
