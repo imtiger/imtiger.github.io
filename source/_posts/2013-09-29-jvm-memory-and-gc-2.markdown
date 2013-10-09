@@ -123,9 +123,20 @@ java -server -Xms512m -Xmx512m -XX:NewSize=64m  -XX:MaxNewSize=64m -XX:SurvivorR
 ```java
 java -server -Xms512m -Xmx512m -XX:NewSize=64m -XX:MaxNewSize=64m -XX:SurvivorRatio=2  -XX:ParallelGCThreads=4 -XX:+UseConcMarkSweepGC -XX:+UseParNewGC -XX:CMSInitiatingOccupancyFraction=35
 ```
+此外顺便说一个参数：`-XX:+PrintCommandLineFlags` 通过此参数可以知道在没有显示指定内存配置和垃圾收集算法的情况下，JVM采用的默认配置。  
+比如我在自己的机器上面通过如下命令`java -XX:+PrintCommandLineFlags -version`得到的结果如下所示：
+```java
+-XX:InitialHeapSize=524747648 -XX:MaxHeapSize=8395962368 -XX:ParallelGCThreads=23 -XX:+PrintCommandLineFlags -XX:+UseCompressedOops -XX:+UseParallelGC
+java version "1.6.0_25"
+Java(TM) SE Runtime Environment (build 1.6.0_25-b06)
+Java HotSpot(TM) 64-Bit Server VM (build 20.0-b11, mixed mode)
+```
+从输出可以清楚的看到JVM通过自己检测硬件配置而给出的缺省配置。    
+
 
 最后附上一些JVM 垃圾收集方面的文章供大家参考：  
 [Java theory and practice: A brief history of garbage collection](http://www.ibm.com/developerworks/library/j-jtp10283/index.html?S_TACT=105AGX52&S_CMP=cn-a-j)   
 [Java theory and practice: Garbage collection in the HotSpot JVM](http://www.ibm.com/developerworks/library/j-jtp11253/index.html?S_TACT=105AGX52&S_CMP=cn-a-j)  
 [ Understanding CMS GC Logs ](https://blogs.oracle.com/poonam/entry/understanding_cms_gc_logs)   
 [Java HotSpot VM Options](http://www.oracle.com/technetwork/java/javase/tech/vmoptions-jsp-140102.html)
+[Server-Class Machine Detection](http://docs.oracle.com/javase/6/docs/technotes/guides/vm/server-class.html)

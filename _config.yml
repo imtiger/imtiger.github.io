@@ -103,8 +103,10 @@ disqus_short_name:
 disqus_show_comment_count: false
 
 # Google Analytics
-google_analytics_tracking_id: UA-44429269-1
+#google_analytics_tracking_id: UA-44429269-1
 
+# Baidu Analytics
+baidu_analytics: true
 # Facebook Like
 facebook_like: false
 
