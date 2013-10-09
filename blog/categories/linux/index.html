@@ -172,45 +172,88 @@ Design credit: <a href="http://shashankmehta.in/archive/2012/greyshade.html">Sha
 
 
 <script type="text/javascript">
+
 (function($){
+	
+	//左折叠栏
+	(function(){
 
-	function isPC() {
-        var userAgentInfo = navigator.userAgent;
-        var Agents = new Array("Android", "iPhone", "SymbianOS", "Windows Phone", "iPad", "iPod");
-        var flag = true;
-        for (var v = 0; v < Agents.length; v++) {
-            if (userAgentInfo.indexOf(Agents[v]) > 0) {
-                flag = false;
-                break;
-            }
-        }
-        return flag;
-    }
+		function isPC() {
+	        var userAgentInfo = navigator.userAgent;
+	        var Agents = new Array("Android", "iPhone", "SymbianOS", "Windows Phone", "iPad", "iPod");
+	        var flag = true;
+	        for (var v = 0; v < Agents.length; v++) {
+	            if (userAgentInfo.indexOf(Agents[v]) > 0) {
+	                flag = false;
+	                break;
+	            }
+	        }
+	        return flag;
+	    }
 
-    function addSwitchPanel(){
-    	var leftCol = $(".left-col"),
-    		midCol = $(".mid-col"),
-    		intrude = leftCol.find(".intrude-less"),
-    		switchPanel = $('<a class="switchPanel"></a>');
-    	leftCol.append(switchPanel);
-    	switchPanel.toggle(function(){
-    		leftCol.animate({"width": "3%"}, 200);
-    		intrude.hide();
-    		midCol.animate({"width": "97%"}, 200);
-    		switchPanel.animate({"right": "5px"}, 50).addClass("hover");;
-    	},function(){
-    		leftCol.animate({"width": "23%"}, 200);
-    		midCol.animate({"width": "77%"}, 200);
-    		intrude.show();
-    		switchPanel.animate({"right": "20px"}, 50).removeClass("hover");
-    	});
-    }
+	    function addSwitchPanel(){
+	    	var leftCol = $(".left-col"),
+	    		midCol = $(".mid-col"),
+	    		intrude = leftCol.find(".intrude-less"),
+	    		switchPanel = $('<a href="javascript:void(0);" class="switchPanel"><span class="btn_click"><em class="arrow"></em></span></a>');
+	    	leftCol.append(switchPanel);
+	    	switchPanel.toggle(function(){
+	    		leftCol.animate({"width": "3%"}, 200);
+	    		intrude.hide();
+	    		midCol.animate({"width": "97%"}, 200);
+	    		switchPanel.addClass("in");
+	    	},function(){
+	    		leftCol.animate({"width": "23%"}, 200);
+	    		midCol.animate({"width": "77%"}, 200);
+	    		intrude.show();
+	    		switchPanel.removeClass("in");
+	    	});
+	    }
 
-   // isPC() && addSwitchPanel();
+	    isPC() && addSwitchPanel();	
+
+	})();
+
+	//到顶部
+	(function(){
+		var domHeight = $(document).height(),
+			scrollTop = $(document).scrollTop(),
+			winWidth = $(window).width(),
+			winHeight = $(window).height(); 
+
+		if (domHeight>winHeight+500){
+			var toTop = document.createElement("div"),
+				pot_t=0,
+				pot_b=1;
+			
+			toTop.id = "to-top";	
+			toTop.className = "to-top";
+			var toright=15;
+			
+			$(window).bind("scroll.toTop", function(){
+				var scrollTop = $(document).scrollTop();
+					if(scrollTop>290&&pot_t==0){
+						$(toTop).stop().animate({"right":toright,"opacity":"1"},200);
+						pot_t=1;
+						pot_b=0;
+					}else if(scrollTop<290&&pot_b==0){
+						$(toTop).stop().animate({"right":"-60px","opacity":"0"},200);
+						pot_t=0;
+						pot_b=1;
+					}
+			});
+			
+			document.body.appendChild(toTop);
+			toTop.onclick = function(){
+				$("html"+( ! $.browser.opera ? ",body" : "")).animate({scrollTop: 0}, 500);
+			};
+		}
+			
+	})();
 
 })(jQuery);
-</script>
 
+</script>
 		</div>
 	</div>
 </body>
