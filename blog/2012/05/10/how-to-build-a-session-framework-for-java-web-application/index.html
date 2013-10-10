@@ -219,7 +219,7 @@ SessionFilter的核心代码如下：</p>
 <span class='line-number'>8</span>
 </pre></td><td class='code'><pre><code class='java'><span class='line'><span class="nd">@Override</span>
 </span><span class='line'><span class="kd">public</span> <span class="n">CustomSession</span> <span class="nf">getSession</span><span class="o">()</span> <span class="o">{</span>
-</span><span class='line'>    <span class="k">return</span> <span class="n">kariquSession</span><span class="o">;</span>
+</span><span class='line'>    <span class="k">return</span> <span class="n">session</span><span class="o">;</span>
 </span><span class='line'><span class="o">}</span>
 </span><span class='line'><span class="nd">@Override</span>
 </span><span class='line'><span class="kd">public</span> <span class="n">CustomSession</span> <span class="nf">getSession</span><span class="o">(</span><span class="kt">boolean</span> <span class="n">create</span><span class="o">)</span> <span class="o">{</span>
@@ -241,7 +241,7 @@ SessionFilter的核心代码如下：</p>
 <span class='line-number'>5</span>
 <span class='line-number'>6</span>
 <span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kt">void</span> <span class="nf">addCookie</span><span class="o">(</span><span class="n">KariquCookie</span> <span class="n">cookie</span><span class="o">)</span> <span class="o">{</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kt">void</span> <span class="nf">addCookie</span><span class="o">(</span><span class="n">CustomCookie</span> <span class="n">cookie</span><span class="o">)</span> <span class="o">{</span>
 </span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">cookie</span><span class="o">.</span><span class="na">isHttpOnly</span><span class="o">())</span> <span class="o">{</span>
 </span><span class='line'>            <span class="n">addHeader</span><span class="o">(</span><span class="n">SET_COOKIE</span><span class="o">,</span> <span class="n">buildHttpOnlyCookie</span><span class="o">(</span><span class="n">cookie</span><span class="o">));</span>
 </span><span class='line'>        <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
@@ -304,7 +304,7 @@ SessionFilter的核心代码如下：</p>
 </span><span class='line'><span class="kd">public</span> <span class="n">PrintWriter</span> <span class="nf">getWriter</span><span class="o">()</span> <span class="kd">throws</span> <span class="n">IOException</span> <span class="o">{</span>
 </span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="k">this</span><span class="o">.</span><span class="na">isWriterBuffered</span><span class="o">)</span> <span class="o">{</span>
 </span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">logger</span><span class="o">.</span><span class="na">isDebugEnabled</span><span class="o">())</span> <span class="o">{</span>
-</span><span class='line'>            <span class="n">logger</span><span class="o">.</span><span class="na">debug</span><span class="o">(</span><span class="s">&quot;krqResponse.getWriter(): Created new character buffer&quot;</span><span class="o">);</span>
+</span><span class='line'>            <span class="n">logger</span><span class="o">.</span><span class="na">debug</span><span class="o">(</span><span class="s">&quot;response.getWriter(): Created new character buffer&quot;</span><span class="o">);</span>
 </span><span class='line'>        <span class="o">}</span>
 </span><span class='line'>        <span class="c1">//这里返回StringWriter 方便Session框架控制输出流</span>
 </span><span class='line'>        <span class="n">StringWriter</span> <span class="n">chars</span> <span class="o">=</span> <span class="k">new</span> <span class="n">StringWriter</span><span class="o">();</span>
@@ -526,7 +526,7 @@ var _hmt = _hmt || [];
 	    	});
 	    }
 
-	    isPC() && addSwitchPanel();	
+	    addSwitchPanel();	
 
 	})();
 
@@ -570,6 +570,7 @@ var _hmt = _hmt || [];
 })(jQuery);
 
 </script>
+
 
 		</div>
 	</div>

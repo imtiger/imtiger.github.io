@@ -4,7 +4,7 @@
   <title><![CDATA[I'm Tiger,一个有理想爱折腾的程序员!]]></title>
   <link href="http://imtiger.github.io/atom.xml" rel="self"/>
   <link href="http://imtiger.github.io/"/>
-  <updated>2013-10-10T15:56:12+08:00</updated>
+  <updated>2013-10-10T18:51:01+08:00</updated>
   <id>http://imtiger.github.io/</id>
   <author>
     <name><![CDATA[imtiger]]></name>
@@ -27,7 +27,7 @@
 月薪:    15k-20k</p>
 
 <p>公司介绍: <br/>
-我们公司<a href="http://www.ejushang.com">易居尚</a>秉承着<code>让品质走进生活的理念</code>，致力于打造一个品质、高效、便捷的居家用品网络销售平台.咋们公司不打卡，弹性工作制，每天下午有公司大厨做的下午茶，攻城狮童鞋每周可以自由支配20%的工作时间做自己想做的事情，我们技术团队内部有很强互助和知识分享意识（包括技术骚们喜欢的爱情动作片，嘘&hellip;，其他人我不告诉他）当然了还有很多美女和帅哥，想置身互联网和电子商务有理想的的技术骚们，请你加入我们 一起high，<strong>我们不求改变世界，但求超越自我</strong>。也请各位朋友帮忙推荐，推荐成功有神秘礼物相送哦，有意者请联系:<a href="&#109;&#x61;&#105;&#x6c;&#116;&#111;&#x3a;&#x74;&#105;&#103;&#x65;&#114;&#x2e;&#x7a;&#x68;&#x6f;&#117;&#x40;&#x6b;&#97;&#114;&#105;&#x71;&#117;&#x2e;&#x63;&#x6f;&#109;">&#x74;&#x69;&#103;&#x65;&#114;&#46;&#122;&#104;&#111;&#117;&#64;&#x6b;&#97;&#x72;&#x69;&#x71;&#117;&#46;&#99;&#111;&#x6d;</a> 或者留言给我，另外也可以通过<a href="http://weibo.com/xmuzyq">@krq_tiger</a>新浪微博与我取的联系.</p>
+我们公司<a href="http://www.ejushang.com">易居尚</a>秉承着<code>让品质走进生活的理念</code>，致力于打造一个品质、高效、便捷的居家用品网络销售平台.咋们公司不打卡，弹性工作制，每天下午有公司大厨做的下午茶，攻城狮童鞋每周可以自由支配20%的工作时间做自己想做的事情，我们技术团队内部有很强互助和知识分享意识（包括技术骚们喜欢的爱情动作片，嘘&hellip;，其他人我不告诉他）当然了还有很多美女和帅哥，想置身互联网和电子商务有理想的的技术骚们，请你加入我们 一起high，<strong>我们不求改变世界，但求超越自我</strong>。也请各位朋友帮忙推荐，推荐成功有神秘礼物相送哦，有意者请联系:<a href="&#109;&#x61;&#x69;&#108;&#116;&#x6f;&#58;&#116;&#105;&#103;&#101;&#x72;&#46;&#122;&#x68;&#111;&#x75;&#x40;&#107;&#x61;&#114;&#105;&#113;&#117;&#46;&#99;&#x6f;&#109;">&#x74;&#x69;&#103;&#101;&#114;&#x2e;&#122;&#104;&#111;&#117;&#64;&#107;&#97;&#114;&#105;&#113;&#117;&#x2e;&#99;&#x6f;&#x6d;</a> 或者留言给我，另外也可以通过<a href="http://weibo.com/xmuzyq">@krq_tiger</a>新浪微博与我取的联系.</p>
 
 <!-- more -->
 
@@ -787,7 +787,7 @@ SessionFilter的核心代码如下：</p>
 <span class='line-number'>8</span>
 </pre></td><td class='code'><pre><code class='java'><span class='line'><span class="nd">@Override</span>
 </span><span class='line'><span class="kd">public</span> <span class="n">CustomSession</span> <span class="nf">getSession</span><span class="o">()</span> <span class="o">{</span>
-</span><span class='line'>    <span class="k">return</span> <span class="n">kariquSession</span><span class="o">;</span>
+</span><span class='line'>    <span class="k">return</span> <span class="n">session</span><span class="o">;</span>
 </span><span class='line'><span class="o">}</span>
 </span><span class='line'><span class="nd">@Override</span>
 </span><span class='line'><span class="kd">public</span> <span class="n">CustomSession</span> <span class="nf">getSession</span><span class="o">(</span><span class="kt">boolean</span> <span class="n">create</span><span class="o">)</span> <span class="o">{</span>
@@ -809,7 +809,7 @@ SessionFilter的核心代码如下：</p>
 <span class='line-number'>5</span>
 <span class='line-number'>6</span>
 <span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kt">void</span> <span class="nf">addCookie</span><span class="o">(</span><span class="n">KariquCookie</span> <span class="n">cookie</span><span class="o">)</span> <span class="o">{</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kt">void</span> <span class="nf">addCookie</span><span class="o">(</span><span class="n">CustomCookie</span> <span class="n">cookie</span><span class="o">)</span> <span class="o">{</span>
 </span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">cookie</span><span class="o">.</span><span class="na">isHttpOnly</span><span class="o">())</span> <span class="o">{</span>
 </span><span class='line'>            <span class="n">addHeader</span><span class="o">(</span><span class="n">SET_COOKIE</span><span class="o">,</span> <span class="n">buildHttpOnlyCookie</span><span class="o">(</span><span class="n">cookie</span><span class="o">));</span>
 </span><span class='line'>        <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
@@ -872,7 +872,7 @@ SessionFilter的核心代码如下：</p>
 </span><span class='line'><span class="kd">public</span> <span class="n">PrintWriter</span> <span class="nf">getWriter</span><span class="o">()</span> <span class="kd">throws</span> <span class="n">IOException</span> <span class="o">{</span>
 </span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="k">this</span><span class="o">.</span><span class="na">isWriterBuffered</span><span class="o">)</span> <span class="o">{</span>
 </span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">logger</span><span class="o">.</span><span class="na">isDebugEnabled</span><span class="o">())</span> <span class="o">{</span>
-</span><span class='line'>            <span class="n">logger</span><span class="o">.</span><span class="na">debug</span><span class="o">(</span><span class="s">&quot;krqResponse.getWriter(): Created new character buffer&quot;</span><span class="o">);</span>
+</span><span class='line'>            <span class="n">logger</span><span class="o">.</span><span class="na">debug</span><span class="o">(</span><span class="s">&quot;response.getWriter(): Created new character buffer&quot;</span><span class="o">);</span>
 </span><span class='line'>        <span class="o">}</span>
 </span><span class='line'>        <span class="c1">//这里返回StringWriter 方便Session框架控制输出流</span>
 </span><span class='line'>        <span class="n">StringWriter</span> <span class="n">chars</span> <span class="o">=</span> <span class="k">new</span> <span class="n">StringWriter</span><span class="o">();</span>
