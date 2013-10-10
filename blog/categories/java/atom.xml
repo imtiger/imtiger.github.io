@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Java | I'm Tiger,一个有理想爱折腾的程序员!]]></title>
   <link href="http://imtiger.github.io/blog/categories/java/atom.xml" rel="self"/>
   <link href="http://imtiger.github.io/"/>
-  <updated>2013-10-10T15:41:08+08:00</updated>
+  <updated>2013-10-10T15:56:12+08:00</updated>
   <id>http://imtiger.github.io/</id>
   <author>
     <name><![CDATA[imtiger]]></name>
@@ -208,13 +208,16 @@ CONSTANT_NameAndType_info tag 标志位为12，字段和方法的名称以及类
     <link href="http://imtiger.github.io/blog/2012/05/10/how-to-build-a-session-framework-for-java-web-application/"/>
     <updated>2012-05-10T09:31:00+08:00</updated>
     <id>http://imtiger.github.io/blog/2012/05/10/how-to-build-a-session-framework-for-java-web-application</id>
-    <content type="html"><![CDATA[<p>之前为公司写过一个Java web的session框架，并且已经用于生产环境，运行良好。本文本来是放在我的evernote笔记本里的，今天把它放到博客上来，供有兴趣的朋友参考。</p>
+    <content type="html"><![CDATA[<p>之前写过一个Java web的session框架，并且已经用于生产环境，运行良好。今天将我之前Evernote的笔记重新整理一下发布到博客上供有兴趣的同学参考下，也欢迎各位一起讨论。</p>
 
 <p>做web开发的朋友都知道，一个网站在发展的过程中，随着流量的不断增加，必然会遇到伸缩性的问题，虽然目前硬件的价格已经在减低，有时候可以通过垂直伸缩的方式来达到应对访问量不断增加的麻烦，但是垂直伸缩总是会遇到瓶颈，那么此时就需要水平伸缩了。当水平伸缩的时候，最重要的一点就是状态管理，而web应用的状态通产采用httpsession的管理方式，不同的web server(比如tomcat,jboss,jetty等等)都提供了对httpsession的支持，但是webserver通常采用了集群节点之间互相复制session状态的方式来进行状态管理，这样随着集群节点的增加，集群之间的复制的开销会越来越大，这从某种程度上来说也限制了应用的伸缩性。本文就简单总结一下构建一个Java web 应用的session框架的思路是什么样子。</p>
 
 <p>本文将会从session状态的存储，session信息的管理，安全性问题，以及如何与Servlet Container结合。</p>
 
 <blockquote><p>在开始之前，我们首先需要明确一点这里所说的session的概念是广义的，不仅仅是指httpSession。</p></blockquote>
+
+<!-- more -->
+
 
 <h1>Session状态存储</h1>
 
