@@ -5,13 +5,12 @@
 
 <head>
 	<meta charset="utf-8">
-	<title>I'm Tiger,一个有理想爱折腾的程序员!</title>
+	<title>如何构建Java web应用的session框架 - I'm Tiger,一个有理想爱折腾的程序员!</title>
 	<meta name="author" content="imtiger">
 
 	
-	<meta name="description" content="Sep 27th, 2013 技术, 生活 月薪15k-20k招聘高级Java软件工程师 创业一年多，感触颇多，也走过一些弯路，不过总体上还好。随着公司业务的不断扩大，现在需要招聘高级Java软件攻城狮数名，下面简单介绍下： 公司名称: 深圳易居尚网络科技有限公司
-工作地点: &hellip;">
-	<meta name="keywords" content="java,ios,mac,linux,objective-c,软件设计,软件架构,摄影,imtiger.">
+	<meta name="description" content="如何构建Java Web应用的session框架 之前为公司写过一个Java web的session框架，并且已经用于生产环境，运行良好。本文本来是放在我的evernote笔记本里的，今天把它放到博客上来，供有兴趣的朋友参考。 做web开发的朋友都知道，一个网站在发展的过程中，随着流量的不断增加 &hellip;">
+	<meta name="keywords" content="java web,httpsession,水平伸缩性，无状态架构">
 
   <!-- http://t.co/dKP3o1e -->
   <meta name="HandheldFriendly" content="True">
@@ -20,7 +19,7 @@
 
 	<link href="/atom.xml" rel="alternate" title="I'm Tiger,一个有理想爱折腾的程序员!" type="application/atom+xml">
 	
-	<link rel="canonical" href="http://imtiger.github.io/blog/">
+	<link rel="canonical" href="http://imtiger.github.io/blog/2012/05/10/how-to-build-a-session-framework-for-java-web-application/">
 	<link href="/favicon.png" rel="shortcut icon">
 	<link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
 	<link href="/stylesheets/font-awesome.min.css" media="screen, projection" rel="stylesheet" type="text/css">
@@ -86,354 +85,9 @@
 				
 			
 			<div class="mid-col-container">
-				<div id="content" class="inner">
-
-
-    <article class="post">
-	<div class="meta">
-		<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-09-27T15:29:00+08:00" data-updated="true" itemprop="datePublished">Sep 27<span>th</span>, 2013</time></div>
-		<div class="tags">
-
-
-	<a class='category' href='/blog/categories/ji-zhu/'>技术</a>, <a class='category' href='/blog/categories/sheng-huo/'>生活</a>
-
-
-</div>
-		
-	</div>
-	<h1 class="title" itemprop="name"><a href="/blog/2013/09/27/java-engineer-recruitment/" itemprop="url">月薪15k-20k招聘高级Java软件工程师</a></h1>
-	<div class="entry-content" itemprop="articleBody">
-		<p><img class="center" src="/images/2013/09/27/2013-09-27-01.jpg" width="700" height="350"><br/>
-创业一年多，感触颇多，也走过一些弯路，不过总体上还好。随着公司业务的不断扩大，现在需要招聘高级Java软件攻城狮数名，下面简单介绍下：</p>
-
-<p>公司名称: 深圳易居尚网络科技有限公司<br/>
-工作地点: 深圳宝安区大宝路41号德丰盛大厦 <br/>
-职位名称: 高级Java软件攻城狮<br/>
-月薪:    15k-20k</p>
-
-<p>公司介绍: <br/>
-我们公司<a href="http://www.ejushang.com">易居尚</a>秉承着<code>让品质走进生活的理念</code>，致力于打造一个品质、高效、便捷的居家用品网络销售平台.咋们公司不打卡，弹性工作制，每天下午有公司大厨做的下午茶，攻城狮童鞋每周可以自由支配20%的工作时间做自己想做的事情，我们技术团队内部有很强互助和知识分享意识（包括技术骚们喜欢的爱情动作片，嘘&hellip;，其他人我不告诉他）当然了还有很多美女和帅哥，想置身互联网和电子商务有理想的的技术骚们，请你加入我们 一起high，<strong>我们不求改变世界，但求超越自我</strong>。也请各位朋友帮忙推荐，推荐成功有神秘礼物相送哦，有意者请联系:<a href="&#x6d;&#97;&#105;&#108;&#116;&#x6f;&#x3a;&#116;&#105;&#x67;&#x65;&#x72;&#46;&#x7a;&#104;&#x6f;&#x75;&#x40;&#x6b;&#x61;&#x72;&#105;&#x71;&#x75;&#x2e;&#99;&#111;&#109;">&#x74;&#x69;&#x67;&#x65;&#x72;&#x2e;&#x7a;&#x68;&#111;&#117;&#x40;&#x6b;&#x61;&#x72;&#105;&#113;&#117;&#46;&#x63;&#111;&#x6d;</a> 或者留言给我，另外也可以通过<a href="http://weibo.com/xmuzyq">@krq_tiger</a>新浪微博与我取的联系.</p>
-
-
-		
-		<a href="/blog/2013/09/27/java-engineer-recruitment/" class="more-link">Read on(阅读全文) &rarr;</a>
-	</div>
-
-</article>
-
-
-    <article class="post">
-	<div class="meta">
-		<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-09-26T22:39:00+08:00" data-updated="true" itemprop="datePublished">Sep 26<span>th</span>, 2013</time></div>
-		<div class="tags">
-
-
-	<a class='category' href='/blog/categories/linux/'>linux</a>, <a class='category' href='/blog/categories/ji-zhu/'>技术</a>
-
-
-</div>
-		
-	</div>
-	<h1 class="title" itemprop="name"><a href="/blog/2013/09/26/find-files-with-a-keyword-in-a-dir/" itemprop="url">Unix Like系统中，查找某个目录下包含特定关键字的文件</a></h1>
-	<div class="entry-content" itemprop="articleBody">
-		<p><img class="center" src="/images/2013/09/27/2013-09-27-02.jpg"></p>
-
-<p>作为一枚程序猿，咋们经常在工作当中会遇到一种场景：   <br/>
-<strong>查找某个目录中包含某个关键字的文件</strong>，那么我们如何来实现这个需求呢？我个人的习惯是如果某个任务经常要执行，那么我会习惯性的写一个脚本，建立一个alias，然后每次需要的时候，直接调用脚本来完成任务，这才是咋们程序猿应该有的工作态度嘛。</p>
-
-<p>好了，废话不多了，咋们直接show code啦。</p>
-
-
-		
-		<a href="/blog/2013/09/26/find-files-with-a-keyword-in-a-dir/" class="more-link">Read on(阅读全文) &rarr;</a>
-	</div>
-
-</article>
-
-
-    <article class="post">
-	<div class="meta">
-		<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-09-03T15:28:00+08:00" data-updated="true" itemprop="datePublished">Sep 3<span>rd</span>, 2013</time></div>
-		<div class="tags">
-
-
-	<a class='category' href='/blog/categories/ios/'>iOS</a>, <a class='category' href='/blog/categories/ji-zhu/'>技术</a>
-
-
-</div>
-		
-	</div>
-	<h1 class="title" itemprop="name"><a href="/blog/2013/09/03/happyenglish-ios-app/" itemprop="url">&#8216;美剧英语每日一句&#8217; iOS App（已开源）</a></h1>
-	<div class="entry-content" itemprop="articleBody">
-		<p><img class="center" src="/images/2013/09/03/happyenglish.png"><br/>
-学习ios开发，自己做了个学习英语的iOS app，app里面的英文资料全部来自微信公共账号&#8221;美剧英语每日一句(id:<code>followmeapp</code>)&ldquo;，微信公共账号每天由托福雅思名师<a href="http://weibo.com/myajia"><code>@吴彧Allen</code></a>更新一句常用地道的美剧英语，作为一枚软件攻城狮，学习英语是必须的嘛,只要每天坚持学一句，积累下来，还愁英语口语水平不提高吗？<br/>
-<a href="https://itunes.apple.com/us/app/happyenglish/id669934718?ls=1&amp;amp;mt=8"><code>点我下载app</code></a></p>
-
-
-		
-		<a href="/blog/2013/09/03/happyenglish-ios-app/" class="more-link">Read on(阅读全文) &rarr;</a>
-	</div>
-
-</article>
-
-
-    <article class="post">
-	<div class="meta">
-		<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-01-30T12:16:00+08:00" data-updated="true" itemprop="datePublished">Jan 30<span>th</span>, 2013</time></div>
-		<div class="tags">
-
-
-	<a class='category' href='/blog/categories/java/'>Java</a>, <a class='category' href='/blog/categories/ji-zhu/'>技术</a>
-
-
-</div>
-		
-	</div>
-	<h1 class="title" itemprop="name"><a href="/blog/2013/01/30/java-class-file-format-demo/" itemprop="url">实例分析Java Class文件的结构-实践篇</a></h1>
-	<div class="entry-content" itemprop="articleBody">
-		<p><img class="center" src="/images/2013/01/30/java-logo.jpg" width="500" height="300"><br/>
-在<a href="/blog/2013/01/30/java-class-file-format/"><code>实例分析Java Class文件的结构-理论篇</code></a>一文中，我们说了Java Class文件结构的理论知识，接下来我们来通过一个具体的例子来理论结合实践的学习一下。
-首先我们有一个TestClass类，代码如下：</p>
-
-<figure class='code'><figcaption><span>TestClass.java </span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'> <span class="kn">package</span> <span class="n">com</span><span class="o">.</span><span class="na">ejushang</span><span class="o">.</span><span class="na">TestClass</span><span class="o">;</span>
-</span><span class='line'> <span class="kd">public</span> <span class="kd">class</span> <span class="nc">TestClass</span> <span class="kd">implements</span> <span class="n">Super</span><span class="o">{</span>
-</span><span class='line'>
-</span><span class='line'>         <span class="kd">private</span> <span class="kd">static</span> <span class="kd">final</span> <span class="kt">int</span> <span class="n">staticVar</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
-</span><span class='line'>
-</span><span class='line'>         <span class="kd">private</span> <span class="kt">int</span> <span class="n">instanceVar</span><span class="o">=</span><span class="mi">0</span><span class="o">;</span>
-</span><span class='line'>
-</span><span class='line'>         <span class="kd">public</span> <span class="kt">int</span> <span class="nf">instanceMethod</span><span class="o">(</span><span class="kt">int</span> <span class="n">param</span><span class="o">){</span>
-</span><span class='line'>             <span class="k">return</span> <span class="n">param</span><span class="o">+</span><span class="mi">1</span><span class="o">;</span>
-</span><span class='line'>         <span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'> <span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'> <span class="kd">interface</span> <span class="nc">Super</span><span class="o">{</span> <span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>通过jdk1.6.0_37的javac 编译后的TestClass.java对应的TestClass.class的二进制结构如下图所示：</p>
-
-
-		
-		<a href="/blog/2013/01/30/java-class-file-format-demo/" class="more-link">Read on(阅读全文) &rarr;</a>
-	</div>
-
-</article>
-
-
-    <article class="post">
-	<div class="meta">
-		<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-01-30T10:33:00+08:00" data-updated="true" itemprop="datePublished">Jan 30<span>th</span>, 2013</time></div>
-		<div class="tags">
-
-
-	<a class='category' href='/blog/categories/java/'>Java</a>, <a class='category' href='/blog/categories/ji-zhu/'>技术</a>
-
-
-</div>
-		
-	</div>
-	<h1 class="title" itemprop="name"><a href="/blog/2013/01/30/java-class-file-format/" itemprop="url">实例分析Java Class文件的结构-理论篇</a></h1>
-	<div class="entry-content" itemprop="articleBody">
-		<p><img class="center" src="/images/2013/01/30/java-logo.jpg" width="500" height="300">  <br/>
-今天把之前在Evernote中的笔记重新整理了一下，发上来供对java class 文件结构的有兴趣的同学参考一下。</p>
-
-<p>学习Java的朋友应该都知道Java从刚开始的时候就打着平台无关性的旗号，说“一次编写，到处运行”，其实说到无关性，Java平台还有另外一个无关性那就是语言无关性，要实现语言无关性，那么Java体系中的class的文件结构或者说是字节码就显得相当重要了，其实Java从刚开始的时候就有两套规范，一个是Java语言规范，另外一个是Java虚拟机规范，Java语言规范只是规定了Java语言相关的约束以及规则，而虚拟机规范则才是真正从跨平台的角度去设计的。今天我们就以一个实际的例子来看看，到底Java中一个Class文件对应的字节码应该是什么样子。 这篇文章将首先总体上阐述一下Class到底由哪些内容构成，然后再用一个实际的Java类入手去分析class的文件结构。</p>
-
-
-		
-		<a href="/blog/2013/01/30/java-class-file-format/" class="more-link">Read on(阅读全文) &rarr;</a>
-	</div>
-
-</article>
-
-
-    <article class="post">
-	<div class="meta">
-		<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-01-22T11:44:00+08:00" data-updated="true" itemprop="datePublished">Jan 22<span>nd</span>, 2013</time></div>
-		<div class="tags">
-
-</div>
-		
-	</div>
-	<h1 class="title" itemprop="name"><a href="/blog/2013/01/22/2012-summary/" itemprop="url">2012年创业回顾与总结</a></h1>
-	<div class="entry-content" itemprop="articleBody">
-		<p><img class="center" src="/images/2013/01/22/2012-summary.jpg" width="450" height="350">
-自从用了Evernote以后，发现自己写博客的频率变低了好多，很多时候都是自己直接在Evernote里面直接写笔记，很少来写博客了。不过今天还是把自己前几天在Evernote写的2012年度总结贴出来和大家分享以下，一起交流和进步。</p>
-
-<p>从2012年3月底辞职创业到现在已经10个月了，在过去的10个月里面，我们取得了一些成果，另外一方面我们也犯过一些错误。下面我主要从公司以及个人两个方面对过去的10个月做一下回顾和总结。</p>
-
-
-		
-		<a href="/blog/2013/01/22/2012-summary/" class="more-link">Read on(阅读全文) &rarr;</a>
-	</div>
-
-</article>
-
-
-    <article class="post">
-	<div class="meta">
-		<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-10-28T18:20:00+08:00" data-updated="true" itemprop="datePublished">Oct 28<span>th</span>, 2012</time></div>
-		<div class="tags">
-
-
-	<a class='category' href='/blog/categories/linux/'>linux</a>, <a class='category' href='/blog/categories/ji-zhu/'>技术</a>
-
-
-</div>
-		
-	</div>
-	<h1 class="title" itemprop="name"><a href="/blog/2012/10/28/mutil-appservers-manage/" itemprop="url">Shell 脚本简化Java Web开发中繁琐的打包、部署等重复劳动</a></h1>
-	<div class="entry-content" itemprop="articleBody">
-		<p>在平时的开发工作当中，经常会遇到如下一种场景：</p>
-
-<p>本地需要启动多个tomcat实例，多个tomcat实例通过统一的一个apache web server来管理，并且项目是maven管理的，每次修改了文件要部署的时候，一般会重复做如下事情：</p>
-
-<ol>
-<li>maven 打包工程</li>
-<li>删除日志文件</li>
-<li>启动tomcat实例</li>
-</ol>
-
-
-<p>这样的工作做多了，真的既不高效，也不符合优秀的程序猿的习惯，所以我一般会将其写一个脚本，每次运行下脚本，让脚本帮我们来完成这件事情，岂不快哉！</p>
-
-<p>Ok,I will show the code !</p>
-
-
-		
-		<a href="/blog/2012/10/28/mutil-appservers-manage/" class="more-link">Read on(阅读全文) &rarr;</a>
-	</div>
-
-</article>
-
-
-    <article class="post">
-	<div class="meta">
-		<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-05-10T09:31:00+08:00" data-updated="true" itemprop="datePublished">May 10<span>th</span>, 2012</time></div>
-		<div class="tags">
-
-
-	<a class='category' href='/blog/categories/java/'>Java</a>, <a class='category' href='/blog/categories/ji-zhu/'>技术</a>
-
-
-</div>
-		
-	</div>
-	<h1 class="title" itemprop="name"><a href="/blog/2012/05/10/how-to-build-a-session-framework-for-java-web-application/" itemprop="url">如何构建Java Web应用的session框架</a></h1>
-	<div class="entry-content" itemprop="articleBody">
-		<p>之前为公司写过一个Java web的session框架，并且已经用于生产环境，运行良好。本文本来是放在我的evernote笔记本里的，今天把它放到博客上来，供有兴趣的朋友参考。</p>
+				<div id="content" class="inner"><article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+	<h1 class="title" itemprop="name">如何构建Java Web应用的session框架</h1>
+	<div class="entry-content" itemprop="articleBody"><p>之前为公司写过一个Java web的session框架，并且已经用于生产环境，运行良好。本文本来是放在我的evernote笔记本里的，今天把它放到博客上来，供有兴趣的朋友参考。</p>
 
 <p>做web开发的朋友都知道，一个网站在发展的过程中，随着流量的不断增加，必然会遇到伸缩性的问题，虽然目前硬件的价格已经在减低，有时候可以通过垂直伸缩的方式来达到应对访问量不断增加的麻烦，但是垂直伸缩总是会遇到瓶颈，那么此时就需要水平伸缩了。当水平伸缩的时候，最重要的一点就是状态管理，而web应用的状态通产采用httpsession的管理方式，不同的web server(比如tomcat,jboss,jetty等等)都提供了对httpsession的支持，但是webserver通常采用了集群节点之间互相复制session状态的方式来进行状态管理，这样随着集群节点的增加，集群之间的复制的开销会越来越大，这从某种程度上来说也限制了应用的伸缩性。本文就简单总结一下构建一个Java web 应用的session框架的思路是什么样子。</p>
 
@@ -725,112 +379,61 @@ SessionFilter的核心代码如下：</p>
 <p>SessionHolder抽象了Session保存的接口，具体实现可以有好多种，比如你可以选择把session信息保存到cookie中，也可以将其保存到缓存中，甚至你可以将其保存到文件系统中。我自己写的session框架，根据前面的讨论，提供了两种存储方式，CookieHolder和CacheHolder分别对应客户端存储和服务器端缓存存储。在CookieHolder中要涉及到对cookie的解析，保存以及加密等操作，而CacheHolder涉及到从分布式缓存中查询到Session的信息以及同步session信息到缓存等一系列操作，具体代码我就贴了。</p>
 
 <p>上面就是写一个Session框架大体的思路，对此有兴趣的同学可以一起讨论一下。</p>
-
-		
-		
-	</div>
-
-</article>
-
-
-    <article class="post">
-	<div class="meta">
-		<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2011-10-17T18:26:00+08:00" data-updated="true" itemprop="datePublished">Oct 17<span>th</span>, 2011</time></div>
-		<div class="tags">
-
-
-	<a class='category' href='/blog/categories/javascript/'>JavaScript</a>, <a class='category' href='/blog/categories/ji-zhu/'>技术</a>
-
-
 </div>
-		
-	</div>
-	<h1 class="title" itemprop="name"><a href="/blog/2011/10/17/javascript-scope-and-scope-chain-explain/" itemprop="url">JavaScript 作用域和作用域链解析</a></h1>
-	<div class="entry-content" itemprop="articleBody">
-		<p><img class="center" src="/images/2011/10/17/JavaScript-Logo.png">
-最近看了下JavaScript方面的几本书，把里面的一些核心概念按照自己的理解做个总结。</p>
-
-<p>JavaScript 中有 Scope( 作用域 ) ， Scope chain( 作用域链 ) ， Execute context( 执行上下文 ) ， Active Object ( 活动对象 ),Dynamic Scope( 动态作用域 ) ， Closure( 闭包 ) 这些概念，要理解这些概念，我们从静态和动态两个方面去分析一下。</p>
-
-<p>首先我们写一个简单的 function 来做一个例子：</p>
-
-<figure class='code'><figcaption><span>JavaScript code</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">function</span> <span class="nx">add</span><span class="p">(</span><span class="nx">num1</span><span class="p">,</span> <span class="nx">num2</span><span class="p">){</span>
-</span><span class='line'>  <span class="kd">var</span> <span class="nx">sum</span> <span class="o">=</span> <span class="nx">num1</span> <span class="o">+</span> <span class="nx">num2</span><span class="p">;</span>
-</span><span class='line'>  <span class="k">return</span> <span class="nx">sum</span><span class="p">;</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-
-		
-		<a href="/blog/2011/10/17/javascript-scope-and-scope-chain-explain/" class="more-link">Read on(阅读全文) &rarr;</a>
-	</div>
 
 </article>
 
 
-    <article class="post">
-	<div class="meta">
-		<div class="date">
 
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2011-07-07T22:27:00+08:00" data-updated="true" itemprop="datePublished">Jul 7<span>th</span>, 2011</time></div>
-		<div class="tags">
-
-
-	<a class='category' href='/blog/categories/webkai-fa/'>Web开发</a>, <a class='category' href='/blog/categories/ji-zhu/'>技术</a>, <a class='category' href='/blog/categories/huan-cun/'>缓存</a>
-
-
+<div class="post-copyright">
+	<div class="avator" style="">
+		<img alt="" src="http://www.gravatar.com/avatar/80695ffc8afc90667bb292139686239b?s=160" width="100" height="100"/>
+	</div>
+	<div class="info">
+			作者： <A href="http://imtiger.net/">Tiger</A> <br>
+			出处： <A href="http://imtiger.net/">http://imtiger.net/</A>
+			<br>本文通过<a href="http://creativecommons.org/licenses/by-nc/3.0/deed.zh">署名-非商业性使用 3.0</a>进行许可,欢迎转载,但是必须保留本文的署名和连接,谢谢配合！
+			<a href="http://imtiger.net">Tiger</a>。 
+	</div>
 </div>
-		
+
+
+
+
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	
+	
+	  <!-- JiaThis Button BEGIN -->
+<div class="jiathis_style">
+	<span class="jiathis_txt"></span>
+  <a class="jiathis_button_tsina"></a>
+	<a class="jiathis_button_qzone">QQ</a>
+	<a class="jiathis_button_tqq"></a>
+	<a class="jiathis_button_weixin"></a>
+	<a href="http://www.jiathis.com/share?uid=1845643" class="jiathis jiathis_txt jiathis_separator jtico jtico_jiathis" target="_blank"></a>
+	<a class="jiathis_counter_style"></a>
+</div>
+<script type="text/javascript">
+var jiathis_config = {data_track_clickback:'true'};
+</script>
+<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js?uid=1372156002529710" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+
+<!-- UY BEGIN -->
+<div id="uyan_frame"></div>
+<script type="text/javascript" src="http://v2.uyan.cc/code/uyan.js?uid=1845643"></script>
+<!-- UY END -->
+	
+	<a class="addthis_counter addthis_pill_style"></a>
 	</div>
-	<h1 class="title" itemprop="name"><a href="/blog/2011/07/07/optimize-your-site-using-http-caching/" itemprop="url">Web开发之Http Cache</a></h1>
-	<div class="entry-content" itemprop="articleBody">
-		<p>在如今的 web 系统中， cache 应该是每个 web 系统架构师或者开发人员必须要掌握的技能。而 cache 在 web 的世界中一般分为客户端 cache( 当然有些人也叫它浏览器 cache) 和服务端 cache, 这篇文章不涉及 服务端 cache 的内容 . 下面我们主要来看看客户端 cache 所涉及 http header 相关联的知识。</p>
-
-<h2>1.Last-modified/if-modified-since</h2>
-
-<p>首先登场的是 <code>Last-modified/if-modified-since</code> ，当用户第一次浏览一个网站的时候，服务器会在响应头中增加 Last-modified 这个 http 响应头， Last-modified 的格式如：<code>Last-modified: Fri, 16 Mar 201 04:00:25 GMT</code>当用户第二次再请求同样的 url 的时候，浏览器会将 <code>last-modified</code> 的值附加到 <code>if-modified-since</code> 这个 http 请求头中，服务器端接收到请求后，首先 check 一下 <code>if-modified-since</code> 头信息中的时间是否与当前 url 对应的资源的最后修改时间一致，如果一致，则服务器返回 http 304 状态码，这样当浏览器收到 http 304 状态码了以后，就会利用本地缓存的内容来完成对本次用户操作的响应。如果过程的形象点的描述可以通过如下图描述：</p>
+  <!-- <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid="></script> -->
+</div>
 
 
-		
-		<a href="/blog/2011/07/07/optimize-your-site-using-http-caching/" class="more-link">Read on(阅读全文) &rarr;</a>
-	</div>
-
-</article>
-
-<nav id="pagenavi">
-    
-    
-        <a href="/blog/page/2/" class="next">Next</a>
-    
-    <div class="center"><a href="/blog/archives">Blog Archives</a></div>
-</nav>
 </div>
 			</div>
 			<footer id="footer" class="inner"><p>

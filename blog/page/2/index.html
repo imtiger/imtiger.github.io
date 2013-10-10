@@ -9,7 +9,7 @@
 	<meta name="author" content="imtiger">
 
 	
-	<meta name="description" content="Jul 12th, 2010 技术, 系统架构 构建可伸缩、高性能的互联网应用 本文发布在我原来的博客上面，后来换博客了，重新整理一下，发布在新的博客上。 本文结合本人的工作经验分析一下，如何构建一个可伸缩，高性能的互联网应用？下面从几个方面来谈谈个人的一些浅见，供有兴趣的同学参考下， &hellip;">
+	<meta name="description" content="Mar 25th, 2011 Java, 技术 分布式应用中客户端的设计 一个分布式的系统一般都会有很多的节点，节点和节点之间的通讯采用远程调用的方式，而当在实现业务逻辑的时候，我们可以通过客户端的实现方式实现，目前实现客户端的方式有两种方式，瘦客户端和富客户端。 瘦客户端 &hellip;">
 	<meta name="keywords" content="java,ios,mac,linux,objective-c,软件设计,软件架构,摄影,imtiger.">
 
   <!-- http://t.co/dKP3o1e -->
@@ -44,8 +44,8 @@
 
 <nav id="main-nav"><ul>
 	<li><a href="/">Home</a></li>
-	<li><a href="/life">Life</a></li>
 	<li><a href="/archives">Archive</a></li>
+<!--	<li><a href="/book">Books</a></li> -->
 	<li><a href="/about">About Me</a></li>
 </ul>
 
@@ -87,6 +87,48 @@
 			<div class="mid-col-container">
 				<div id="content" class="inner">
 <div itemscope itemtype="http://schema.org/Blog">
+
+
+    <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
+	<div class="meta">
+		<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-03-25T18:16:00+08:00" data-updated="true" itemprop="datePublished">Mar 25<span>th</span>, 2011</time></div>
+		<div class="tags">
+
+
+	<a class='category' href='/blog/categories/java/'>Java</a>, <a class='category' href='/blog/categories/ji-zhu/'>技术</a>
+
+
+</div>
+		
+	</div>
+	<h1 class="title" itemprop="name"><a href="/blog/2011/03/25/client-design-of-distributed-system/" itemprop="url">分布式应用中客户端的设计</a></h1>
+	<div class="entry-content" itemprop="articleBody">
+		<p>一个分布式的系统一般都会有很多的节点，节点和节点之间的通讯采用远程调用的方式，而当在实现业务逻辑的时候，我们可以通过客户端的实现方式实现，目前实现客户端的方式有两种方式，瘦客户端和富客户端。</p>
+
+<h1>瘦客户端</h1>
+
+<p>所谓瘦客户端类似于之前EJB那种方式，瘦客户端本身不具有业务逻辑，瘦客户端通过业务接口调用服务端逻辑，这个时候逻辑运算还是跑那个被多个系统共用的服务器，这样当存在大量的请求的情况下，负责逻辑运算的服务器就会成为瓶颈，这个时候通过水平伸缩负责逻辑运算的服务器，这个时候涉及到客户端请求的负载均衡，每次将远程调用采用负载均衡算法将其分配到逻辑端服务器，采用这种方式以后，可能就需要远程调用框架内部支持一些比如流量控制，负载均衡等的机制，这样使得调用方本身不需要关心服务器端的物理部署。</p>
+
+<p>当然了，我们也可以通过富客户端的方式来实现，下面我们就来介绍一下富客户端的设计。</p>
+
+
+		
+		<a href="/blog/2011/03/25/client-design-of-distributed-system/" class="more-link">Read on(阅读全文) &rarr;</a>
+	</div>
+
+</article>
 
 
     <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
@@ -393,6 +435,18 @@ Design credit: <a href="http://shashankmehta.in/archive/2012/greyshade.html">Sha
 
 
 
+
+	<script type="text/javascript">
+		var _gaq = _gaq || [];
+		_gaq.push(['_setAccount', 'UA-44429269-1']);
+		_gaq.push(['_trackPageview']);
+
+		(function() {
+			var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+			ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+			var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+		})();
+	</script>
 
 
 
