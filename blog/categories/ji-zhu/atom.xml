@@ -4,7 +4,7 @@
   <title><![CDATA[Category: 技术 | I'm Tiger,一个有理想爱折腾的程序员!]]></title>
   <link href="http://imtiger.github.io/blog/categories/ji-zhu/atom.xml" rel="self"/>
   <link href="http://imtiger.github.io/"/>
-  <updated>2013-10-10T18:51:11+08:00</updated>
+  <updated>2013-10-12T13:09:29+08:00</updated>
   <id>http://imtiger.github.io/</id>
   <author>
     <name><![CDATA[imtiger]]></name>
@@ -14,11 +14,236 @@
 
   
   <entry>
+    <title type="html"><![CDATA[电子商务网站的类目设计]]></title>
+    <link href="http://imtiger.github.io/blog/2013/10/11/category-design-of-e-commerce-website/"/>
+    <updated>2013-10-11T11:07:00+08:00</updated>
+    <id>http://imtiger.github.io/blog/2013/10/11/category-design-of-e-commerce-website</id>
+    <content type="html"><![CDATA[<p><img class="center" src="/images/2013/10/11/ejushang.png"></p>
+
+<p>电子商务网站中都会涉及到类目，而类目的设计也是一个电商网站设计的核心之一。本文总结一下总体的设计思路。</p>
+
+<p>首先我们从一个简单的例子说起，假如你要打算买一双<code>耐克40码黑色运动鞋</code>，我们来看看这里面涉及到了哪些关键的信息，其中<code>耐克</code>,<code>40码</code>,<code>黑色</code>,<code>运动鞋</code>是关键的信息，我们再来进一步的分析，耐克是鞋的品牌，40码是鞋的尺寸，黑色是鞋子的颜色，运动鞋是鞋子的分类，对于分类我想大家应该都比较好理解，但是对于品牌（耐克），尺寸（40码），颜色（黑色）我们应该怎么来理解呢？接下来我们就来分析一下如何通过这个具体的例子来抽象出一个公共的模型出来。</p>
+
+<p>在上面的例子中，品牌，尺寸，颜色我们可以抽象出来<code>类目属性</code>的模型，而耐克，40码，黑色我们可以抽象出<code>类目属性值</code>的模型，这样以来我们就知道运动鞋这个类目，它有品牌，尺寸，以及颜色这几个类目属性，而品牌这个类目属性有耐克，阿迪达斯等属性值，尺寸类目属性有38码，39码，40码等类目属性值，而颜色类目属性有黑色，黄色等类目属性值。</p>
+
+<!-- more -->
+
+
+<p>明白了上面的类目属性和类目属性值的概念以后，咋们再来进一步的分析，我们再来举一个例子，张三买了一双<code>耐克40码黑色的运动鞋</code>，李四买了一双<code>耐克39码蓝色的运动鞋</code>,张三和李四购买的鞋子是同样一款耐克的鞋，只是尺码和颜色不同，从这里我们又可以引入另外两个概念<code>销售属性</code>,<code>关键属性</code>，上面的例子中，尺寸，颜色这些属于销售属性，而品牌就属于关键属性，可能说到这里大家又糊涂了，到底什么样子的属性才算销售属性，什么样子的属性是关键属性呢？要给出这个问题的答案，咋们还得进一步的进行分析，上面说的<code>耐克39码蓝色的运动鞋</code>,<code>耐克40码黑色的运动鞋</code>到底应该怎么抽象，这里需要引入一个线下标准的概念叫<code>SKU（StockKeepintUint）</code>,从字面上面来看sku表示最小存放的单元，怎么理解？当确定了这款运动鞋以后，张三和李四还需要进行进一步的选择，比如要选择尺寸，颜色，才可以确定到底要买哪一款，这里面通过不同的类目属性和类目属性值的组合就可以确定一个SKU，因此构成SKU的属性（比如上例中的尺寸，颜色），我们就将其称之为<code>销售属性</code>,而不影响SKU的属性（比如上例中的品牌），我们可以称之为关键属性（至于关键属性有什么用，我们下面再来讨论。）</p>
+
+<p>接下来，我们来总结一下上面的分析结果，通过上面的分析，我们得到了如下几个模型，每个模型我都会通过简单的代码来标示出最核心的一些属性。</p>
+
+<h3>1. 商品</h3>
+
+<p>商品表示某个可以销售的物品，比如上面所说的耐克的运动鞋就是一个商品。
+```java Product.java
+public class Product {</p>
+
+<pre><code>private int id;
+
+/**
+ * 所在的行业标准类目
+ */
+private int categoryId;
+
+private String name;
+
+//其它省略
+</code></pre>
+
+<p>}
+```</p>
+
+<h3>2. 类目</h3>
+
+<p>类目也好理解，它是商品的一个分类。
+```java ProductCategory.java
+public class ProductCategory{</p>
+
+<pre><code>private int id;
+
+private String name;
+
+//父亲类目
+private ProductCategory parent;
+
+//子类目
+private List&lt;ProductCategory&gt; children = new LinkedList&lt;ProductCategory&gt;();
+
+private String description = "";
+
+//其它省略
+</code></pre>
+
+<p>}
+```</p>
+
+<h3>3. 属性</h3>
+
+<p>属性模型可以被多个类目共用，比如品牌，尺寸，颜色，很多类目都要用到这个属性，我们抽象出来以后，类目属性仅仅是引用属性即可。
+```java Property.java
+public class Property {</p>
+
+<pre><code>private int id;
+//属性名称，比如品牌，尺寸，颜色等等
+private String name;
+</code></pre>
+
+<p>}
+```</p>
+
+<h3>4. 属性值</h3>
+
+<p>属性值顾名思义就是上面品牌，尺寸等属性的属性值，例如耐克，38码，黑色，蓝色等等。
+```java Value.java
+public class Value {</p>
+
+<pre><code>private int id;
+
+//属性值名称，比如耐克，38码，39码，黑色，蓝色等等 
+private String valueName;
+</code></pre>
+
+<p>}
+```</p>
+
+<h3>5. 类目属性</h3>
+
+<p>类目属性反应了某个类目公共的特征，比如对于鞋子来说就有品牌，尺寸，颜色，对于一个杯子来说可能有容量，颜色等属性。
+```java CategoryProperty.java
+public class CategoryProperty {</p>
+
+<pre><code>private int id; 
+
+//类目id 
+private int categoryId;
+
+//属性id,引用Property类的id.
+private int propertyId;
+
+//表示属性类型，分为销售属性和关键属性
+private PropertyType propertyType;
+</code></pre>
+
+<p>}</p>
+
+<p>public enum PropertyType {</p>
+
+<pre><code>/* 销售属性 */
+SELL_PROPERTY {
+    @Override
+    public String getDescription() {
+        return "销售属性";
+    }
+},
+
+/* 关键属性 */
+KEY_PROPERTY {
+    @Override
+    public String getDescription() {
+        return "关键属性";
+    }
+};
+
+public abstract String getDescription();
+</code></pre>
+
+<p>}
+```</p>
+
+<h3>6. 类目属性值</h3>
+
+<p>类目属性值就是类目属性对应的不同的值，比如尺寸这个鞋子的类目属性就具有38码，39码等，颜色有黄色，黑色等。
+```java CategoryPropertyValue.java
+public class CategoryPropertyValue {</p>
+
+<pre><code>//没有业务意义，只是数据库主键
+private int id;
+
+//类目id
+private int categoryId;
+
+//属性id,引用Property类的id.
+private int propertyId;
+
+//属性值id,引用Value类的id.
+private int valueId;
+</code></pre>
+
+<p>}
+```</p>
+
+<h3>7. SKU</h3>
+
+<p>SKU是可以确定一个商品的最小的单元，只有确定了SKU，我们才能最终确定某个商品。
+```java StockKeepingUnit.java
+public class StockKeepingUnit {</p>
+
+<pre><code>/**
+ * SKU  ID
+ */
+private int id;
+
+/**
+ * 商品ID，一个商品可以有多个sku
+ */
+private int productId;
+
+/**
+ * 库存数量，查询sku的时候如果提供仓库则可读出库存数量
+ */
+private int stockQuantity;
+
+/**
+ * 价格
+ */
+private long price;
+
+
+/**
+ * SKU 属性列表
+ */
+private List&lt;SkuProperty&gt; skuProperties;
+</code></pre>
+
+<p>}
+/<em>*
+ * sku 属性
+ * 比如颜色红色或者尺存38码等
+ * @author Tiger
+ * @version 1.0.0
+ </em>/
+public class SkuProperty {</p>
+
+<pre><code>private long skuId;
+
+private int propertyId;
+
+private int valueId;
+</code></pre>
+
+<p>}
+```</p>
+
+<p>通过上面的描述，我们清楚了电子商务网站关于商品和类目设计中涉及的主要的模型。接下来我们来看看，这样的设计如何与电子商务网站的搜索相结合。一般电子商务网站都会类似下图所示的搜索界面：<br/>
+<img class="center" src="/images/2013/10/11/e-commerce-category.png"></p>
+
+<p>在上图中所列的其实就是我们上面所说的类目属性以及类目属性值，那么当我们点击其中一个类目属性和类目属性值的时候，怎么去通过搜索检索商品呢？根据上面的描述，我们知道一个商品有多个SKU，而每个SKU又有可能会有多个属性和属性值组合而成，这样的话，我们就可以根据属性和值的Id来对商品进行索引，查询的时候传递属性的id以及属性值的id即可搜索了。我们还是通过上图的例子来简要描述一下。假如我们要买<code>品牌为戴德适用人数为1-2人价格为500-999的汤锅</code>假设品牌的这个属性的id为100，戴德这个属性值的id为200，那么<code>品牌:戴德</code> 这一组属性和属性值就可以表示为<code>100:200</code>,适用人数这个属性的Id为101，而1-2人这个属性值的id为201，那么<code>适用人数:1-2人</code>我们就可以表示为<code>101:201</code>，价格这个属性的id为102，而500-999这个属性值的id为202，那么<code>价格:500-990</code>我们就可以表示为<code>102:202</code>,那么我们的搜索引擎就可以通过100:200,101:201,102:202这3个字符串来建立索引，查询的时候就可以根据同样的字符串来进行查询。</p>
+
+<p>上面我们所说的类目都是指相对稳定的行业标准类目，这种类目结构线下也已经运营了好多年，基本上稳定，不会经常发生变化，标准类目也是面对行业的类目管理人员来说，但是对于电子商务网站的普通用户或者消费者来说，行业的类目可能太过于专业不能理解，这个时候就要引入一个导航类目的概念，导航类目主要目的就是站在消费者的角度来对类目进行划分，那么划分了以后，电商系统中就会存在两套类目：<code>导航类目</code>和<code>行业标准类目</code>，这样做其实也算是体现了软件设计中很重要的一个原则<code>开闭原则</code>，我们通过行业标准类目将商品进行规范话的管理，然后再用导航类目来适应消费者不断变化的需求。说到这里大家可能会想导航类目和行业标准类目又是如何进行关联的呢？接下来我们就来具体分析一下。</p>
+
+<p>假如锅这个类目下面有个炒锅一个子类目，如果随着运营的不断深化，我们发现消费者非常关注炒锅是铁的还是不锈钢的，从行业标准类目的角度来说，铁，不锈钢是炒锅类目材质这个类目属性的两个不同的类目属性值，但是消费者认为铁炒锅是一个类，不锈钢炒锅是另外一个类，那么我们其实就可以做一个导航类目叫<code>铁质炒锅</code>，另外一个导航类目叫<code>不锈钢炒锅</code>，这样用户就可以直接通过类目导航到最终的搜索结果，而不用首先选择炒锅，然后在列表页面选择铁或者不锈钢再来检索了。这个时候不锈钢炒锅对于我们的系统来说，其实是<code>炒锅+材质:不锈钢</code>这个搜索条件的组合，假如炒锅类目id为100，材质属性id为200，不锈钢属性值id为300，那么上面的查询请求，我们就可以转化为<code>100+200:300</code>查询条件，说到这里大家可能已经猜到了我们导航类目应该如何和行业标准类目关联了，其实最简单的方式就是在导航类目中用一个属性保存它关联的后台标准类目id，用另外一个属性保存对应的属性和属性值组合就可以了，当然了你也可以指定一个数据结构来对<code>[类目]* + [属性:属性值]*</code>这中结构进行抽象，然后在导航类目中用一个属性来保存以上的数据结构即可。说到这里我们会发现<code>导航类目</code>其实就是一种对<code>行业标准类目</code>，<code>类目属性</code>和<code>类目属性值</code>的组合。</p>
+
+<p>本文通过一个简单的例子来总结了一下电子商务网站类目设计中相关的一些问题，也欢迎有这方面经验的朋友一起讨论一下。</p>
+]]></content>
+  </entry>
+  
+  <entry>
     <title type="html"><![CDATA[月薪15k-20k招聘高级Java软件工程师]]></title>
     <link href="http://imtiger.github.io/blog/2013/09/27/java-engineer-recruitment/"/>
     <updated>2013-09-27T15:29:00+08:00</updated>
     <id>http://imtiger.github.io/blog/2013/09/27/java-engineer-recruitment</id>
-    <content type="html"><![CDATA[<p>{% img center /images/2013/09/27/2013-09-27-01.jpg 700 350 %}<br/>
+    <content type="html"><![CDATA[<p><img class="center" src="/images/2013/09/27/2013-09-27-01.jpg" width="700" height="350"><br/>
 创业一年多，感触颇多，也走过一些弯路，不过总体上还好。随着公司业务的不断扩大，现在需要招聘高级Java软件攻城狮数名，下面简单介绍下：</p>
 
 <p>公司名称: 深圳易居尚网络科技有限公司<br/>
@@ -27,7 +252,7 @@
 月薪:    15k-20k</p>
 
 <p>公司介绍: <br/>
-我们公司<a href="http://www.ejushang.com">易居尚</a>秉承着<code>让品质走进生活的理念</code>，致力于打造一个品质、高效、便捷的居家用品网络销售平台.咋们公司不打卡，弹性工作制，每天下午有公司大厨做的下午茶，攻城狮童鞋每周可以自由支配20%的工作时间做自己想做的事情，我们技术团队内部有很强互助和知识分享意识（包括技术骚们喜欢的爱情动作片，嘘&hellip;，其他人我不告诉他）当然了还有很多美女和帅哥，想置身互联网和电子商务有理想的的技术骚们，请你加入我们 一起high，<strong>我们不求改变世界，但求超越自我</strong>。也请各位朋友帮忙推荐，推荐成功有神秘礼物相送哦，有意者请联系:<a href="&#x6d;&#97;&#105;&#x6c;&#116;&#111;&#x3a;&#116;&#105;&#x67;&#101;&#114;&#x2e;&#x7a;&#104;&#x6f;&#117;&#x40;&#x6b;&#97;&#114;&#105;&#113;&#x75;&#46;&#x63;&#x6f;&#109;">&#116;&#105;&#103;&#101;&#114;&#x2e;&#x7a;&#x68;&#x6f;&#x75;&#x40;&#x6b;&#97;&#x72;&#x69;&#x71;&#x75;&#x2e;&#x63;&#x6f;&#x6d;</a> 或者留言给我，另外也可以通过<a href="http://weibo.com/xmuzyq">@krq_tiger</a>新浪微博与我取的联系.</p>
+我们公司<a href="http://www.ejushang.com">易居尚</a>秉承着<code>让品质走进生活的理念</code>，致力于打造一个品质、高效、便捷的居家用品网络销售平台.咋们公司不打卡，弹性工作制，每天下午有公司大厨做的下午茶，攻城狮童鞋每周可以自由支配20%的工作时间做自己想做的事情，我们技术团队内部有很强互助和知识分享意识（包括技术骚们喜欢的爱情动作片，嘘&hellip;，其他人我不告诉他）当然了还有很多美女和帅哥，想置身互联网和电子商务有理想的的技术骚们，请你加入我们 一起high，<strong>我们不求改变世界，但求超越自我</strong>。也请各位朋友帮忙推荐，推荐成功有神秘礼物相送哦，有意者请联系:<a href="&#109;&#x61;&#105;&#108;&#x74;&#111;&#58;&#116;&#x69;&#103;&#101;&#x72;&#46;&#122;&#104;&#x6f;&#x75;&#64;&#x6b;&#x61;&#114;&#105;&#113;&#x75;&#46;&#x63;&#111;&#x6d;">&#116;&#x69;&#x67;&#x65;&#114;&#x2e;&#x7a;&#104;&#x6f;&#117;&#64;&#107;&#97;&#114;&#x69;&#113;&#117;&#x2e;&#x63;&#x6f;&#109;</a> 或者留言给我，另外也可以通过<a href="http://weibo.com/xmuzyq">@krq_tiger</a>新浪微博与我取的联系.</p>
 
 <!-- more -->
 
@@ -56,7 +281,7 @@
     <link href="http://imtiger.github.io/blog/2013/09/26/find-files-with-a-keyword-in-a-dir/"/>
     <updated>2013-09-26T22:39:00+08:00</updated>
     <id>http://imtiger.github.io/blog/2013/09/26/find-files-with-a-keyword-in-a-dir</id>
-    <content type="html"><![CDATA[<p>{% img center /images/2013/09/27/2013-09-27-02.jpg %}</p>
+    <content type="html"><![CDATA[<p><img class="center" src="/images/2013/09/27/2013-09-27-02.jpg"></p>
 
 <p>作为一枚程序猿，咋们经常在工作当中会遇到一种场景：   <br/>
 <strong>查找某个目录中包含某个关键字的文件</strong>，那么我们如何来实现这个需求呢？我个人的习惯是如果某个任务经常要执行，那么我会习惯性的写一个脚本，建立一个alias，然后每次需要的时候，直接调用脚本来完成任务，这才是咋们程序猿应该有的工作态度嘛。</p>
@@ -141,7 +366,7 @@ else</p>
     <link href="http://imtiger.github.io/blog/2013/09/03/happyenglish-ios-app/"/>
     <updated>2013-09-03T15:28:00+08:00</updated>
     <id>http://imtiger.github.io/blog/2013/09/03/happyenglish-ios-app</id>
-    <content type="html"><![CDATA[<p>{% img center /images/2013/09/03/happyenglish.png %}<br/>
+    <content type="html"><![CDATA[<p><img class="center" src="/images/2013/09/03/happyenglish.png"><br/>
 学习ios开发，自己做了个学习英语的iOS app，app里面的英文资料全部来自微信公共账号"美剧英语每日一句(id:<code>followmeapp</code>)&ldquo;，微信公共账号每天由托福雅思名师<a href="http://weibo.com/myajia"><code>@吴彧Allen</code></a>更新一句常用地道的美剧英语，作为一枚软件攻城狮，学习英语是必须的嘛,只要每天坚持学一句，积累下来，还愁英语口语水平不提高吗？<br/>
 <a href="https://itunes.apple.com/us/app/happyenglish/id669934718?ls=1&amp;amp;mt=8"><code>点我下载app</code></a></p>
 
@@ -153,7 +378,7 @@ else</p>
 <p>另外本app已经在github上面开源，地址：<a href="https://github.com/imtiger/HappyEnglish">HappyEnglish</a>. 对本app感兴趣的同学可以一起参与一起完善它。</p>
 
 <p>如果大家想关注微信公共账号，可以扫描如下二维码：<br/>
-{% img /images/2013/09/03/weixin.jpg %}</p>
+<img src="/images/2013/09/03/weixin.jpg"></p>
 ]]></content>
   </entry>
   
@@ -162,7 +387,7 @@ else</p>
     <link href="http://imtiger.github.io/blog/2013/01/30/java-class-file-format-demo/"/>
     <updated>2013-01-30T12:16:00+08:00</updated>
     <id>http://imtiger.github.io/blog/2013/01/30/java-class-file-format-demo</id>
-    <content type="html"><![CDATA[<p>{% img center /images/2013/01/30/java-logo.jpg 500 300 %}<br/>
+    <content type="html"><![CDATA[<p><img class="center" src="/images/2013/01/30/java-logo.jpg" width="500" height="300"><br/>
 在<a href="/blog/2013/01/30/java-class-file-format/"><code>实例分析Java Class文件的结构-理论篇</code></a>一文中，我们说了Java Class文件结构的理论知识，接下来我们来通过一个具体的例子来理论结合实践的学习一下。
 首先我们有一个TestClass类，代码如下：
 ```java TestClass.java</p>
@@ -190,7 +415,7 @@ else</p>
 <!-- more -->
 
 
-<p>{% img center /images/2013/01/30/test-class-file.png %}</p>
+<p><img class="center" src="/images/2013/01/30/test-class-file.png"></p>
 
 <ol>
 <li><p>魔数<br/>
@@ -201,54 +426,54 @@ else</p>
 接下来的2个字节从00000008h-00000009h表示常量池的数量，由上图可以知道其值为0x0018，十进制为24个,但是对于常量池的数量需要明确一点，常量池的数量是constant_pool_count-1，为什么减一，是因为索引0表示class中的数据项不引用任何常量池中的常量。</p></li>
 <li><p>常量池
 我们上面说了常量池中有不同类型的常量，下面就来看看TestClass.class的第一个常量，我们知道每个常量都有一个u1类型的tag标识来表示常量的类型，上图中0000000ah处的内容为0x0A，转换成二级制是10，由上面的关于常量类型的描述可知tag为10的常量是Constant_Methodref_info,而Constant_Methodref_info的结够如下图所示：
-{% img center /images/2013/01/30/constant-methodref-info.png %} <br/>
+<img class="center" src="/images/2013/01/30/constant-methodref-info.png"> <br/>
 <code>class_index</code>指向常量池中类型为CONSTANT_Class_info的常量，从TestClass的二进制文件结构中可以看出class_index的值为0x0004（地址为0000000bh-0000000ch)，也就是说指向第四个常量。 <br/>
 <code>name_and_type_index</code>指向常量池中类型为CONSTANT_NameAndType_info常量。从上图可以看出name_and_type_index的值为0x0013，表示指向常量池中的第19个常量.接下来又可以通过同样的方法来找到常量池中的所有常量。不过JDK提供了一个方便的工具可以让我们查看常量池中所包含的常量。通过javap -verbose TestClass 即可得到所有常量池中的常量，截图如下：<br/>
-{% img center /images/2013/01/30/test-class-javap.png %} <br/>
+<img class="center" src="/images/2013/01/30/test-class-javap.png"> <br/>
 从上图我们可以清楚的看到，TestClass中常量池有24个常量，不要忘记了第0个常量，因为第0个常量被用来表示 Class中的数据项不引用任何常量池中的常量。从上面的分析中我们得知TestClass的第一个常量表示方法，其中class_index指向的第四个常量为java/lang/Object，name_and_type_index指向的第19个常量值为<init>:()V,从这里可以看出第一个表示方法的常量表示的是java编译器生成的实例构造器方法。通过同样的方法可以分析常量池的其它常量。OK，分析完常量池，我们接下来再分析下access_flags。</p></li>
 <li>u2 access_flags
 表示类或者接口方面的访问信息，比如Class表示的是类还是接口，是否为public,static，final等。具体访问标示的含义之前已经说过了，下面我们就来看看TestClass的访问标示。Class的访问标示是从0000010dh-0000010e，其值为0x0021，根据前面说的各种访问标示的标志位，我们可以知道：0x0021=0x0001|0x0020 也即ACC_PUBLIC 和 ACC_SUPER为真，其中ACC_PUBLIC大家好理解，ACC_SUPER是jdk1.2之后编译的类都会带有的标志。</li>
 <li><p>u2 this_class <br/>
 表示类的索引值，用来表示类的全限定名称，类的索引值如下图所示：<br/>
-{% img center  /images/2013/01/30/class-index.png %}<br/>
+<img class="center" src="/images/2013/01/30/class-index.png"><br/>
 从上图可以清楚到看到，类索引值为0x0003，对应常量池的第三个常量，通过javap的结果，我们知道第三个常量为CONSTANT_Class_info类型的常量，通过它可以知道类的全限定名称为：com/ejushang/TestClass/TestClass</p></li>
 <li><p>u2 super_class <br/>
 表示当前类的父类的索引值，索引值指向常量池中类型为CONSTANT_Class_info的常量，父类的索引值如下图所示，其值为0x0004,查看常量池的第四个常量，可知TestClass的父类的全限定名称为：java/lang/Object.
-{% img center  /images/2013/01/30/super-class.png %}</p></li>
+<img class="center" src="/images/2013/01/30/super-class.png"></p></li>
 <li><p>interfaces_count 、 interfaces[interfaces_count]<br/>
 表示接口数量以及具体的每一个接口，TestClass的接口数量以及接口如下图所示，其中0x0001表示接口数量为1，而0x0005表示接口在常量池的索引值，找到常量池的第五个常量，其类型为CONSTANT_Class_info，其值为：com/ejushang/TestClass/Super
-{% img center /images/2013/01/30/interface-count.png %}</p></li>
+<img class="center" src="/images/2013/01/30/interface-count.png"></p></li>
 <li><p>fields_count、field_info <br/>
 fields_count表示类中field_info表的数量，而field_info表示类的实例变量和类变量，这里需要注意的是field_info不包含从父类继承过来的字段，field_info的结构如下图所示：<br/>
-{% img center /images/2013/01/30/field-info.png %}<br/>
+<img class="center" src="/images/2013/01/30/field-info.png"><br/>
 <code>access_flags</code>表示字段的访问标识，比如public,private,protected，static,final等，access_flags的取值如下图所示：<br/>
-{% img center /images/2013/01/30/access-flags.png %}<br/>
+<img class="center" src="/images/2013/01/30/access-flags.png"><br/>
 <code>name_index</code> 和 <code>descriptor_index</code>都是常量池的索引值，分别表示字段的名称和字段的描述符，字段的名称容易理解，但是字段的描述符如何理解呢？其实在JVM 规范中，对于字段的描述符规定如下图所示：<br/>
-{% img center /images/2013/01/30/field-descriptor.png %}<br/>
+<img class="center" src="/images/2013/01/30/field-descriptor.png"><br/>
 其中大家需要关注一下上图最后一行，它表示的是对一维数组的描述符，对于String[][]的描述符将是[[ Ljava/lang/String,而对于int[][]的描述符为[[I。接下来的attributes_count以及attribute_info分别表示属性表的数量以及属性表。<br/>
 下面我们还是以上面的TestClass为例，来看看TestClass的字段表吧。首先我们来看一下字段的数量，TestClass的字段的数量如下图所示：<br/>
-{% img center /images/2013/01/30/testclass-field-count.png %}<br/>
+<img class="center" src="/images/2013/01/30/testclass-field-count.png"><br/>
 从上图中可以看出TestClass有两个字段，查看TestClass的源代码可知，确实也只有两个字段，接下来我们看看第一个字段，我们知道第一个字段应该为private int staticVar,它在Class文件中的二进制表示如下图所示：<br/>
-{% img center /images/2013/01/30/field-one.png %}<br/>
+<img class="center" src="/images/2013/01/30/field-one.png"><br/>
 其中0x001A表示访问标示，通过查看access_flags表可知，其为ACC_PRIVATE,ACC_STATIC,ACC_FINAL,接下来0x0006和0x0007分别表示常量池中第6和第7个常量，通过查看常量池可知，其值分别为：staticVar和I，其中staticVar为字段名称，而I为字段的描述符，通过上面对描述符的解释，I所描述的是int类型的变量，接下来0x0001表示staticVar这个字段表中的属性表的数量，从上图可以staticVar字段对应的属性表有1个，0x0008表示常量池中的第8个常量，查看常量池可以得知此属性为ConstantValue属性，而ConstantValue属性的格式如下图所示：<br/>
-{%img center /images/2013/01/30/constantvalue-attribute.png%}<br/>
+<img class="center" src="/images/2013/01/30/constantvalue-attribute.png"><br/>
 其中<code>attribute_name_index</code>表述属性名的常量池索引，本例中为ConstantValue，而ConstantValue的<code>attribute_length</code>固定长度为2，而<code>constantValue_index</code>表示常量池中的引用，本例中，其中为0x0009，查看第9个常量可以知道，它表示一个类型为CONSTANT_Integer_info的常量，其值为0。<br/>
 上面说完了<code>private static final int staticVar=0</code>，下面我们接着说一下TestClass的<code>private int instanceVar=0</code>,在本例中对instanceVar的二进制表示如下图所示：
-{% img center /images/2013/01/30/field-two.png %}<br/>
+<img class="center" src="/images/2013/01/30/field-two.png"><br/>
 其中0x0002表示访问标示为ACC_PRIVATE,0x000A表示字段的名称，它指向常量池中的第10个常量，查看常量池可以知道字段名称为instanceVar，而0x0007表示字段的描述符，它指向常量池中的第7个常量，查看常量池可以知道第7个常量为I，表示类型为instanceVar的类型为I，最后0x0000表示属性表的数量为0.</p></li>
 <li>methods_count 、method_info <br/>
 methods_count表示方法的数量，而method_info表示的方法表，其中方法表的结构如下图所示：<br/>
-{% img center /images/2013/01/30/method-info.png %}  <br/>
+<img class="center" src="/images/2013/01/30/method-info.png">  <br/>
 从上图可以看出method_info和field_info的结构是很类似的，方法表的access_flag的所有标志位以及取值如下图所示：<br/>
-{% img center /images/2013/01/30/access-flags.png %}  <br/>
+<img class="center" src="/images/2013/01/30/access-flags.png">  <br/>
 其中<code>name_index</code>和<code>descriptor_index</code>表示的是方法的名称和描述符，他们分别是指向常量池的索引。这里需要结解释一下方法的描述符，方法的描述符的结构为：<code>（参数列表）返回值</code>，比如<code>public int instanceMethod(int param)</code>的描述符为：<code>（I）I</code>，表示带有一个int类型参数且返回值也为int类型的方法，接下来就是属性数量以及属性表了，方法表和字段表虽然都有属性数量和属性表，但是他们里面所包含的属性是不同。接下来我们就以TestClass来看一下方法表的二进制表示。首先来看一下方法表数量，截图如下：
-{% img center /images/2013/01/30/method-count.png %}<br/>
+<img class="center" src="/images/2013/01/30/method-count.png"><br/>
 从上图可以看出方法表的数量为0x0002表示有两个方法，接下来我们来分析第一个方法，我们首先来看一下TestClass的第一个方法的<code>access_flag</code>，<code>name_index</code>,<code>descriptor_index</code>，截图如下：<br/>
-{% img center /images/2013/01/30/method-one-info.png %}<br/>
+<img class="center" src="/images/2013/01/30/method-one-info.png"><br/>
 从上图可以知道access_flags为0x0001，从上面对access_flags标志位的描述，可知方法的access_flags的取值为ACC_PUBLIC,name_index为0x000B，查看常量池中的第11个常量，知道方法的名称为<init>，0x000C表示descriptor_index表示常量池中的第12常量，其值为()V,表示<init>方法没有参数和返回值，其实这是编译器自动生成的实例构造器方法。接下来的0x0001表示<init>方法的方法表有1个属性，属性截图如下：
-{% img center /images/2013/01/30/init-method-info.png %} <br/>
+<img class="center" src="/images/2013/01/30/init-method-info.png"> <br/>
 从上图可以看出0x000D对应的常量池中的常量为Code,表示的方法的Code属性，所以到这里大家应该明白方法的那些代码是存储在Class文件方法表中的属性表中的Code属性中。接下来我们在分析一下Code属性，Code属性的结构如下图所示：
-{% img center /images/2013/01/30/code-attribute.png %}<br/>
+<img class="center" src="/images/2013/01/30/code-attribute.png"><br/>
 其中<code>attribute_name_index</code>指向常量池中值为Code的常量，<code>attribute_length</code>的长度表示Code属性表的长度（这里需要注意的时候长度不包括attribute_name_index和attribute_length的6个字节的长度）。<br/>
 <code>max_stack</code>表示最大栈深度，虚拟机在运行时根据这个值来分配栈帧中操作数的深度.<br/>
 <code>max_locals</code>代表了局部变量表的存储空间,它的单位为slot，slot是虚拟机为局部变量分配内存的最小单元，在运行时，对于不超过32位类型的数据类型，比如byte,char,int等占用1个slot，而double和Long这种64位的数据类型则需要分配2个slot，另外max_locals的值并不是所有局部变量所需要的内存数量之和，因为slot是可以重用的，当局部变量超过了它的作用域以后，局部变量所占用的slot就会被重用。 <br/>
@@ -261,89 +486,21 @@ methods_count表示方法的数量，而method_info表示的方法表，其中�
 
 <blockquote><p>如果通过-g:none的编译器参数来取消生成LineNumberTable的话，最大的影响就是异常发生的时候，堆栈中不能显示出出错的行号，调试的时候也不能按照源代码来设置断点，</p></blockquote>
 
-<p>{% img center /images/2013/01/30/linenumbertable-attribute.png %}<br/>
+<p><img class="center" src="/images/2013/01/30/linenumbertable-attribute.png"><br/>
 其中<code>attribute_name_index</code>上面已经提到过，表示常量池的索引，<code>attribute_length</code>表示属性长度，而<code>start_pc</code>和<code>line_number</code>分表表示字节码的行号和源代码的行号。本例中LineNumberTable属性的字节流如下图所示：
-{% img center /images/2013/01/30/testclass-linenumbertable.png %}<br/>
+<img class="center" src="/images/2013/01/30/testclass-linenumbertable.png"><br/>
 上面分析完了TestClass的第一个方法，通过同样的方式我们可以分析出TestClass的第二个方法，截图如下：<br/>
-{%img center /images/2013/01/30/method-two.png %}
+<img class="center" src="/images/2013/01/30/method-two.png">
 其中<code>access_flags</code>为0x0001,<code>name_index</code>为0x000F,<code>descriptor_index</code>为0x0010，通过查看常量池可以知道此方法为<code>public int instanceMethod(int param)</code>方法。通过和上面类似的方法我们可以知道instanceMethod的Code属性为下图所示：<br/>
-{% img center /images/2013/01/30/method-two-code-attribute.png %}</p>
+<img class="center" src="/images/2013/01/30/method-two-code-attribute.png"></p>
 
 <p>最后我们来分析一下，Class文件的属性，从00000191h-00000199h为Class文件中的属性表，其中0x0011表示属性的名称，查看常量池可以知道属性名称为SourceFile，我们再来看看SourceFile的结构如下图所示：    <br/>
-{% img center /images/2013/01/30/sourcefile-attribute.png %}<br/>
+<img class="center" src="/images/2013/01/30/sourcefile-attribute.png"><br/>
 其中<code>attribute_length</code>为属性的长度，<code>sourcefile_index</code>指向常量池中值为源代码文件名称的常量，在本例中SourceFile属性截图如下：
-{% img center /images/2013/01/30/test-class-sourcefile.png %}<br/>
+<img class="center" src="/images/2013/01/30/test-class-sourcefile.png"><br/>
 其中<code>attribute_length</code>为0x00000002表示长度为2个字节，而<code>soucefile_index</code>的值为0x0012,查看常量池的第18个常量可以知道源代码文件的名称为TestClass.java</p>
 
 <p>通过<a href="/blog/2013/01/30/java-class-file-format/"><code>实例分析Java Class文件的结构-理论篇</code></a>和<a href="/blog/2013/01/30/java-class-file-format-demo/"><code>实例分析Java Class文件的结构-实践篇</code></a>两篇文章，我们采用理论和实践结合方式来学习了Class 文件的格式。掌握它的格式以后，我们也可以试着写个Java Class类文件的反编译器了。</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[实例分析Java Class文件的结构-理论篇]]></title>
-    <link href="http://imtiger.github.io/blog/2013/01/30/java-class-file-format/"/>
-    <updated>2013-01-30T10:33:00+08:00</updated>
-    <id>http://imtiger.github.io/blog/2013/01/30/java-class-file-format</id>
-    <content type="html"><![CDATA[<p>{% img center /images/2013/01/30/java-logo.jpg 500 300 %}  <br/>
-今天把之前在Evernote中的笔记重新整理了一下，发上来供对java class 文件结构的有兴趣的同学参考一下。</p>
-
-<p>学习Java的朋友应该都知道Java从刚开始的时候就打着平台无关性的旗号，说“一次编写，到处运行”，其实说到无关性，Java平台还有另外一个无关性那就是语言无关性，要实现语言无关性，那么Java体系中的class的文件结构或者说是字节码就显得相当重要了，其实Java从刚开始的时候就有两套规范，一个是Java语言规范，另外一个是Java虚拟机规范，Java语言规范只是规定了Java语言相关的约束以及规则，而虚拟机规范则才是真正从跨平台的角度去设计的。今天我们就以一个实际的例子来看看，到底Java中一个Class文件对应的字节码应该是什么样子。 这篇文章将首先总体上阐述一下Class到底由哪些内容构成，然后再用一个实际的Java类入手去分析class的文件结构。</p>
-
-<!-- more -->
-
-
-<p></p>
-
-<p>在继续之前，我们首先需要明确如下几点：<br/>
-1. Class文件是有8位为基础的字节流构成的，这些字节流之间都严格按照规定的顺序排列，并且字节之间不存在任何空隙，对于超过8位的数据，将按照Big-Endian的顺序存储的，也就是说高位字节存储在低的地址上面，而低位字节存储到高地址上面，其实这也是class文件要跨平台的关键，因为PowerPC架构的处理采用Big-Endian的存储顺序，而x86系列的处理器则采用Little-Endian的存储顺序，因此为了Class文件在各中处理器架构下保持统一的存储顺序，虚拟机规范必须对起进行统一。    <br/>
-2. Class文件结构采用类似C语言的结构体来存储数据的，主要有两类数据项，无符号数和表，无符号数用来表述数字，索引引用以及字符串等，比如u1,u2,u4,u8分别代表1个字节，2个字节，4个字节，8个字节的无符号数，而表是有多个无符号数以及其它的表组成的复合结构。可能大家看到这里对无符号数和表到底是上面也不是很清楚，不过不要紧，等下面实例的时候，我会再以实例来解释。</p>
-
-<p>明确了上面的两点以后，我们接下来后来看看Class文件中按照严格的顺序排列的字节流都具体包含些什么数据：<br/>
-{% img center /images/2013/01/30/java-class-file-format.png %}</p>
-
-<p>  <center>（上图来自The Java Virtual Machine Specification Java SE 7 Edition) </center></p>
-
-<p>在看上图的时候，有一点我们需要注意，比如cp_info，cp_info表示常量池，上图中用constant_pool[constant_pool_count-1]的方式来表示常量池有constant_pool_count-1个常量，它这里是采用数组的表现形式，但是大家不要误以为所有的常量池的常量长度都是一样的，其实这个地方只是为了方便描述采用了数组的方式，但是这里并不像编程语言那里，一个int型的数组，每个int长度都一样.明确了这一点以后，我们再回过头来看看上图中每一项都具体代表了什么含义。</p>
-
-<ol>
-<li>u4 magic 表示魔数，并且魔数占用了4个字节，魔数到底是做什么的呢？它其实就是表示一下这个文件的类型是一个Class文件，而不是一张JPG图片，或者AVI的电影。而Class文件对应的魔数是0xCAFEBABE.</li>
-<li>u2 minor_version 表示Class文件的次版本号，并且此版本号是u2类型的无符号数表示。</li>
-<li>u2 major_version 表示Class文件的主版本号，并且主版本号是u2类型的无符号数表示。major_version和minor_version主要用来表示当前的虚拟机是否接受当前这种版本的Class文件。不同版本的Java编译器编译的Class文件对应的版本是不一样的。高版本的虚拟机支持低版本的编译器编译的Class文件结构。比如Java SE 6.0对应的虚拟机支持Java SE 5.0的编译器编译的Class文件结构，反之则不行。</li>
-<li>u2 constant_pool_count 表示常量池的数量。这里我们需要重点来说一下常量池是什么东西，请大家不要与Jvm内存模型中的运行时常量池混淆了，Class文件中常量池主要存储了字面量以及符号引用，其中字面量主要包括字符串，final常量的值或者某个属性的初始值等等，而符号引用主要存储类和接口的全限定名称，字段的名称以及描述符，方法的名称以及描述符，这里名称可能大家都容易理解，至于描述符的概念，放到下面说字段表以及方法表的时候再说。另外大家都知道Jvm的内存模型中有堆，栈，方法区，程序计数器构成，而方法区中又存在一块区域叫运行时常量池，运行时常量池中存放的东西其实也就是编译器产生的各种字面量以及符号引用，只不过运行时常量池具有动态性，它可以在运行的时候向其中增加其它的常量进去，最具代表性的就是String的intern方法。</li>
-<li>cp_info 表示常量池，这里面就存储了上面说的各种各样的字面量和符号引用。放到常量池的中数据项在<code>The Java Virtual Machine Specification Java SE 7 Edition</code> 中一共有14个常量，每一种常量都是一个表，并且每种常量都用一个公共的部分tag来表示是哪种类型的常量。下面分别简单描述一下,具体细节等到后面的实例中我们再细化。 <br/>
-CONSTANT_Utf8_info      tag标志位为1,   UTF-8编码的字符串  <br/>
-CONSTANT_Integer_info  tag标志位为3， 整形字面量       <br/>
-CONSTANT_Float_info     tag标志位为4， 浮点型字面量    <br/>
-CONSTANT_Long_info     tag标志位为5， 长整形字面量 <br/>
-CONSTANT_Double_info  tag标志位为6， 双精度字面量 <br/>
-CONSTANT_Class_info    tag标志位为7， 类或接口的符号引用<br/>
-CONSTANT_String_info    tag标志位为8，字符串类型的字面量<br/>
-CONSTANT_Fieldref_info  tag标志位为9,  字段的符号引用 <br/>
-CONSTANT_Methodref_info  tag标志位为10，类中方法的符号引用<br/>
-CONSTANT_InterfaceMethodref_info tag标志位为11, 接口中方法的符号引用<br/>
-CONSTANT_NameAndType_info tag 标志位为12，字段和方法的名称以及类型的符号引用</li>
-<li>u2 access_flags 表示类或者接口的访问信息，具体如下图所示：
-{% img center /images/2013/01/30/class-access-and-property-modifiers.png %}</li>
-<li>u2 this_class 表示类的常量池索引，指向常量池中CONSTANT_Class_info的常量</li>
-<li>u2 super_class 表示超类的索引，指向常量池中CONSTANT_Class_info的常量</li>
-<li>u2 interface_counts 表示接口的数量</li>
-<li>u2 interface[interface_counts]表示接口表，它里面每一项都指向常量池中CONSTANT_Class_info常量</li>
-<li>u2 fields_count 表示类的实例变量和类变量的数量</li>
-<li>field_info fields[fields_count]表示字段表的信息，其中字段表的结构如下图所示：<br/>
-{% img center /images/2013/01/30/field-info.png %}<br/>
-上图中access_flags表示字段的访问标示，比如字段是public,private，protect 等，name_index表示字段名 称，指向常量池中类型是CONSTANT_UTF8_info的常量，descriptor_index表示字段的描述符，它也指向常量池中类型为CONSTANT_UTF8_info的常量，attributes_count表示字段表中的属性表的数量，而属性表是则是一种用与描述字段，方法以及类的属性的可扩展的结构，不同版本的Java虚拟机所支持的属性表的数量是不同的。</li>
-<li>u2 methods_count表示方法表的数量</li>
-<li>method_info 表示方法表，方法表的具体结构如下图所示：
-{% img center /images/2013/01/30/method-info.png %}<br/>
-其中access_flags表示方法的访问标示，name_index表示名称的索引，descriptor_index表示方法的描述符，attributes_count以及attribute_info类似字段表中的属性表，只不过字段表和方法表中属性表中的属性是不同的，比如方法表中就Code属性，表示方法的代码，而字段表中就没有Code属性。其中具体Class中到底有多少种属性，等到Class文件结构中的属性表的时候再说说。</li>
-<li>attribute_count表示属性表的数量，说到属性表，我们需要明确以下几点：<br/>
-1.属性表存在于Class文件结构的最后，字段表，方法表以及Code属性中，也就是说属性表中也可以存在属性表。<br/>
-2.属性表的长度是不固定的，不同的属性，属性表的长度是不同的。</li>
-</ol>
-
-
-<p>本篇文章描述了Java Class文件方面的理论知识，下面一篇文章将通过一个实际的例子来详细解释一下Class文件内部到底长什么样。具体请参考本系列的第二篇文章：<br/>
-<a href="/blog/2013/01/30/java-class-file-format-demo/">实例分析Java Class文件的结构-实践篇</a></p>
 ]]></content>
   </entry>
   

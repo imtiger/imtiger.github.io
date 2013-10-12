@@ -59,6 +59,8 @@
 		
 		
 		
+		<a class="github" href="https://github.com/imtiger" title="GitHub">GitHub</a>
+		
 		
 		<a class="iteye" href="http://xmuzyq.iteye.com" title="我之前的博客">我的Iteye博客</a>
 		
@@ -226,10 +228,10 @@ methods_count表示方法的数量，而method_info表示的方法表，其中�
 		<img alt="" src="http://www.gravatar.com/avatar/80695ffc8afc90667bb292139686239b?s=160" width="100" height="100"/>
 	</div>
 	<div class="info">
-			作者： <A href="http://imtiger.net/">Tiger</A> <br>
-			出处： <A href="http://imtiger.net/">http://imtiger.net/</A>
+			作者： <A href="http://imtiger.net">imtiger</A> <br>
+			出处： <A href="http://imtiger.net">http://imtiger.net/</A>
 			<br>本文通过<a href="http://creativecommons.org/licenses/by-nc/3.0/deed.zh">署名-非商业性使用 3.0</a>进行许可,欢迎转载,但是必须保留本文的署名和连接,谢谢配合！
-			<a href="http://imtiger.net">Tiger</a>。 
+			<a href="http://imtiger.net">imtiger</a>。 
 	</div>
 </div>
 
@@ -399,6 +401,58 @@ var _hmt = _hmt || [];
 		}
 			
 	})();
+	
+	//时间线
+	(function(){
+		var timeline = $("#timeline"),
+			timelineSingle = $(">ul>li", timeline),
+			duration = 400,
+			line = timeline.find('.line'),
+			singleHeight = timelineSingle.height()+50,
+			Len = timelineSingle.length;
+
+		//计算时间线
+		line.animate({"height": singleHeight*(Len-1)}, Len*duration);
+		timeline.find(".circle").each(function(i){
+			var thisCir = $(this);
+			thisCir.delay(i*duration).animate({"opacity":1},duration);
+			setTimeout(function(){
+				thisCir.removeClass('cur');
+				thisCir.next('.wrap').show(duration);
+			},i*duration);
+			
+		});
+
+		//移入动画
+		timelineSingle.each(function(){
+			var title = $(this).find("h3"),
+				content = $(this).find('dl'),
+				circle = $(this).find('.circle');
+
+			title.hover(
+				itemShow,
+				itemHide
+			);
+			
+			circle.hover(
+				itemShow,
+				itemHide
+			);
+			
+			function itemShow(){
+				content.show();
+		  	circle.addClass('cur');
+			};
+		
+			function itemHide(){
+				content.hide();
+				circle.removeClass('cur');
+			};
+		});
+		
+		
+	})();
+
 
 })(jQuery);
 

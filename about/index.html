@@ -10,7 +10,7 @@
 
 	
 	<meta name="description" content="I&rsquo;m Tiger,一个有理想爱折腾的程序员！
-职业Java玩家，业余IOS/MAC玩家！ 热爱Java,Objective-C,IOS,Mac,linux,Software Design and Architecture，非典型果粉！ 为什么会有此博客？ 对于工作和生活， &hellip;">
+职业Java玩家，业余IOS/MAC玩家，业余摄影爱好者! 热爱Java,Objective-C,IOS,Mac,linux,Software Design and Architecture，非典型果粉！ 2012-至今 &hellip;">
 	<meta name="keywords" content="java,ios,mac,linux,objective-c,软件设计,软件架构,摄影,imtiger.">
 
   <!-- http://t.co/dKP3o1e -->
@@ -58,6 +58,8 @@
 		
 		
 		
+		<a class="github" href="https://github.com/imtiger" title="GitHub">GitHub</a>
+		
 		
 		<a class="iteye" href="http://xmuzyq.iteye.com" title="我之前的博客">我的Iteye博客</a>
 		
@@ -91,13 +93,75 @@
     <h1 class="title">About Me</h1>
     
     <div class="entry-content"><p>I&rsquo;m Tiger,一个有理想爱折腾的程序员！<br/>
-职业Java玩家，业余IOS/MAC玩家！  <br/>
+职业Java玩家，业余IOS/MAC玩家，业余摄影爱好者! <br/>
 热爱Java,Objective-C,IOS,Mac,linux,Software Design and Architecture，非典型果粉！</p>
 
-<h3>为什么会有此博客？</h3>
+<br/>
 
-<p>对于工作和生活，本人比较喜欢总结。本博客记录一些技术学习心得，生活体会等信息，如果恰巧这些信息帮助到了你，那可能就是佛说的“缘分”吧。<br/>
-<img src="/images/aboutme.png" width="500" height="300"></p>
+
+<div id="timeline">
+    <div class="line"></div>
+    <ul>
+        <li>
+            <a class="circle cur" href="javascript:;"><span></span></a>
+            <div class="wrap">
+                <div class="time">2012-至今</div>
+                <h3>深圳易居尚网络科技有限公司</h3>
+                <dl>
+                    <dt>技术负责人</dt>
+                    <dd>
+          主要负责技术团队的组建，管理，招聘工作,自己对互联网产品，运营和技术有了更深的理解,同时也经历一个初创企业的悲欢离合。             
+                    </dd>
+                </dl>
+            </div>
+        </li>
+        <li>
+            <a class="circle cur" href="javascript:;"><span></span></a>
+            <div class="wrap">
+                <div class="time">2010-2012</div>
+                <h3>淘宝网</h3>
+                <dl>
+                    <dt>Java软件工程师</dt>
+                    <dd>
+                        <p>负责淘宝店铺相关的工作，通过在淘宝的工作，让我对构建一个大型分布式互联网系统有了更加深入的理解和认识,同时也让我意识到企业文化对公司发展的重要性!</p>
+                    </dd>
+                </dl>
+            </div>  
+        </li>
+        <li>
+            <a class="circle cur" href="javascript:;"><span></span></a>
+            <div class="wrap">
+                <div class="time">2005-2009</div>
+                <h3>厦门大学</h3>
+                <dl>
+                    <dt>软件学院</dt>
+                    <dd>
+                        <p>军校退学后，紧张备战高考几个月，我来到了美丽的厦门大学，同时也认识我现在老婆（这难道是佛说的缘分~)在校期间创过业，参与过一些开源项目，在建行研发部实习过一段时间，跟随导师做过一些企业管理系统，还做过一些疯狂的事情.</p>
+                    </dd>
+                </dl>
+            </div>      
+        </li>
+        <li>
+            <a class="circle cur" href="javascript:;"><span></span></a>
+            <div class="wrap">
+                <div class="time">2004-2005</div>
+                <h3>国防科学技术大学</h3>
+                <dl>
+                    <dt>指挥军官教育学院</dt>
+                    <dd>
+                            <p>曾经怀揣一颗想当军人炽热的心踏入了理想的军校，但是现实的军旅生活和自己想象的生活差距还是大了点，于是毅然决定退学&#8230;</p>
+                    </dd>
+                </dl>
+            </div>
+            
+        </li>
+
+    </ul>
+
+</div>
+
+
+<p><img src="/images/aboutme.png" width="500" height="300"></p>
 </div>
 </article>
 
@@ -264,6 +328,58 @@ var _hmt = _hmt || [];
 		}
 			
 	})();
+	
+	//时间线
+	(function(){
+		var timeline = $("#timeline"),
+			timelineSingle = $(">ul>li", timeline),
+			duration = 400,
+			line = timeline.find('.line'),
+			singleHeight = timelineSingle.height()+50,
+			Len = timelineSingle.length;
+
+		//计算时间线
+		line.animate({"height": singleHeight*(Len-1)}, Len*duration);
+		timeline.find(".circle").each(function(i){
+			var thisCir = $(this);
+			thisCir.delay(i*duration).animate({"opacity":1},duration);
+			setTimeout(function(){
+				thisCir.removeClass('cur');
+				thisCir.next('.wrap').show(duration);
+			},i*duration);
+			
+		});
+
+		//移入动画
+		timelineSingle.each(function(){
+			var title = $(this).find("h3"),
+				content = $(this).find('dl'),
+				circle = $(this).find('.circle');
+
+			title.hover(
+				itemShow,
+				itemHide
+			);
+			
+			circle.hover(
+				itemShow,
+				itemHide
+			);
+			
+			function itemShow(){
+				content.show();
+		  	circle.addClass('cur');
+			};
+		
+			function itemHide(){
+				content.hide();
+				circle.removeClass('cur');
+			};
+		});
+		
+		
+	})();
+
 
 })(jQuery);
 

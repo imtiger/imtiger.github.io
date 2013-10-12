@@ -4,7 +4,7 @@
   <title><![CDATA[Category: linux | I'm Tiger,一个有理想爱折腾的程序员!]]></title>
   <link href="http://imtiger.github.io/blog/categories/linux/atom.xml" rel="self"/>
   <link href="http://imtiger.github.io/"/>
-  <updated>2013-10-10T18:51:11+08:00</updated>
+  <updated>2013-10-12T13:09:29+08:00</updated>
   <id>http://imtiger.github.io/</id>
   <author>
     <name><![CDATA[imtiger]]></name>
@@ -18,7 +18,7 @@
     <link href="http://imtiger.github.io/blog/2013/09/26/find-files-with-a-keyword-in-a-dir/"/>
     <updated>2013-09-26T22:39:00+08:00</updated>
     <id>http://imtiger.github.io/blog/2013/09/26/find-files-with-a-keyword-in-a-dir</id>
-    <content type="html"><![CDATA[<p>{% img center /images/2013/09/27/2013-09-27-02.jpg %}</p>
+    <content type="html"><![CDATA[<p><img class="center" src="/images/2013/09/27/2013-09-27-02.jpg"></p>
 
 <p>作为一枚程序猿，咋们经常在工作当中会遇到一种场景：   <br/>
 <strong>查找某个目录中包含某个关键字的文件</strong>，那么我们如何来实现这个需求呢？我个人的习惯是如果某个任务经常要执行，那么我会习惯性的写一个脚本，建立一个alias，然后每次需要的时候，直接调用脚本来完成任务，这才是咋们程序猿应该有的工作态度嘛。</p>

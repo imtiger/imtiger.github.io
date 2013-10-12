@@ -4,7 +4,7 @@
   <title><![CDATA[Category: 系统架构 | I'm Tiger,一个有理想爱折腾的程序员!]]></title>
   <link href="http://imtiger.github.io/blog/categories/xi-tong-jia-gou/atom.xml" rel="self"/>
   <link href="http://imtiger.github.io/"/>
-  <updated>2013-10-10T18:51:11+08:00</updated>
+  <updated>2013-10-12T13:09:29+08:00</updated>
   <id>http://imtiger.github.io/</id>
   <author>
     <name><![CDATA[imtiger]]></name>
@@ -18,7 +18,7 @@
     <link href="http://imtiger.github.io/blog/2010/07/12/scalable-and-high-performance-system/"/>
     <updated>2010-07-12T15:52:00+08:00</updated>
     <id>http://imtiger.github.io/blog/2010/07/12/scalable-and-high-performance-system</id>
-    <content type="html"><![CDATA[<p>{% img center /images/2010/07/12/high-scalability.jpg %}</p>
+    <content type="html"><![CDATA[<p><img class="center" src="/images/2010/07/12/high-scalability.jpg"></p>
 
 <blockquote><p>本文发布在我原来的博客上面，后来换博客了，重新整理一下，发布在新的博客上。</p></blockquote>
 

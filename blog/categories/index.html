@@ -9,7 +9,7 @@
 	<meta name="author" content="imtiger">
 
 	
-	<meta name="description" content=" Java [ 9 ] 技术 [ 16 ] 系统架构 [ 1 ] Web开发 [ 1 ] 缓存 [ 1 ] Javascript [ 1 ] Linux [ 2 ] Ios [ 1 ] 生活 [ 1 ] ">
+	<meta name="description" content=" Java [ 9 ] 技术 [ 17 ] 系统架构 [ 1 ] Web开发 [ 1 ] 缓存 [ 1 ] Javascript [ 1 ] Linux [ 2 ] Ios [ 1 ] 生活 [ 1 ] ">
 	<meta name="keywords" content="java,ios,mac,linux,objective-c,软件设计,软件架构,摄影,imtiger.">
 
   <!-- http://t.co/dKP3o1e -->
@@ -57,6 +57,8 @@
 		
 		
 		
+		<a class="github" href="https://github.com/imtiger" title="GitHub">GitHub</a>
+		
 		
 		<a class="iteye" href="http://xmuzyq.iteye.com" title="我之前的博客">我的Iteye博客</a>
 		
@@ -93,7 +95,7 @@
 
     <li><a href="/blog/categories/Java/">Java</a> [ 9 ]</li>
 
-    <li><a href="/blog/categories/技术/">技术</a> [ 16 ]</li>
+    <li><a href="/blog/categories/技术/">技术</a> [ 17 ]</li>
 
     <li><a href="/blog/categories/系统架构/">系统架构</a> [ 1 ]</li>
 
@@ -244,6 +246,58 @@ var _hmt = _hmt || [];
 		}
 			
 	})();
+	
+	//时间线
+	(function(){
+		var timeline = $("#timeline"),
+			timelineSingle = $(">ul>li", timeline),
+			duration = 400,
+			line = timeline.find('.line'),
+			singleHeight = timelineSingle.height()+50,
+			Len = timelineSingle.length;
+
+		//计算时间线
+		line.animate({"height": singleHeight*(Len-1)}, Len*duration);
+		timeline.find(".circle").each(function(i){
+			var thisCir = $(this);
+			thisCir.delay(i*duration).animate({"opacity":1},duration);
+			setTimeout(function(){
+				thisCir.removeClass('cur');
+				thisCir.next('.wrap').show(duration);
+			},i*duration);
+			
+		});
+
+		//移入动画
+		timelineSingle.each(function(){
+			var title = $(this).find("h3"),
+				content = $(this).find('dl'),
+				circle = $(this).find('.circle');
+
+			title.hover(
+				itemShow,
+				itemHide
+			);
+			
+			circle.hover(
+				itemShow,
+				itemHide
+			);
+			
+			function itemShow(){
+				content.show();
+		  	circle.addClass('cur');
+			};
+		
+			function itemHide(){
+				content.hide();
+				circle.removeClass('cur');
+			};
+		});
+		
+		
+	})();
+
 
 })(jQuery);
 

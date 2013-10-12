@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Web开发 | I'm Tiger,一个有理想爱折腾的程序员!]]></title>
   <link href="http://imtiger.github.io/blog/categories/webkai-fa/atom.xml" rel="self"/>
   <link href="http://imtiger.github.io/"/>
-  <updated>2013-10-10T18:51:11+08:00</updated>
+  <updated>2013-10-12T13:09:29+08:00</updated>
   <id>http://imtiger.github.io/</id>
   <author>
     <name><![CDATA[imtiger]]></name>
@@ -27,7 +27,7 @@
 <!-- more -->
 
 
-<p>{% img center /images/2011/07/07/HTTP-caching-last-modified_1.png %}</p>
+<p><img class="center" src="/images/2011/07/07/HTTP-caching-last-modified_1.png"></p>
 
 <center>（上图来自于<a href="http://betterexplained.com">http://betterexplained.com</a>）</center>
 
@@ -42,14 +42,14 @@ response.addDateHeader("Last-Modified",time)
 
 <p><code>Etag</code> 是 http 1.1 规范引入的一个新的 http 实体头， Etag 在规范中仅仅只 etag 可以用来对同一个资源的其它实体头进行对比，没有做进一步的解释，其实我们可以把 Etag 理解为一个服务器在某个资源上面做的一个记号，至于这个记号用来做什么要看服务器如何去解析它，因此我们在设计我们自己的应用的时候，可以借助 Etag 来实现客户端缓存和服务器之间的缓存协商控制。下面我们来看一下 Etag 如何结合到一个 web 的请求之中。当浏览器第一次请求一个资源的时候，服务器在响应头里面加入 Etag 的标识， Etag 的值既是当前响应内容经过计算以后的值（ http 规范没有对 etag 值的计算方式做规定，可以是 md5 或者其它方式）当第二次浏览器发送请求的时候，浏览器便会用原先请求中 Etag 响应头的值作为 if-None-Match 请求头的值，这样服务器接受到此次请求以后，根据 <code>if-None-Match</code> 的取值和当前的内容进行对比，如果相同则返回一个 304 not modified 响应码，这样浏览器收到 304 后就会用客户端本地 cache 来完成对本次请求的响应。上述过程可以通过下图形象的描述：</p>
 
-<p>{% img center /images/2011/07/07/HTTP_caching_if_none_match.png %}</p>
+<p><img class="center" src="/images/2011/07/07/HTTP_caching_if_none_match.png"></p>
 
 <p>通过以上的描述我们可以看出， Etag 可以避免 Last-Modified 因为服务器时间不同步造成的缓存失效问题，另外值得我们关注的是 <code>Etag</code> 和 <code>last-modified</code> 仅仅只能节省网络带宽，并不能真正的减少对服务器的 http 请求数，如果要想真正的减少服务器端得请求数，还需要另外的 http  header 的协助，下面我们就来看一下，如何减少对服务器端得请求数。</p>
 
 <h2>3.Expries</h2>
 
 <p><code>Expries</code> 是另外一个与客户端缓存有关系的 http 头，在浏览器请求一个资源的时候，服务器设置了 Expries 头以后，下次浏览器再请求同样资源的时候，如果发现资源 expires 没有超期，则直接用客户端本地 cache 中数据来完成本次响应，不会向服务器再发送请求。此过程可以通过下图形象的描述：
-{% img center /images/2011/07/07/HTTP_caching_expires.png %}</p>
+<img class="center" src="/images/2011/07/07/HTTP_caching_expires.png"></p>
 
 <p>如果在 java servlet 中，则可以通过如下方法来设置一次响应内容的超期时间。
 <code>java Servlet code

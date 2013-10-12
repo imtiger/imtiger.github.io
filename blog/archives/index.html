@@ -9,7 +9,7 @@
 	<meta name="author" content="imtiger">
 
 	
-	<meta name="description" content="2013 Sep 27 技术, 生活 月薪15k-20k招聘高级Java软件工程师 Sep 26 linux, 技术 Unix like系统中，查找某个目录下包含特定关键字的文件 Sep 3 iOS, 技术 &#8216;美剧英语每日一句&#8217; iOS app（已开源） Jan 30 &hellip;">
+	<meta name="description" content="2013 Oct 11 技术 电子商务网站的类目设计 Sep 27 技术, 生活 月薪15k-20k招聘高级Java软件工程师 Sep 26 linux, 技术 Unix like系统中，查找某个目录下包含特定关键字的文件 Sep 3 iOS, 技术 &#8216;美剧英语每日一句&#8217 &hellip;">
 	<meta name="keywords" content="java,ios,mac,linux,objective-c,软件设计,软件架构,摄影,imtiger.">
 
   <!-- http://t.co/dKP3o1e -->
@@ -57,6 +57,8 @@
 		
 		
 		
+		<a class="github" href="https://github.com/imtiger" title="GitHub">GitHub</a>
+		
 		
 		<a class="iteye" href="http://xmuzyq.iteye.com" title="我之前的博客">我的Iteye博客</a>
 		
@@ -93,6 +95,25 @@
 	
 	
 	<section class="archives"><h1 class="year">2013</h1>
+
+<article itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
+	<div class="meta">
+		<span class="date"><time datetime="2013-10-11T11:07:00+08:00" itemprop="datePublished">Oct 11</time></span>
+		<br>
+		<span class="tags">
+
+
+	<a class='category' href='/blog/categories/ji-zhu/'>技术</a>
+
+
+</span>
+	    
+	</div>
+	<h1 class="title" itemprop="name"><a href="/blog/2013/10/11/category-design-of-e-commerce-website/">电子商务网站的类目设计</a></h1>
+</article>
+
+	
+
 
 <article itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
 	<div class="meta">
@@ -570,6 +591,58 @@ var _hmt = _hmt || [];
 		}
 			
 	})();
+	
+	//时间线
+	(function(){
+		var timeline = $("#timeline"),
+			timelineSingle = $(">ul>li", timeline),
+			duration = 400,
+			line = timeline.find('.line'),
+			singleHeight = timelineSingle.height()+50,
+			Len = timelineSingle.length;
+
+		//计算时间线
+		line.animate({"height": singleHeight*(Len-1)}, Len*duration);
+		timeline.find(".circle").each(function(i){
+			var thisCir = $(this);
+			thisCir.delay(i*duration).animate({"opacity":1},duration);
+			setTimeout(function(){
+				thisCir.removeClass('cur');
+				thisCir.next('.wrap').show(duration);
+			},i*duration);
+			
+		});
+
+		//移入动画
+		timelineSingle.each(function(){
+			var title = $(this).find("h3"),
+				content = $(this).find('dl'),
+				circle = $(this).find('.circle');
+
+			title.hover(
+				itemShow,
+				itemHide
+			);
+			
+			circle.hover(
+				itemShow,
+				itemHide
+			);
+			
+			function itemShow(){
+				content.show();
+		  	circle.addClass('cur');
+			};
+		
+			function itemHide(){
+				content.hide();
+				circle.removeClass('cur');
+			};
+		});
+		
+		
+	})();
+
 
 })(jQuery);
 

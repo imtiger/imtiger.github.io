@@ -9,7 +9,7 @@
 	<meta name="author" content="imtiger">
 
 	
-	<meta name="description" content="Mar 25th, 2011 Java, 技术 分布式应用中客户端的设计 一个分布式的系统一般都会有很多的节点，节点和节点之间的通讯采用远程调用的方式，而当在实现业务逻辑的时候，我们可以通过客户端的实现方式实现，目前实现客户端的方式有两种方式，瘦客户端和富客户端。 瘦客户端 &hellip;">
+	<meta name="description" content="Jul 7th, 2011 Web开发, 技术, 缓存 Web开发之Http Cache 在如今的 web 系统中， cache 应该是每个 web 系统架构师或者开发人员必须要掌握的技能。而 cache 在 web 的世界中一般分为客户端 cache( 当然有些人也叫它浏览器 cache) &hellip;">
 	<meta name="keywords" content="java,ios,mac,linux,objective-c,软件设计,软件架构,摄影,imtiger.">
 
   <!-- http://t.co/dKP3o1e -->
@@ -57,6 +57,8 @@
 		
 		
 		
+		<a class="github" href="https://github.com/imtiger" title="GitHub">GitHub</a>
+		
 		
 		<a class="iteye" href="http://xmuzyq.iteye.com" title="我之前的博客">我的Iteye博客</a>
 		
@@ -87,6 +89,46 @@
 			<div class="mid-col-container">
 				<div id="content" class="inner">
 <div itemscope itemtype="http://schema.org/Blog">
+
+
+    <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
+	<div class="meta">
+		<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-07-07T22:27:00+08:00" data-updated="true" itemprop="datePublished">Jul 7<span>th</span>, 2011</time></div>
+		<div class="tags">
+
+
+	<a class='category' href='/blog/categories/webkai-fa/'>Web开发</a>, <a class='category' href='/blog/categories/ji-zhu/'>技术</a>, <a class='category' href='/blog/categories/huan-cun/'>缓存</a>
+
+
+</div>
+		
+	</div>
+	<h1 class="title" itemprop="name"><a href="/blog/2011/07/07/optimize-your-site-using-http-caching/" itemprop="url">Web开发之Http Cache</a></h1>
+	<div class="entry-content" itemprop="articleBody">
+		<p>在如今的 web 系统中， cache 应该是每个 web 系统架构师或者开发人员必须要掌握的技能。而 cache 在 web 的世界中一般分为客户端 cache( 当然有些人也叫它浏览器 cache) 和服务端 cache, 这篇文章不涉及 服务端 cache 的内容 . 下面我们主要来看看客户端 cache 所涉及 http header 相关联的知识。</p>
+
+<h2>1.Last-modified/if-modified-since</h2>
+
+<p>首先登场的是 <code>Last-modified/if-modified-since</code> ，当用户第一次浏览一个网站的时候，服务器会在响应头中增加 Last-modified 这个 http 响应头， Last-modified 的格式如：<code>Last-modified: Fri, 16 Mar 201 04:00:25 GMT</code>当用户第二次再请求同样的 url 的时候，浏览器会将 <code>last-modified</code> 的值附加到 <code>if-modified-since</code> 这个 http 请求头中，服务器端接收到请求后，首先 check 一下 <code>if-modified-since</code> 头信息中的时间是否与当前 url 对应的资源的最后修改时间一致，如果一致，则服务器返回 http 304 状态码，这样当浏览器收到 http 304 状态码了以后，就会利用本地缓存的内容来完成对本次用户操作的响应。如果过程的形象点的描述可以通过如下图描述：</p>
+
+
+		
+		<a href="/blog/2011/07/07/optimize-your-site-using-http-caching/" class="more-link">Read on(阅读全文) &rarr;</a>
+	</div>
+
+</article>
 
 
     <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
@@ -541,6 +583,58 @@ var _hmt = _hmt || [];
 		}
 			
 	})();
+	
+	//时间线
+	(function(){
+		var timeline = $("#timeline"),
+			timelineSingle = $(">ul>li", timeline),
+			duration = 400,
+			line = timeline.find('.line'),
+			singleHeight = timelineSingle.height()+50,
+			Len = timelineSingle.length;
+
+		//计算时间线
+		line.animate({"height": singleHeight*(Len-1)}, Len*duration);
+		timeline.find(".circle").each(function(i){
+			var thisCir = $(this);
+			thisCir.delay(i*duration).animate({"opacity":1},duration);
+			setTimeout(function(){
+				thisCir.removeClass('cur');
+				thisCir.next('.wrap').show(duration);
+			},i*duration);
+			
+		});
+
+		//移入动画
+		timelineSingle.each(function(){
+			var title = $(this).find("h3"),
+				content = $(this).find('dl'),
+				circle = $(this).find('.circle');
+
+			title.hover(
+				itemShow,
+				itemHide
+			);
+			
+			circle.hover(
+				itemShow,
+				itemHide
+			);
+			
+			function itemShow(){
+				content.show();
+		  	circle.addClass('cur');
+			};
+		
+			function itemHide(){
+				content.hide();
+				circle.removeClass('cur');
+			};
+		});
+		
+		
+	})();
+
 
 })(jQuery);
 
