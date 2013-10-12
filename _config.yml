@@ -3,7 +3,7 @@
 # ----------------------- #
 
 url: http://imtiger.github.io
-title: I'm Tiger,一个热爱生活和技术的创业者!
+title: I'm Tiger,一个有理想爱折腾的程序员!
 subtitle:
 author: imtiger
 simple_search: http://google.com/search
@@ -106,7 +106,8 @@ disqus_show_comment_count: false
 #google_analytics_tracking_id: UA-44429269-1
 
 # Baidu Analytics
-baidu_analytics: true
+#baidu_analytics: true
+
 # Facebook Like
 facebook_like: false
 
