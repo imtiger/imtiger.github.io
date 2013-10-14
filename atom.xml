@@ -4,7 +4,7 @@
   <title><![CDATA[I'm Tiger,一个有理想爱折腾的程序员!]]></title>
   <link href="http://imtiger.github.io/atom.xml" rel="self"/>
   <link href="http://imtiger.github.io/"/>
-  <updated>2013-10-12T13:18:20+08:00</updated>
+  <updated>2013-10-14T18:41:37+08:00</updated>
   <id>http://imtiger.github.io/</id>
   <author>
     <name><![CDATA[imtiger]]></name>
@@ -12,6 +12,341 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码]]></title>
+    <link href="http://imtiger.github.io/blog/2013/10/14/run-tomcat-in-idea-or-eclipse/"/>
+    <updated>2013-10-14T14:39:00+08:00</updated>
+    <id>http://imtiger.github.io/blog/2013/10/14/run-tomcat-in-idea-or-eclipse</id>
+    <content type="html"><![CDATA[<p><img class="center" src="http://imtiger.github.io/images/2013/10/14/apache_tomcat_bag.jpg">
+在阅读Tomcat源代码之前，我们首先需要将Tomcat的源代码在IDE里面运行起来，这样方便我们阅读的过程中调试。本文总结一下在IDEA 或者 Eclipse中运行Tomcat源代码环境的搭建过程，同时我们通过Maven来负责项目的构建。</p>
+
+<p>在进行搭建之前，我们首先来说一下总体的思路。我们知道Tomcat运行的时候，一部分是源代码编译以后的可运行的Jar,另外一部分则是运行时的环境（也就是我们从官方下载下来的二进制分发包中的一系列的配置文件以及目录结构，说的更直白点就是CATALINA_HOME环境变量指定的目录）,本文对于第一部分采用IntelliJ IDEA 运行tomcat-7.0.42 tag的源代码，而对于第二部分运行环境，我们则直接采用tomcat-7.0.42的二进制分发包。明白了上述的思路以后，咋们就来一步步的搭建吧。</p>
+
+<!-- more -->
+
+
+<p>首先咋们来看看搭建完成以后的总体的目录结构，然后再一步步的去分解搭建过程。笔者搭建完以后，最终的运行结构如下图所示：
+<img class="center" src="http://imtiger.github.io/images/2013/10/14/project-structure.png"></p>
+
+<p>下面分别解释一下上图工程结构中涉及到的文件和目录：</p>
+
+<ol>
+<li>.idea和tomcat-study.iml是IntelliJ IDEA的文件，如果你用Eclipse的话不会存在这两个东东 。</li>
+<li>catalina-home是从官方下载的7.0.42的二进制分发包解压后的目录</li>
+<li>target是Maven编译项目以后生成的文件夹，熟悉Maven的读者应该很熟悉此目录</li>
+<li>tomcat-7.0.42-sourcecode是从Tomcat<a href="http://svn.apache.org/repos/asf/tomcat/tc7.0.x/tags/TOMCAT_7_0_42/">官方仓库</a>下载的tags的源代码</li>
+<li>pom.xml是Maven的配置文件,此工程中有两个pom.xml，这里运用了Maven聚合的特性。</li>
+</ol>
+
+
+<p>了解了最终的结构以后，咋们就来一步步的搭建它吧。</p>
+
+<h3>第一步 创建项目目录结构</h3>
+
+<p>本文假设我们将项目放在<code>~/develop/java</code>目录中。</p>
+
+<figure class='code'><figcaption><span>create project structure</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">cd</span> ~/develop/java
+</span><span class='line'>mkdir Tomcat
+</span><span class='line'><span class="nb">cd </span>Tomcat
+</span><span class='line'>touch pom.xml
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>第二步 下载Tomcat 7.0.42二进制分发包</h3>
+
+<p>我们通过apache-tomcat-7.0.42的<a href="http://mirrors.hust.edu.cn/apache/tomcat/tomcat-7/v7.0.42/bin/apache-tomcat-7.0.42.tar.gz">官方地址</a>下载它。具体的过程如下：</p>
+
+<figure class='code'><figcaption><span>download apache-tomcat-7.0.42 binary distribution</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">cd</span> ~/develop/java/Tomcat
+</span><span class='line'>wget http://mirrors.hust.edu.cn/apache/tomcat/tomcat-7/v7.0.42/bin/apache-tomcat-7.0.42.tar.gz
+</span><span class='line'>tar -zxvf apache-tomcat-7.0.42.tar.gz
+</span><span class='line'>rm apache-tomcat-7.0.42.tar.gz
+</span><span class='line'>mv apache-tomcat-7.0.42 catalina-home
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p></p>
+
+<h3>第三步 下载Tomcat 7.0.42 源代码</h3>
+
+<p>接下来我们从Tomcat的<a href="http://svn.apache.org/repos/asf/tomcat/tc7.0.x/tags/TOMCAT_7_0_42/">官方SVN仓库</a>下载Tomcat 7.0.42源代码，具体的步骤如下：</p>
+
+<figure class='code'><figcaption><span>download Tomcat 7.0.42 source code</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">cd</span> ~/develop/java/Tomcat
+</span><span class='line'>svn co http://svn.apache.org/repos/asf/tomcat/tc7.0.x/tags/TOMCAT_7_0_42/  tomcat-7.0.42-sourcecode
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在这一步中，我们将7.0.42的源代码迁入到了tomcat-7.0.42-sourcecode目录中。</p>
+
+<h3>第四步 创建聚合模块pom.xml</h3>
+
+<p>因为我们通过maven来对项目进行构建，这就需要我们来创建一个pom.xml文件，具体过程如下：</p>
+
+<figure class='code'><figcaption><span>create aggregation child project pom.xml</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">cd</span> ~/develop/java/Tomcat/tomcat-7.0.42-sourcecode
+</span><span class='line'>touch pom.xml
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>用你喜欢的编辑器打开pom.xml然后用下面的内容替换它的内容：</p>
+
+<figure class='code'><figcaption><span>pom.xml</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+<span class='line-number'>68</span>
+<span class='line-number'>69</span>
+<span class='line-number'>70</span>
+<span class='line-number'>71</span>
+</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="cp">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span>
+</span><span class='line'><span class="nt">&lt;project</span> <span class="na">xmlns=</span><span class="s">&quot;http://maven.apache.org/POM/4.0.0&quot;</span>
+</span><span class='line'>         <span class="na">xmlns:xsi=</span><span class="s">&quot;http://www.w3.org/2001/XMLSchema-instance&quot;</span>
+</span><span class='line'>         <span class="na">xsi:schemaLocation=</span><span class="s">&quot;http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'>    <span class="nt">&lt;modelVersion&gt;</span>4.0.0<span class="nt">&lt;/modelVersion&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;groupId&gt;</span>org.apache.tomcat<span class="nt">&lt;/groupId&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;artifactId&gt;</span>Tomcat7.0<span class="nt">&lt;/artifactId&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;name&gt;</span>Tomcat7.0<span class="nt">&lt;/name&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;version&gt;</span>7.0<span class="nt">&lt;/version&gt;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nt">&lt;build&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;finalName&gt;</span>Tomcat7.0<span class="nt">&lt;/finalName&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;sourceDirectory&gt;</span>java<span class="nt">&lt;/sourceDirectory&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;testSourceDirectory&gt;</span>test<span class="nt">&lt;/testSourceDirectory&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;resources&gt;</span>
+</span><span class='line'>            <span class="nt">&lt;resource&gt;</span>
+</span><span class='line'>                <span class="nt">&lt;directory&gt;</span>java<span class="nt">&lt;/directory&gt;</span>
+</span><span class='line'>            <span class="nt">&lt;/resource&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;/resources&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;testResources&gt;</span>
+</span><span class='line'>            <span class="nt">&lt;testResource&gt;</span>
+</span><span class='line'>                <span class="nt">&lt;directory&gt;</span>test<span class="nt">&lt;/directory&gt;</span>
+</span><span class='line'>            <span class="nt">&lt;/testResource&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;/testResources&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;plugins&gt;</span>
+</span><span class='line'>            <span class="nt">&lt;plugin&gt;</span>
+</span><span class='line'>                <span class="nt">&lt;groupId&gt;</span>org.apache.maven.plugins<span class="nt">&lt;/groupId&gt;</span>
+</span><span class='line'>                <span class="nt">&lt;artifactId&gt;</span>maven-compiler-plugin<span class="nt">&lt;/artifactId&gt;</span>
+</span><span class='line'>                <span class="nt">&lt;version&gt;</span>2.3<span class="nt">&lt;/version&gt;</span>
+</span><span class='line'>
+</span><span class='line'>                <span class="nt">&lt;configuration&gt;</span>
+</span><span class='line'>                    <span class="nt">&lt;encoding&gt;</span>UTF-8<span class="nt">&lt;/encoding&gt;</span>
+</span><span class='line'>                    <span class="nt">&lt;source&gt;</span>1.6<span class="nt">&lt;/source&gt;</span>
+</span><span class='line'>                    <span class="nt">&lt;target&gt;</span>1.6<span class="nt">&lt;/target&gt;</span>
+</span><span class='line'>                <span class="nt">&lt;/configuration&gt;</span>
+</span><span class='line'>            <span class="nt">&lt;/plugin&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;/plugins&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;/build&gt;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nt">&lt;dependencies&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;dependency&gt;</span>
+</span><span class='line'>            <span class="nt">&lt;groupId&gt;</span>junit<span class="nt">&lt;/groupId&gt;</span>
+</span><span class='line'>            <span class="nt">&lt;artifactId&gt;</span>junit<span class="nt">&lt;/artifactId&gt;</span>
+</span><span class='line'>            <span class="nt">&lt;version&gt;</span>4.4<span class="nt">&lt;/version&gt;</span>
+</span><span class='line'>            <span class="nt">&lt;scope&gt;</span>test<span class="nt">&lt;/scope&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;/dependency&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;dependency&gt;</span>
+</span><span class='line'>            <span class="nt">&lt;groupId&gt;</span>ant<span class="nt">&lt;/groupId&gt;</span>
+</span><span class='line'>            <span class="nt">&lt;artifactId&gt;</span>ant<span class="nt">&lt;/artifactId&gt;</span>
+</span><span class='line'>            <span class="nt">&lt;version&gt;</span>1.7.0<span class="nt">&lt;/version&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;/dependency&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;dependency&gt;</span>
+</span><span class='line'>            <span class="nt">&lt;groupId&gt;</span>wsdl4j<span class="nt">&lt;/groupId&gt;</span>
+</span><span class='line'>            <span class="nt">&lt;artifactId&gt;</span>wsdl4j<span class="nt">&lt;/artifactId&gt;</span>
+</span><span class='line'>            <span class="nt">&lt;version&gt;</span>1.6.2<span class="nt">&lt;/version&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;/dependency&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;dependency&gt;</span>
+</span><span class='line'>            <span class="nt">&lt;groupId&gt;</span>javax.xml<span class="nt">&lt;/groupId&gt;</span>
+</span><span class='line'>            <span class="nt">&lt;artifactId&gt;</span>jaxrpc<span class="nt">&lt;/artifactId&gt;</span>
+</span><span class='line'>            <span class="nt">&lt;version&gt;</span>1.1<span class="nt">&lt;/version&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;/dependency&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;dependency&gt;</span>
+</span><span class='line'>            <span class="nt">&lt;groupId&gt;</span>org.eclipse.jdt.core.compiler<span class="nt">&lt;/groupId&gt;</span>
+</span><span class='line'>            <span class="nt">&lt;artifactId&gt;</span>ecj<span class="nt">&lt;/artifactId&gt;</span>
+</span><span class='line'>            <span class="nt">&lt;version&gt;</span>4.2.2<span class="nt">&lt;/version&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;/dependency&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;/dependencies&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="nt">&lt;/project&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>对于pom.xml文件我们需要注意以下几点：</p>
+
+<ol>
+<li>因为下载代码不符合Maven默认的目录结构约定，因此需要修改<code>resources</code>和<code>testResources</code>为<code>java</code>和 <code>test</code>，而不是默认的<code>src/main/resource</code>和<code>src/test/resource</code>,修改<code>sourceDirectory</code>和<code>testSourceDirectory</code>为，<code>java</code>和<code>test</code>,而不是默认的<code>src/main/java</code>和<code>src/test/java</code>.</li>
+<li>因为Tomcat源代码的编译需要wsdl4j，jaxrpc,ecj等jar包，因此需要增加相关的依赖。</li>
+</ol>
+
+
+<h3>第五步 创建项目的根pom.xml文件</h3>
+
+<p>这一步我么在Tomcat目录中创建pom.xml文件，这里采用了Maven中聚合的概念.具体过程如下：</p>
+
+<figure class='code'><figcaption><span>create root pom.xml</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">cd</span> ~/develop/java/Tomcat
+</span><span class='line'>touch pom.xml
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>用你喜欢的编辑器打开刚创建的空的pom.xml文件，修改它的内容如下：</p>
+
+<figure class='code'><figcaption><span>~/develop/java/Tomcat/pom.xml</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="nt">&lt;project</span> <span class="na">xmlns=</span><span class="s">&quot;http://maven.apache.org/POM/4.0.0&quot;</span> <span class="na">xmlns:xsi=</span><span class="s">&quot;http://www.w3.org/2001/XMLSchema-instance&quot;</span>
+</span><span class='line'>         <span class="na">xsi:schemaLocation=</span><span class="s">&quot;http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nt">&lt;modelVersion&gt;</span>4.0.0<span class="nt">&lt;/modelVersion&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;groupId&gt;</span>net.imtiger<span class="nt">&lt;/groupId&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;artifactId&gt;</span>tomcat-study<span class="nt">&lt;/artifactId&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;name&gt;</span>Tomcat 7.0 Study<span class="nt">&lt;/name&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;version&gt;</span>1.0<span class="nt">&lt;/version&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;packaging&gt;</span>pom<span class="nt">&lt;/packaging&gt;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nt">&lt;modules&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;module&gt;</span>tomcat-7.0.42-sourcecode<span class="nt">&lt;/module&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;/modules&gt;</span>
+</span><span class='line'><span class="nt">&lt;/project&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>第六步 用IntelliJ IDEA 打开项目根目录的pom.xml</h3>
+
+<p>这一步需要注意，要用IDEA 打开项目根目录的pom.xml文件（也就是~/develop/java/Tomcat/pom.xml）</p>
+
+<h3>第七步 运行Tomcat</h3>
+
+<p>终于到激动人心的时刻了,我们知道任何Java程序都会有一个<code>public static void main(String… args)</code>的入口，Tomcat本身是用Java写的，因此它也不例外，对于Tomcat来说，入口类是<code>org.apache.catalina.startup.Bootstrap</code>,我们找到这个类，然后在IntelliJ IDEA中创建一个运行配置，其中最主要的就是VM options的配置了，在VM options里面填写如下的参数：</p>
+
+<figure class='code'><figcaption><span>VM options</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="o">-</span><span class="n">Dcatalina</span><span class="o">.</span><span class="na">home</span><span class="o">=</span><span class="n">catalina</span><span class="o">-</span><span class="n">home</span> <span class="o">-</span><span class="n">Dcatalina</span><span class="o">.</span><span class="na">base</span><span class="o">=</span><span class="n">catalina</span><span class="o">-</span><span class="n">home</span>
+</span><span class='line'><span class="o">-</span><span class="n">Djava</span><span class="o">.</span><span class="na">endorsed</span><span class="o">.</span><span class="na">dirs</span><span class="o">=</span><span class="n">catalina</span><span class="o">-</span><span class="n">home</span><span class="o">/</span><span class="n">endorsed</span> <span class="o">-</span><span class="n">Djava</span><span class="o">.</span><span class="na">io</span><span class="o">.</span><span class="na">tmpdir</span><span class="o">=</span><span class="n">catalina</span><span class="o">-</span><span class="n">home</span><span class="o">/</span><span class="n">temp</span>
+</span><span class='line'><span class="o">-</span><span class="n">Djava</span><span class="o">.</span><span class="na">util</span><span class="o">.</span><span class="na">logging</span><span class="o">.</span><span class="na">manager</span><span class="o">=</span><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">juli</span><span class="o">.</span><span class="na">ClassLoaderLogManager</span>
+</span><span class='line'><span class="o">-</span><span class="n">Djava</span><span class="o">.</span><span class="na">util</span><span class="o">.</span><span class="na">logging</span><span class="o">.</span><span class="na">config</span><span class="o">.</span><span class="na">file</span><span class="o">=</span><span class="n">catalina</span><span class="o">-</span><span class="n">home</span><span class="o">/</span><span class="n">conf</span><span class="o">/</span><span class="n">logging</span><span class="o">.</span><span class="na">properties</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>配置好后，IntelliJ IDEA的配置界面如下：
+<img class="center" src="http://imtiger.github.io/images/2013/10/14/vm-options.png"></p>
+
+<p>点击运行，即可看到Tomcat已经启动了，日志已经打到了IntelliJ IDEA的控制台上了，这个时候可以启动浏览器输入<a href="http://127.0.0.1:8080">http://127.0.0.1:8080</a>看看是否启动成功。</p>
+
+<p>接下来，咋们在Bootstrap的main方法中，增加一句<code>System.out.println("Have fun and Enjoy!");</code>,然后运行一下，看看加入的信息是否被打入到了控制台，在笔者的电脑上打印可以看到信息已经输出如下信息：</p>
+
+<figure class='code'><figcaption><span>console log</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">Have</span> <span class="n">fun</span> <span class="n">and</span> <span class="n">Enjoy</span><span class="o">!</span>
+</span><span class='line'><span class="c1">//ignore other log info</span>
+</span><span class='line'><span class="mi">2013</span><span class="o">-</span><span class="mi">10</span><span class="o">-</span><span class="mi">14</span> <span class="mi">17</span><span class="o">:</span><span class="mi">19</span><span class="o">:</span><span class="mi">35</span> <span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">catalina</span><span class="o">.</span><span class="na">startup</span><span class="o">.</span><span class="na">Catalina</span> <span class="n">start</span>
+</span><span class='line'><span class="err">信息</span><span class="o">:</span> <span class="n">Server</span> <span class="n">startup</span> <span class="n">in</span> <span class="mi">908</span> <span class="n">ms</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>上面就是Tomcat7.0.42源代码在IntelliJ IDEA运行环境搭建的完整的过程。因为笔者日常开发采用的是IntelliJ IDEA,所以本文就只写了IntelliJ IDEA的搭建，但是本文采用了Maven来进行构建的，理论上来说其它IDE，比如Eclipse，只要支持Maven,则可以采用本文同样的方法进行，用Eclipse开发的童鞋，按照本文的步骤理论上也是可以运行起来的。</p>
+
+<p>最后，列出几个笔者在搭建的过程中遇到的几个小问题。</p>
+
+<ol>
+<li><code>org.apache.catalina.connector.TestRequest</code>类的<code>prepareRequestBug54984</code>中有两个特殊字符<code>äö</code>,在SVN 迁出的时候变为了乱码，导致Maven在编译的时候编译不过，大家可以复制<code>äö</code>替换乱码的字符即可。</li>
+<li><code>CompilationUnit</code>类中的<code>public boolean ignoreOptionalProblems()</code>方法被标记为了@Override，但是其实现的接口<code>ICompilationUnit</code>属于<code>org.eclipse.jdt.core.compiler:ecj</code>，而3.x版本的<code>ICompilationUnit</code>中没有<code>ignoreOptionalProblems</code>方法，4.x的版本中才有，因此为了编译通过，本文采用了4.2.2版本。</li>
+</ol>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[电子商务网站的类目设计]]></title>
@@ -379,7 +714,7 @@
 月薪:    15k-20k</p>
 
 <p>公司介绍: <br/>
-我们公司<a href="http://www.ejushang.com">易居尚</a>秉承着<code>让品质走进生活的理念</code>，致力于打造一个品质、高效、便捷的居家用品网络销售平台.咋们公司不打卡，弹性工作制，每天下午有公司大厨做的下午茶，攻城狮童鞋每周可以自由支配20%的工作时间做自己想做的事情，我们技术团队内部有很强互助和知识分享意识（包括技术骚们喜欢的爱情动作片，嘘&hellip;，其他人我不告诉他）当然了还有很多美女和帅哥，想置身互联网和电子商务有理想的的技术骚们，请你加入我们 一起high，<strong>我们不求改变世界，但求超越自我</strong>。也请各位朋友帮忙推荐，推荐成功有神秘礼物相送哦，有意者请联系:<a href="&#x6d;&#x61;&#x69;&#x6c;&#116;&#x6f;&#58;&#116;&#105;&#103;&#x65;&#x72;&#x2e;&#x7a;&#x68;&#x6f;&#117;&#x40;&#x6b;&#97;&#x72;&#x69;&#113;&#x75;&#46;&#x63;&#x6f;&#x6d;">&#x74;&#x69;&#103;&#101;&#114;&#x2e;&#x7a;&#104;&#x6f;&#x75;&#64;&#x6b;&#x61;&#114;&#105;&#113;&#x75;&#x2e;&#x63;&#x6f;&#109;</a> 或者留言给我，另外也可以通过<a href="http://weibo.com/xmuzyq">@krq_tiger</a>新浪微博与我取的联系.</p>
+我们公司<a href="http://www.ejushang.com">易居尚</a>秉承着<code>让品质走进生活的理念</code>，致力于打造一个品质、高效、便捷的居家用品网络销售平台.咋们公司不打卡，弹性工作制，每天下午有公司大厨做的下午茶，攻城狮童鞋每周可以自由支配20%的工作时间做自己想做的事情，我们技术团队内部有很强互助和知识分享意识（包括技术骚们喜欢的爱情动作片，嘘&hellip;，其他人我不告诉他）当然了还有很多美女和帅哥，想置身互联网和电子商务有理想的的技术骚们，请你加入我们 一起high，<strong>我们不求改变世界，但求超越自我</strong>。也请各位朋友帮忙推荐，推荐成功有神秘礼物相送哦，有意者请联系:<a href="&#109;&#97;&#x69;&#x6c;&#116;&#x6f;&#58;&#116;&#x69;&#x67;&#x65;&#x72;&#x2e;&#x7a;&#x68;&#111;&#117;&#x40;&#x6b;&#97;&#x72;&#x69;&#x71;&#117;&#46;&#99;&#111;&#x6d;">&#x74;&#x69;&#x67;&#x65;&#x72;&#46;&#x7a;&#104;&#x6f;&#x75;&#64;&#x6b;&#97;&#x72;&#105;&#113;&#117;&#x2e;&#99;&#111;&#x6d;</a> 或者留言给我，另外也可以通过<a href="http://weibo.com/xmuzyq">@krq_tiger</a>新浪微博与我取的联系.</p>
 
 <!-- more -->
 
