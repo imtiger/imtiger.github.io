@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Java | I'm Tiger,一个有理想爱折腾的程序员!]]></title>
   <link href="http://imtiger.github.io/blog/categories/java/atom.xml" rel="self"/>
   <link href="http://imtiger.github.io/"/>
-  <updated>2013-10-15T10:23:21+08:00</updated>
+  <updated>2013-10-15T22:24:44+08:00</updated>
   <id>http://imtiger.github.io/</id>
   <author>
     <name><![CDATA[imtiger]]></name>
@@ -228,6 +228,8 @@ Have fun and Enjoy!
 <li><code>CompilationUnit</code>类中的<code>public boolean ignoreOptionalProblems()</code>方法被标记为了@Override，但是其实现的接口<code>ICompilationUnit</code>属于<code>org.eclipse.jdt.core.compiler:ecj</code>，而3.x版本的<code>ICompilationUnit</code>中没有<code>ignoreOptionalProblems</code>方法，4.x的版本中才有，因此为了编译通过，本文采用了4.2.2版本。</li>
 </ol>
 
+
+<p>另外本文最终搭建好的环境，我已经放在Github上了，不想搭建的童鞋可以直接clone一份使用。<a href="https://github.com/imtiger/Tomcat">Github仓库地址</a></p>
 ]]></content>
   </entry>
   
