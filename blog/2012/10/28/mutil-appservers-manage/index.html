@@ -36,7 +36,7 @@
 			<div class="intrude-less">
 			<header id="header" class="inner"><div class="profilepic">
 	
-	<a href="#"><img src="http://www.gravatar.com/avatar/80695ffc8afc90667bb292139686239b?s=160" alt="Profile Picture" style="width: 160px;" /></a>
+	<a href="/"><img src="http://www.gravatar.com/avatar/80695ffc8afc90667bb292139686239b?s=160" alt="Profile Picture" style="width: 160px;" /></a>
 	
 </div>
 <h1><a href="/">I'm Tiger</a></h1>
@@ -304,6 +304,8 @@ Design credit: <a href="http://shashankmehta.in/archive/2012/greyshade.html">Sha
 
 
 	<script type="text/javascript">
+		var host = location.host;
+		if(host.indexOf("imtiger.net")>=0){
 		var _gaq = _gaq || [];
 		_gaq.push(['_setAccount', 'UA-44429269-1']);
 		_gaq.push(['_trackPageview']);
@@ -313,11 +315,14 @@ Design credit: <a href="http://shashankmehta.in/archive/2012/greyshade.html">Sha
 			ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
 			var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
 		})();
+		}
 	</script>
 
 
 
 <script>
+var host=location.host;
+if(host.indexOf("imtiger.net")>=0){
 var _hmt = _hmt || [];
 (function() {
   var hm = document.createElement("script");
@@ -325,6 +330,7 @@ var _hmt = _hmt || [];
   var s = document.getElementsByTagName("script")[0]; 
   s.parentNode.insertBefore(hm, s);
 })();
+}
 </script>
 
 
