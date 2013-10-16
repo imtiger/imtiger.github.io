@@ -9,7 +9,7 @@
 	<meta name="author" content="imtiger">
 
 	
-	<meta name="description" content="Oct 17th, 2011 JavaScript, 技术 JavaScript 作用域和作用域链解析 最近看了下JavaScript方面的几本书，把里面的一些核心概念按照自己的理解做个总结。 JavaScript 中有 Scope( 作用域 ) ， Scope chain( 作用域链 ) ， &hellip;">
+	<meta name="description" content="May 10th, 2012 Java, 技术 如何构建Java Web应用的session框架 之前写过一个Java web的session框架，并且已经用于生产环境，运行良好。今天将我之前Evernote的笔记重新整理一下发布到博客上供有兴趣的同学参考下，也欢迎各位一起讨论。 &hellip;">
 	<meta name="keywords" content="java,ios,mac,linux,objective-c,软件设计,软件架构,摄影,imtiger.">
 
   <!-- http://t.co/dKP3o1e -->
@@ -89,6 +89,48 @@
 			<div class="mid-col-container">
 				<div id="content" class="inner">
 <div itemscope itemtype="http://schema.org/Blog">
+
+
+    <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
+	<div class="meta">
+		<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-05-10T09:31:00+08:00" data-updated="true" itemprop="datePublished">May 10<span>th</span>, 2012</time></div>
+		<div class="tags">
+
+
+	<a class='category' href='/blog/categories/java/'>Java</a>, <a class='category' href='/blog/categories/ji-zhu/'>技术</a>
+
+
+</div>
+		
+	</div>
+	<h1 class="title" itemprop="name"><a href="/blog/2012/05/10/how-to-build-a-session-framework-for-java-web-application/" itemprop="url">如何构建Java Web应用的session框架</a></h1>
+	<div class="entry-content" itemprop="articleBody">
+		<p>之前写过一个Java web的session框架，并且已经用于生产环境，运行良好。今天将我之前Evernote的笔记重新整理一下发布到博客上供有兴趣的同学参考下，也欢迎各位一起讨论。</p>
+
+<p>做web开发的朋友都知道，一个网站在发展的过程中，随着流量的不断增加，必然会遇到伸缩性的问题，虽然目前硬件的价格已经在减低，有时候可以通过垂直伸缩的方式来达到应对访问量不断增加的麻烦，但是垂直伸缩总是会遇到瓶颈，那么此时就需要水平伸缩了。当水平伸缩的时候，最重要的一点就是状态管理，而web应用的状态通产采用httpsession的管理方式，不同的web server(比如tomcat,jboss,jetty等等)都提供了对httpsession的支持，但是webserver通常采用了集群节点之间互相复制session状态的方式来进行状态管理，这样随着集群节点的增加，集群之间的复制的开销会越来越大，这从某种程度上来说也限制了应用的伸缩性。本文就简单总结一下构建一个Java web 应用的session框架的思路是什么样子。</p>
+
+<p>本文将会从session状态的存储，session信息的管理，安全性问题，以及如何与Servlet Container结合。</p>
+
+<blockquote><p>在开始之前，我们首先需要明确一点这里所说的session的概念是广义的，不仅仅是指httpSession。</p></blockquote>
+
+
+		
+		<a href="/blog/2012/05/10/how-to-build-a-session-framework-for-java-web-application/" class="more-link">Read on(阅读全文) &rarr;</a>
+	</div>
+
+</article>
 
 
     <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">

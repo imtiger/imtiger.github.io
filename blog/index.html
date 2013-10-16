@@ -9,7 +9,7 @@
 	<meta name="author" content="imtiger">
 
 	
-	<meta name="description" content="Oct 14th, 2013 Java, 技术 在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码 在阅读Tomcat源代码之前，我们首先需要将Tomcat的源代码在IDE里面运行起来，这样方便我们阅读的过程中调试。本文总结一下在IDEA 或者 &hellip;">
+	<meta name="description" content="Oct 16th, 2013 Java, Tomcat, 技术 Tomcat总体结构（Tomcat源代码阅读系列之二） 我们在在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码一文中介绍了如何在intelliJ IDEA 和 Eclipse中运行Tomcat源代码， &hellip;">
 	<meta name="keywords" content="java,ios,mac,linux,objective-c,软件设计,软件架构,摄影,imtiger.">
 
   <!-- http://t.co/dKP3o1e -->
@@ -104,17 +104,60 @@
   
 
 
-<time datetime="2013-10-14T14:39:00+08:00" data-updated="true" itemprop="datePublished">Oct 14<span>th</span>, 2013</time></div>
+<time datetime="2013-10-16T14:33:00+08:00" data-updated="true" itemprop="datePublished">Oct 16<span>th</span>, 2013</time></div>
 		<div class="tags">
 
 
-	<a class='category' href='/blog/categories/java/'>Java</a>, <a class='category' href='/blog/categories/ji-zhu/'>技术</a>
+	<a class='category' href='/blog/categories/java/'>Java</a>, <a class='category' href='/blog/categories/tomcat/'>Tomcat</a>, <a class='category' href='/blog/categories/ji-zhu/'>技术</a>
 
 
 </div>
 		
 	</div>
-	<h1 class="title" itemprop="name"><a href="/blog/2013/10/14/run-tomcat-in-idea-or-eclipse/" itemprop="url">在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码</a></h1>
+	<h1 class="title" itemprop="name"><a href="/blog/2013/10/16/tomcat-server-start-process-and-shutdown/" itemprop="url">Tomcat总体结构（Tomcat源代码阅读系列之二）</a></h1>
+	<div class="entry-content" itemprop="articleBody">
+		<p>我们在<a href="/blog/2013/10/14/run-tomcat-in-idea-or-eclipse/">在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码</a>一文中介绍了如何在intelliJ IDEA 和 Eclipse中运行Tomcat源代码，本文介绍一下Tomcat的总体结构。</p>
+
+<blockquote><p>本文没有特别指明的地方，源代码都是针对tomcat7.0.42来说。</p></blockquote>
+
+<h1>Tomcat的总体结构</h1>
+
+<p>Tomcat即是一个Http服务器也是一个Servlet容器，它的总体结构我们可以用下图来描述：
+<img class="center" src="/images/2013/10/16/TomcatArchitecture.png"></p>
+
+
+		
+		<a href="/blog/2013/10/16/tomcat-server-start-process-and-shutdown/" class="more-link">Read on(阅读全文) &rarr;</a>
+	</div>
+
+</article>
+
+
+    <article class="post">
+	<div class="meta">
+		<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-10-14T14:39:00+08:00" data-updated="true" itemprop="datePublished">Oct 14<span>th</span>, 2013</time></div>
+		<div class="tags">
+
+
+	<a class='category' href='/blog/categories/java/'>Java</a>, <a class='category' href='/blog/categories/tomcat/'>Tomcat</a>, <a class='category' href='/blog/categories/ji-zhu/'>技术</a>
+
+
+</div>
+		
+	</div>
+	<h1 class="title" itemprop="name"><a href="/blog/2013/10/14/run-tomcat-in-idea-or-eclipse/" itemprop="url">在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码（Tomcat源代码阅读系列之一）</a></h1>
 	<div class="entry-content" itemprop="articleBody">
 		<p><img class="center" src="/images/2013/10/14/apache_tomcat_bag.jpg">
 在阅读Tomcat源代码之前，我们首先需要将Tomcat的源代码在IDE里面运行起来，这样方便我们阅读的过程中调试。本文总结一下在IDEA 或者 Eclipse中运行Tomcat源代码环境的搭建过程，同时我们通过Maven来负责项目的构建。</p>
@@ -206,7 +249,7 @@
 月薪:    15k-20k</p>
 
 <p>公司介绍: <br/>
-我们公司<a href="http://www.ejushang.com">易居尚</a>秉承着<code>让品质走进生活的理念</code>，致力于打造一个品质、高效、便捷的居家用品网络销售平台.咋们公司不打卡，弹性工作制，每天下午有公司大厨做的下午茶，攻城狮童鞋每周可以自由支配20%的工作时间做自己想做的事情，我们技术团队内部有很强互助和知识分享意识（包括技术骚们喜欢的爱情动作片，嘘&hellip;，其他人我不告诉他）当然了还有很多美女和帅哥，想置身互联网和电子商务有理想的的技术骚们，请你加入我们 一起high，<strong>我们不求改变世界，但求超越自我</strong>。也请各位朋友帮忙推荐，推荐成功有神秘礼物相送哦，有意者请联系:<a href="&#x6d;&#97;&#x69;&#x6c;&#116;&#x6f;&#x3a;&#116;&#105;&#x67;&#x65;&#114;&#x2e;&#122;&#104;&#x6f;&#117;&#x40;&#107;&#97;&#114;&#105;&#x71;&#117;&#46;&#99;&#x6f;&#109;">&#x74;&#x69;&#103;&#101;&#x72;&#46;&#x7a;&#104;&#x6f;&#x75;&#64;&#x6b;&#97;&#114;&#x69;&#x71;&#117;&#x2e;&#99;&#111;&#109;</a> 或者留言给我，另外也可以通过<a href="http://weibo.com/xmuzyq">@krq_tiger</a>新浪微博与我取的联系.</p>
+我们公司<a href="http://www.ejushang.com">易居尚</a>秉承着<code>让品质走进生活的理念</code>，致力于打造一个品质、高效、便捷的居家用品网络销售平台.咋们公司不打卡，弹性工作制，每天下午有公司大厨做的下午茶，攻城狮童鞋每周可以自由支配20%的工作时间做自己想做的事情，我们技术团队内部有很强互助和知识分享意识（包括技术骚们喜欢的爱情动作片，嘘&hellip;，其他人我不告诉他）当然了还有很多美女和帅哥，想置身互联网和电子商务有理想的的技术骚们，请你加入我们 一起high，<strong>我们不求改变世界，但求超越自我</strong>。也请各位朋友帮忙推荐，推荐成功有神秘礼物相送哦，有意者请联系:<a href="&#x6d;&#97;&#x69;&#x6c;&#116;&#111;&#58;&#116;&#x69;&#x67;&#x65;&#114;&#x2e;&#122;&#104;&#x6f;&#x75;&#64;&#x6b;&#97;&#114;&#105;&#113;&#117;&#x2e;&#x63;&#111;&#109;">&#116;&#x69;&#x67;&#x65;&#x72;&#46;&#x7a;&#104;&#111;&#x75;&#64;&#107;&#97;&#x72;&#105;&#x71;&#117;&#46;&#x63;&#x6f;&#109;</a> 或者留言给我，另外也可以通过<a href="http://weibo.com/xmuzyq">@krq_tiger</a>新浪微博与我取的联系.</p>
 
 
 		
@@ -484,48 +527,6 @@
 
 		
 		<a href="/blog/2012/10/28/mutil-appservers-manage/" class="more-link">Read on(阅读全文) &rarr;</a>
-	</div>
-
-</article>
-
-
-    <article class="post">
-	<div class="meta">
-		<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-05-10T09:31:00+08:00" data-updated="true" itemprop="datePublished">May 10<span>th</span>, 2012</time></div>
-		<div class="tags">
-
-
-	<a class='category' href='/blog/categories/java/'>Java</a>, <a class='category' href='/blog/categories/ji-zhu/'>技术</a>
-
-
-</div>
-		
-	</div>
-	<h1 class="title" itemprop="name"><a href="/blog/2012/05/10/how-to-build-a-session-framework-for-java-web-application/" itemprop="url">如何构建Java Web应用的session框架</a></h1>
-	<div class="entry-content" itemprop="articleBody">
-		<p>之前写过一个Java web的session框架，并且已经用于生产环境，运行良好。今天将我之前Evernote的笔记重新整理一下发布到博客上供有兴趣的同学参考下，也欢迎各位一起讨论。</p>
-
-<p>做web开发的朋友都知道，一个网站在发展的过程中，随着流量的不断增加，必然会遇到伸缩性的问题，虽然目前硬件的价格已经在减低，有时候可以通过垂直伸缩的方式来达到应对访问量不断增加的麻烦，但是垂直伸缩总是会遇到瓶颈，那么此时就需要水平伸缩了。当水平伸缩的时候，最重要的一点就是状态管理，而web应用的状态通产采用httpsession的管理方式，不同的web server(比如tomcat,jboss,jetty等等)都提供了对httpsession的支持，但是webserver通常采用了集群节点之间互相复制session状态的方式来进行状态管理，这样随着集群节点的增加，集群之间的复制的开销会越来越大，这从某种程度上来说也限制了应用的伸缩性。本文就简单总结一下构建一个Java web 应用的session框架的思路是什么样子。</p>
-
-<p>本文将会从session状态的存储，session信息的管理，安全性问题，以及如何与Servlet Container结合。</p>
-
-<blockquote><p>在开始之前，我们首先需要明确一点这里所说的session的概念是广义的，不仅仅是指httpSession。</p></blockquote>
-
-
-		
-		<a href="/blog/2012/05/10/how-to-build-a-session-framework-for-java-web-application/" class="more-link">Read on(阅读全文) &rarr;</a>
 	</div>
 
 </article>

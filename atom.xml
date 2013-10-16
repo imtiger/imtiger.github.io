@@ -4,7 +4,7 @@
   <title><![CDATA[I'm Tiger,一个有理想爱折腾的程序员!]]></title>
   <link href="http://imtiger.github.io/atom.xml" rel="self"/>
   <link href="http://imtiger.github.io/"/>
-  <updated>2013-10-15T22:24:44+08:00</updated>
+  <updated>2013-10-16T17:21:42+08:00</updated>
   <id>http://imtiger.github.io/</id>
   <author>
     <name><![CDATA[imtiger]]></name>
@@ -14,7 +14,392 @@
 
   
   <entry>
-    <title type="html"><![CDATA[在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码]]></title>
+    <title type="html"><![CDATA[Tomcat总体结构（Tomcat源代码阅读系列之二）]]></title>
+    <link href="http://imtiger.github.io/blog/2013/10/16/tomcat-server-start-process-and-shutdown/"/>
+    <updated>2013-10-16T14:33:00+08:00</updated>
+    <id>http://imtiger.github.io/blog/2013/10/16/tomcat-server-start-process-and-shutdown</id>
+    <content type="html"><![CDATA[<p>我们在<a href="http://imtiger.github.io/blog/2013/10/14/run-tomcat-in-idea-or-eclipse/">在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码</a>一文中介绍了如何在intelliJ IDEA 和 Eclipse中运行Tomcat源代码，本文介绍一下Tomcat的总体结构。</p>
+
+<blockquote><p>本文没有特别指明的地方，源代码都是针对tomcat7.0.42来说。</p></blockquote>
+
+<h1>Tomcat的总体结构</h1>
+
+<p>Tomcat即是一个Http服务器也是一个Servlet容器，它的总体结构我们可以用下图来描述：
+<img class="center" src="http://imtiger.github.io/images/2013/10/16/TomcatArchitecture.png"></p>
+
+<!-- more -->
+
+
+<p>通过上图我们可以看出Tomcat中主要涉及Server,Service,Engine,Connector,Host,Context组件，之前用过Tomcat的童鞋是不是觉得这些组件的名称有点似曾相识的赶脚，没赶脚？！您再想想。好吧，不用你想了，我来告诉你吧。其实在Tomcat二进制分发包解压后,在conf目录中有一个server.xml文件，你打开它瞄两眼看看，是不是发现server.xml文件中已经包含了上述的几个名称。我拿我本地Tomcat7.0.42分发包中的server.xml来具体分析一下，它的内容如下：</p>
+
+<figure class='code'><figcaption><span>conf/server.xml(Tomcat 7.0.42)</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+<span class='line-number'>68</span>
+<span class='line-number'>69</span>
+<span class='line-number'>70</span>
+<span class='line-number'>71</span>
+<span class='line-number'>72</span>
+<span class='line-number'>73</span>
+<span class='line-number'>74</span>
+<span class='line-number'>75</span>
+<span class='line-number'>76</span>
+<span class='line-number'>77</span>
+<span class='line-number'>78</span>
+<span class='line-number'>79</span>
+<span class='line-number'>80</span>
+<span class='line-number'>81</span>
+<span class='line-number'>82</span>
+<span class='line-number'>83</span>
+<span class='line-number'>84</span>
+<span class='line-number'>85</span>
+<span class='line-number'>86</span>
+<span class='line-number'>87</span>
+<span class='line-number'>88</span>
+<span class='line-number'>89</span>
+<span class='line-number'>90</span>
+<span class='line-number'>91</span>
+<span class='line-number'>92</span>
+<span class='line-number'>93</span>
+<span class='line-number'>94</span>
+<span class='line-number'>95</span>
+<span class='line-number'>96</span>
+<span class='line-number'>97</span>
+<span class='line-number'>98</span>
+<span class='line-number'>99</span>
+<span class='line-number'>100</span>
+<span class='line-number'>101</span>
+<span class='line-number'>102</span>
+<span class='line-number'>103</span>
+<span class='line-number'>104</span>
+<span class='line-number'>105</span>
+<span class='line-number'>106</span>
+<span class='line-number'>107</span>
+<span class='line-number'>108</span>
+<span class='line-number'>109</span>
+<span class='line-number'>110</span>
+<span class='line-number'>111</span>
+<span class='line-number'>112</span>
+<span class='line-number'>113</span>
+<span class='line-number'>114</span>
+<span class='line-number'>115</span>
+<span class='line-number'>116</span>
+<span class='line-number'>117</span>
+<span class='line-number'>118</span>
+<span class='line-number'>119</span>
+<span class='line-number'>120</span>
+<span class='line-number'>121</span>
+<span class='line-number'>122</span>
+<span class='line-number'>123</span>
+<span class='line-number'>124</span>
+<span class='line-number'>125</span>
+<span class='line-number'>126</span>
+<span class='line-number'>127</span>
+<span class='line-number'>128</span>
+<span class='line-number'>129</span>
+<span class='line-number'>130</span>
+<span class='line-number'>131</span>
+<span class='line-number'>132</span>
+<span class='line-number'>133</span>
+<span class='line-number'>134</span>
+<span class='line-number'>135</span>
+<span class='line-number'>136</span>
+<span class='line-number'>137</span>
+<span class='line-number'>138</span>
+<span class='line-number'>139</span>
+<span class='line-number'>140</span>
+<span class='line-number'>141</span>
+<span class='line-number'>142</span>
+</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="cp">&lt;?xml version=&#39;1.0&#39; encoding=&#39;utf-8&#39;?&gt;</span>
+</span><span class='line'><span class="c">&lt;!--</span>
+</span><span class='line'><span class="c">  Licensed to the Apache Software Foundation (ASF) under one or more</span>
+</span><span class='line'><span class="c">  contributor license agreements.  See the NOTICE file distributed with</span>
+</span><span class='line'><span class="c">  this work for additional information regarding copyright ownership.</span>
+</span><span class='line'><span class="c">  The ASF licenses this file to You under the Apache License, Version 2.0</span>
+</span><span class='line'><span class="c">  (the &quot;License&quot;); you may not use this file except in compliance with</span>
+</span><span class='line'><span class="c">  the License.  You may obtain a copy of the License at</span>
+</span><span class='line'>
+</span><span class='line'><span class="c">      http://www.apache.org/licenses/LICENSE-2.0</span>
+</span><span class='line'>
+</span><span class='line'><span class="c">  Unless required by applicable law or agreed to in writing, software</span>
+</span><span class='line'><span class="c">  distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+</span><span class='line'><span class="c">  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+</span><span class='line'><span class="c">  See the License for the specific language governing permissions and</span>
+</span><span class='line'><span class="c">  limitations under the License.</span>
+</span><span class='line'><span class="c">--&gt;</span>
+</span><span class='line'><span class="c">&lt;!-- Note:  A &quot;Server&quot; is not itself a &quot;Container&quot;, so you may not</span>
+</span><span class='line'><span class="c">     define subcomponents such as &quot;Valves&quot; at this level.</span>
+</span><span class='line'><span class="c">     Documentation at /docs/config/server.html</span>
+</span><span class='line'><span class="c"> --&gt;</span>
+</span><span class='line'><span class="nt">&lt;Server</span> <span class="na">port=</span><span class="s">&quot;8005&quot;</span> <span class="na">shutdown=</span><span class="s">&quot;SHUTDOWN&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>  <span class="c">&lt;!-- Security listener. Documentation at /docs/config/listeners.html</span>
+</span><span class='line'><span class="c">  &lt;Listener className=&quot;org.apache.catalina.security.SecurityListener&quot; /&gt;</span>
+</span><span class='line'><span class="c">  --&gt;</span>
+</span><span class='line'>  <span class="c">&lt;!--APR library loader. Documentation at /docs/apr.html --&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;Listener</span> <span class="na">className=</span><span class="s">&quot;org.apache.catalina.core.AprLifecycleListener&quot;</span> <span class="na">SSLEngine=</span><span class="s">&quot;on&quot;</span> <span class="nt">/&gt;</span>
+</span><span class='line'>  <span class="c">&lt;!--Initialize Jasper prior to webapps are loaded. Documentation at /docs/jasper-howto.html --&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;Listener</span> <span class="na">className=</span><span class="s">&quot;org.apache.catalina.core.JasperListener&quot;</span> <span class="nt">/&gt;</span>
+</span><span class='line'>  <span class="c">&lt;!-- Prevent memory leaks due to use of particular java/javax APIs--&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;Listener</span> <span class="na">className=</span><span class="s">&quot;org.apache.catalina.core.JreMemoryLeakPreventionListener&quot;</span> <span class="nt">/&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;Listener</span> <span class="na">className=</span><span class="s">&quot;org.apache.catalina.mbeans.GlobalResourcesLifecycleListener&quot;</span> <span class="nt">/&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;Listener</span> <span class="na">className=</span><span class="s">&quot;org.apache.catalina.core.ThreadLocalLeakPreventionListener&quot;</span> <span class="nt">/&gt;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c">&lt;!-- Global JNDI resources</span>
+</span><span class='line'><span class="c">       Documentation at /docs/jndi-resources-howto.html</span>
+</span><span class='line'><span class="c">  --&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;GlobalNamingResources&gt;</span>
+</span><span class='line'>    <span class="c">&lt;!-- Editable user database that can also be used by</span>
+</span><span class='line'><span class="c">         UserDatabaseRealm to authenticate users</span>
+</span><span class='line'><span class="c">    --&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;Resource</span> <span class="na">name=</span><span class="s">&quot;UserDatabase&quot;</span> <span class="na">auth=</span><span class="s">&quot;Container&quot;</span>
+</span><span class='line'>              <span class="na">type=</span><span class="s">&quot;org.apache.catalina.UserDatabase&quot;</span>
+</span><span class='line'>              <span class="na">description=</span><span class="s">&quot;User database that can be updated and saved&quot;</span>
+</span><span class='line'>              <span class="na">factory=</span><span class="s">&quot;org.apache.catalina.users.MemoryUserDatabaseFactory&quot;</span>
+</span><span class='line'>              <span class="na">pathname=</span><span class="s">&quot;conf/tomcat-users.xml&quot;</span> <span class="nt">/&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;/GlobalNamingResources&gt;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c">&lt;!-- A &quot;Service&quot; is a collection of one or more &quot;Connectors&quot; that share</span>
+</span><span class='line'><span class="c">       a single &quot;Container&quot; Note:  A &quot;Service&quot; is not itself a &quot;Container&quot;,</span>
+</span><span class='line'><span class="c">       so you may not define subcomponents such as &quot;Valves&quot; at this level.</span>
+</span><span class='line'><span class="c">       Documentation at /docs/config/service.html</span>
+</span><span class='line'><span class="c">   --&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;Service</span> <span class="na">name=</span><span class="s">&quot;Catalina&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c">&lt;!--The connectors can use a shared executor, you can define one or more named thread pools--&gt;</span>
+</span><span class='line'>    <span class="c">&lt;!--</span>
+</span><span class='line'><span class="c">    &lt;Executor name=&quot;tomcatThreadPool&quot; namePrefix=&quot;catalina-exec-&quot;</span>
+</span><span class='line'><span class="c">        maxThreads=&quot;150&quot; minSpareThreads=&quot;4&quot;/&gt;</span>
+</span><span class='line'><span class="c">    --&gt;</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'>    <span class="c">&lt;!-- A &quot;Connector&quot; represents an endpoint by which requests are received</span>
+</span><span class='line'><span class="c">         and responses are returned. Documentation at :</span>
+</span><span class='line'><span class="c">         Java HTTP Connector: /docs/config/http.html (blocking &amp; non-blocking)</span>
+</span><span class='line'><span class="c">         Java AJP  Connector: /docs/config/ajp.html</span>
+</span><span class='line'><span class="c">         APR (HTTP/AJP) Connector: /docs/apr.html</span>
+</span><span class='line'><span class="c">         Define a non-SSL HTTP/1.1 Connector on port 8080</span>
+</span><span class='line'><span class="c">    --&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;Connector</span> <span class="na">port=</span><span class="s">&quot;8080&quot;</span> <span class="na">protocol=</span><span class="s">&quot;HTTP/1.1&quot;</span>
+</span><span class='line'>               <span class="na">connectionTimeout=</span><span class="s">&quot;20000&quot;</span>
+</span><span class='line'>               <span class="na">redirectPort=</span><span class="s">&quot;8443&quot;</span> <span class="nt">/&gt;</span>
+</span><span class='line'>    <span class="c">&lt;!-- A &quot;Connector&quot; using the shared thread pool--&gt;</span>
+</span><span class='line'>    <span class="c">&lt;!--</span>
+</span><span class='line'><span class="c">    &lt;Connector executor=&quot;tomcatThreadPool&quot;</span>
+</span><span class='line'><span class="c">               port=&quot;8080&quot; protocol=&quot;HTTP/1.1&quot;</span>
+</span><span class='line'><span class="c">               connectionTimeout=&quot;20000&quot;</span>
+</span><span class='line'><span class="c">               redirectPort=&quot;8443&quot; /&gt;</span>
+</span><span class='line'><span class="c">    --&gt;</span>
+</span><span class='line'>    <span class="c">&lt;!-- Define a SSL HTTP/1.1 Connector on port 8443</span>
+</span><span class='line'><span class="c">         This connector uses the JSSE configuration, when using APR, the</span>
+</span><span class='line'><span class="c">         connector should be using the OpenSSL style configuration</span>
+</span><span class='line'><span class="c">         described in the APR documentation --&gt;</span>
+</span><span class='line'>    <span class="c">&lt;!--</span>
+</span><span class='line'><span class="c">    &lt;Connector port=&quot;8443&quot; protocol=&quot;HTTP/1.1&quot; SSLEnabled=&quot;true&quot;</span>
+</span><span class='line'><span class="c">               maxThreads=&quot;150&quot; scheme=&quot;https&quot; secure=&quot;true&quot;</span>
+</span><span class='line'><span class="c">               clientAuth=&quot;false&quot; sslProtocol=&quot;TLS&quot; /&gt;</span>
+</span><span class='line'><span class="c">    --&gt;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c">&lt;!-- Define an AJP 1.3 Connector on port 8009 --&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;Connector</span> <span class="na">port=</span><span class="s">&quot;8009&quot;</span> <span class="na">protocol=</span><span class="s">&quot;AJP/1.3&quot;</span> <span class="na">redirectPort=</span><span class="s">&quot;8443&quot;</span> <span class="nt">/&gt;</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'>    <span class="c">&lt;!-- An Engine represents the entry point (within Catalina) that processes</span>
+</span><span class='line'><span class="c">         every request.  The Engine implementation for Tomcat stand alone</span>
+</span><span class='line'><span class="c">         analyzes the HTTP headers included with the request, and passes them</span>
+</span><span class='line'><span class="c">         on to the appropriate Host (virtual host).</span>
+</span><span class='line'><span class="c">         Documentation at /docs/config/engine.html --&gt;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c">&lt;!-- You should set jvmRoute to support load-balancing via AJP ie :</span>
+</span><span class='line'><span class="c">    &lt;Engine name=&quot;Catalina&quot; defaultHost=&quot;localhost&quot; jvmRoute=&quot;jvm1&quot;&gt;</span>
+</span><span class='line'><span class="c">    --&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;Engine</span> <span class="na">name=</span><span class="s">&quot;Catalina&quot;</span> <span class="na">defaultHost=</span><span class="s">&quot;localhost&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="c">&lt;!--For clustering, please take a look at documentation at:</span>
+</span><span class='line'><span class="c">          /docs/cluster-howto.html  (simple how to)</span>
+</span><span class='line'><span class="c">          /docs/config/cluster.html (reference documentation) --&gt;</span>
+</span><span class='line'>      <span class="c">&lt;!--</span>
+</span><span class='line'><span class="c">      &lt;Cluster className=&quot;org.apache.catalina.ha.tcp.SimpleTcpCluster&quot;/&gt;</span>
+</span><span class='line'><span class="c">      --&gt;</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="c">&lt;!-- Use the LockOutRealm to prevent attempts to guess user passwords</span>
+</span><span class='line'><span class="c">           via a brute-force attack --&gt;</span>
+</span><span class='line'>      <span class="nt">&lt;Realm</span> <span class="na">className=</span><span class="s">&quot;org.apache.catalina.realm.LockOutRealm&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>        <span class="c">&lt;!-- This Realm uses the UserDatabase configured in the global JNDI</span>
+</span><span class='line'><span class="c">             resources under the key &quot;UserDatabase&quot;.  Any edits</span>
+</span><span class='line'><span class="c">             that are performed against this UserDatabase are immediately</span>
+</span><span class='line'><span class="c">             available for use by the Realm.  --&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;Realm</span> <span class="na">className=</span><span class="s">&quot;org.apache.catalina.realm.UserDatabaseRealm&quot;</span>
+</span><span class='line'>               <span class="na">resourceName=</span><span class="s">&quot;UserDatabase&quot;</span><span class="nt">/&gt;</span>
+</span><span class='line'>      <span class="nt">&lt;/Realm&gt;</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="nt">&lt;Host</span> <span class="na">name=</span><span class="s">&quot;localhost&quot;</span>  <span class="na">appBase=</span><span class="s">&quot;webapps&quot;</span>
+</span><span class='line'>            <span class="na">unpackWARs=</span><span class="s">&quot;true&quot;</span> <span class="na">autoDeploy=</span><span class="s">&quot;true&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c">&lt;!-- SingleSignOn valve, share authentication between web applications</span>
+</span><span class='line'><span class="c">             Documentation at: /docs/config/valve.html --&gt;</span>
+</span><span class='line'>        <span class="c">&lt;!--</span>
+</span><span class='line'><span class="c">        &lt;Valve className=&quot;org.apache.catalina.authenticator.SingleSignOn&quot; /&gt;</span>
+</span><span class='line'><span class="c">        --&gt;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c">&lt;!-- Access log processes all example.</span>
+</span><span class='line'><span class="c">             Documentation at: /docs/config/valve.html</span>
+</span><span class='line'><span class="c">             Note: The pattern used is equivalent to using pattern=&quot;common&quot; --&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;Valve</span> <span class="na">className=</span><span class="s">&quot;org.apache.catalina.valves.AccessLogValve&quot;</span> <span class="na">directory=</span><span class="s">&quot;logs&quot;</span>
+</span><span class='line'>               <span class="na">prefix=</span><span class="s">&quot;localhost_access_log.&quot;</span> <span class="na">suffix=</span><span class="s">&quot;.txt&quot;</span>
+</span><span class='line'>               <span class="na">pattern=</span><span class="s">&quot;%h %l %u %t &amp;quot;%r&amp;quot; %s %b&quot;</span> <span class="nt">/&gt;</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="nt">&lt;/Host&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;/Engine&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;/Service&gt;</span>
+</span><span class='line'><span class="nt">&lt;/Server&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>接下来我们就根据上图以及conf/server.xml的内容来一步步描述一下上面所说的各种组件吧。</p>
+
+<h2>Server</h2>
+
+<p>首先闪联登场的是咋们的Server大哥（大家能给点掌声吗？），Server是Tomcat中最顶层的组件，它可以包含多个Service组件。在Tomcat源代码中Server组件对应源码中的<code>org.apache.catalina.core.StandardServer</code>类。StandardServer的继承关系图如下图所示：
+<img class="center" src="http://imtiger.github.io/images/2013/10/16/StandardServer.jpg"></p>
+
+<h2>Service</h2>
+
+<p>接下来咋们来看看Service组件，Service组件相当于Connetor和Engine组件的包装器，它将一个或者多个Connector组件和一个Engine建立关联。缺省的的配置文件中，定义一个叫<code>Catalina</code>的服务，并将Http,AJP这两个Connector关联到了一个名为<code>Catalina</code>的Engine.Service组件对应Tomcat源代码中的<code>org.apache.catalina.core.StandardService</code>,StandardService的继承关系图如下图所示：
+<img class="center" src="http://imtiger.github.io/images/2013/10/16/StandardService.png"></p>
+
+<h2>Connector</h2>
+
+<p>既然Tomcat需要提供http服务，而我们知道http应用层协议最终都是需要通过TCP层的协议进行包传递的，而Connector正是Tomcat中监听TCP网络连接的组件，一个Connector会监听一个独立的端口来处理来自客户端的连接。缺省的情况下Tomcat提供了如下两个Connector。我们分别描述一下：</p>
+
+<ol>
+<li>HTTP/1.1<br/>
+<code>&lt;Connector port="8080" protocol="HTTP/1.1" connectionTimeout="20000" redirectPort="8443" /&gt;</code>
+上面定义了一个Connector，它缺省监听端口8080,这个端口我们可以根据具体情况进行改动。<code>connectionTimeout</code>定义了连接超时时间，单位是毫秒，<code>redirectPort</code>定义了ssl的重定向接口，根据缺省的配置，Connector会将ssl请求重定向到8443端口。</li>
+<li>AJP/1.3<br/>
+AJP表示<code>Apache Jserv Protocol</code>,此连接器将处理Tomcat和Aapache http服务器之间的交互，这个连机器是用来处理我们将Tomcat和Apache http服务器结合使用的情况。假如在同样的一台物理Server上面部署了一台Apache http服务器和多台Tomcat服务器，通过Apache服务器来处理静态资源以及负载均衡的时候，针对不同的Tomcat实例需要AJP监听不同的端口。</li>
+</ol>
+
+
+<p>Connector对应源代码中的<code>org.apache.catalina.connector.Connector</code>,它的继承关系图如下所示：
+<img class="center" src="http://imtiger.github.io/images/2013/10/16/Connector.png"></p>
+
+<h2>Engine</h2>
+
+<p>Tomcat中有一个容器的概念，而Engine,Host,Context都属于Contanier，我们先来说说最顶层的容器Engine.<br/>
+一个Engine可以包含一个或者多个Host,也就是说我们一个Tomcat的实例可以配置多个虚拟主机。<br/>
+缺省的情况下<code>&lt;Engine name="Catalina" defaultHost="localhost"&gt;</code>定义了一个名称为Cataline的Engine.Engine对应源代码中的<code>org.apache.catalina.core.StandardEngine</code>，它的继承关系图如下图所示：
+<img class="center" src="http://imtiger.github.io/images/2013/10/16/StandardEngine.png"></p>
+
+<h2>Host</h2>
+
+<p>Host定义了一个虚拟主机，一个虚拟主机可以有多个Context，缺省的配置如下：<br/>
+<code>&lt;Host name="localhost"  appBase="webapps" unpackWARs="true" autoDeploy="true"&gt;….&lt;/Host&gt;</code> 其中<code>appBase</code>为webapps，也就是<code>&lt;CATALINA_HOME&gt;\webapps</code>目录，<code>unpackingWARS</code>属性指定在appBase指定的目录中的war包都自动的解压，缺省配置为true,<code>autoDeploy</code>属性指定是否对加入到appBase目录的war包进行自动的部署，缺省为true.<br/>
+Host对应源代码中的<code>org.apache.catalina.core.StandardHost</code>,它的继承关系图如下所示：
+<img class="center" src="http://imtiger.github.io/images/2013/10/16/StandardHost.png"></p>
+
+<h2>Context</h2>
+
+<p>在Tomcat中，每一个运行的webapp其实最终都是以Context的形成存在，每个Context都有一个根路径和请求URL路径，Context对应源代码中的<code>org.apache.catalina.core.StandardContext</code>,它的继承关系图如下图所示：
+<img class="center" src="http://imtiger.github.io/images/2013/10/16/StandardContext.png">
+在Tomcat中我们通常采用如下的两种方式创建一个Context.下面分别描述一下：</p>
+
+<ol>
+<li>在<code>&lt;CATALINA-HOME&gt;\webapps</code>目录中创建一个目录，这个时候将自动创建一个context，默认context的访问url为<code>http://host:port/dirname</code>,你也可以通过在<code>ContextRoot\META-INF</code>中创建一个context.xml的文件，其中包含如下的内容来指定应用的访问路径。
+<code>&lt;Context path="/yourUrlPath" /&gt;</code></li>
+<li>conf\server.xml文件中增加context元素。
+第二种创建context的方法，我们可以选择在server.xml文件的<code>&lt;Host&gt;</code>元素，比如我们在server.xml文件中增加如下内容：</li>
+</ol>
+
+
+<figure class='code'><figcaption><span>server.xml</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='xml'><span class='line'>    ......
+</span><span class='line'>    ......
+</span><span class='line'>    <span class="nt">&lt;Context</span> <span class="na">path=</span><span class="s">&quot;/mypath&quot;</span> <span class="na">docBase=</span><span class="s">&quot;/Users/tiger/develop/xxx&quot;</span> <span class="na">reloadable=</span><span class="s">&quot;true&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;/Context&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;/Host&gt;</span>
+</span><span class='line'><span class="nt">&lt;/Engine&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;/Service&gt;</span>
+</span><span class='line'><span class="nt">&lt;/Server&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这样的话，我们就可以通过<code>http://host:port/mypath</code>访问上面配置的context了。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码（Tomcat源代码阅读系列之一）]]></title>
     <link href="http://imtiger.github.io/blog/2013/10/14/run-tomcat-in-idea-or-eclipse/"/>
     <updated>2013-10-14T14:39:00+08:00</updated>
     <id>http://imtiger.github.io/blog/2013/10/14/run-tomcat-in-idea-or-eclipse</id>
@@ -716,7 +1101,7 @@
 月薪:    15k-20k</p>
 
 <p>公司介绍: <br/>
-我们公司<a href="http://www.ejushang.com">易居尚</a>秉承着<code>让品质走进生活的理念</code>，致力于打造一个品质、高效、便捷的居家用品网络销售平台.咋们公司不打卡，弹性工作制，每天下午有公司大厨做的下午茶，攻城狮童鞋每周可以自由支配20%的工作时间做自己想做的事情，我们技术团队内部有很强互助和知识分享意识（包括技术骚们喜欢的爱情动作片，嘘&hellip;，其他人我不告诉他）当然了还有很多美女和帅哥，想置身互联网和电子商务有理想的的技术骚们，请你加入我们 一起high，<strong>我们不求改变世界，但求超越自我</strong>。也请各位朋友帮忙推荐，推荐成功有神秘礼物相送哦，有意者请联系:<a href="&#x6d;&#97;&#x69;&#x6c;&#116;&#x6f;&#x3a;&#116;&#105;&#x67;&#x65;&#114;&#x2e;&#122;&#104;&#x6f;&#117;&#x40;&#107;&#97;&#114;&#105;&#x71;&#117;&#46;&#99;&#x6f;&#109;">&#x74;&#x69;&#103;&#101;&#x72;&#46;&#x7a;&#104;&#x6f;&#x75;&#64;&#x6b;&#97;&#114;&#x69;&#x71;&#117;&#x2e;&#99;&#111;&#109;</a> 或者留言给我，另外也可以通过<a href="http://weibo.com/xmuzyq">@krq_tiger</a>新浪微博与我取的联系.</p>
+我们公司<a href="http://www.ejushang.com">易居尚</a>秉承着<code>让品质走进生活的理念</code>，致力于打造一个品质、高效、便捷的居家用品网络销售平台.咋们公司不打卡，弹性工作制，每天下午有公司大厨做的下午茶，攻城狮童鞋每周可以自由支配20%的工作时间做自己想做的事情，我们技术团队内部有很强互助和知识分享意识（包括技术骚们喜欢的爱情动作片，嘘&hellip;，其他人我不告诉他）当然了还有很多美女和帅哥，想置身互联网和电子商务有理想的的技术骚们，请你加入我们 一起high，<strong>我们不求改变世界，但求超越自我</strong>。也请各位朋友帮忙推荐，推荐成功有神秘礼物相送哦，有意者请联系:<a href="&#x6d;&#97;&#x69;&#x6c;&#116;&#111;&#58;&#116;&#x69;&#x67;&#x65;&#114;&#x2e;&#122;&#104;&#x6f;&#x75;&#64;&#x6b;&#97;&#114;&#105;&#113;&#117;&#x2e;&#x63;&#111;&#109;">&#116;&#x69;&#x67;&#x65;&#x72;&#46;&#x7a;&#104;&#111;&#x75;&#64;&#107;&#97;&#x72;&#105;&#x71;&#117;&#46;&#x63;&#x6f;&#109;</a> 或者留言给我，另外也可以通过<a href="http://weibo.com/xmuzyq">@krq_tiger</a>新浪微博与我取的联系.</p>
 
 <!-- more -->
 
