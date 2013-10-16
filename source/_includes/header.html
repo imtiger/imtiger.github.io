@@ -1,6 +1,6 @@
 <div class="profilepic">
 	{% if site.email_md5 %}
-	<a href="#"><img src="http://www.gravatar.com/avatar/{{ site.email_md5 }}?s=160" alt="Profile Picture" style="width: 160px;" /></a>
+	<a href="/"><img src="http://www.gravatar.com/avatar/{{ site.email_md5 }}?s=160" alt="Profile Picture" style="width: 160px;" /></a>
 	{% else %}
 	<script src="{{ root_url }}/javascripts/md5.js"></script>
 	<script type="text/javascript">
@@ -23,14 +23,14 @@
 		{% if site.twitter_user %}
 		<a class="twitter" href="http://twitter.com/{{ site.twitter_user }}" title="Twitter">Twitter</a>
 		{% endif %}
-		{% if site.github_user %}
+        {% if site.weibo_user %}
+        <a class="weibo" href="http://weibo.com/{{ site.weibo_user }}" title="新浪微博">新浪微博</a>
+        {% endif %}
+        {% if site.github_user %}
 		<a class="github" href="https://github.com/{{ site.github_user }}" title="GitHub">GitHub</a>
 		{% endif %}
 		{% if site.iteye_user %}
 		<a class="iteye" href="http://{{ site.iteye_user }}.iteye.com" title="我之前的博客">我的Iteye博客</a>
-		{% endif %}
-		{% if site.weibo_user %}
-		<a class="weibo" href="http://weibo.com/{{ site.weibo_user }}" title="新浪微博">新浪微博</a>
 		{% endif %}
 		{% if site.coderwall_user %}
 		<a class="coderwall" href="https://coderwall.com/{{ site.coderwall_user }}" title="Coderwall">Coderwall</a>
