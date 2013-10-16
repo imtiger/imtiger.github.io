@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Java | I'm Tiger,一个有理想爱折腾的程序员!]]></title>
   <link href="http://imtiger.github.io/blog/categories/java/atom.xml" rel="self"/>
   <link href="http://imtiger.github.io/"/>
-  <updated>2013-10-16T17:21:42+08:00</updated>
+  <updated>2013-10-16T18:09:28+08:00</updated>
   <id>http://imtiger.github.io/</id>
   <author>
     <name><![CDATA[imtiger]]></name>
@@ -258,6 +258,12 @@ Host对应源代码中的<code>org.apache.catalina.core.StandardHost</code>,它�
 这样的话，我们就可以通过<code>http://host:port/mypath</code>访问上面配置的context了。</li>
 </ol>
 
+
+<h2>Valve</h2>
+
+<p>Valve中文意思是阀门，Valve是Tomcat中责任链模式的实现，通过链接多个Valve对请求进行处理。其中Valve可以定义在任何的Container中，上面说的Engine,Host,Context都属于容器。tomcat 默认定义了一个名为<code>org.apache.catalina.valves.AccessLogValve</code>的Valve,这个Valve负责拦截每个请求，然后记录一条访问日志。</p>
+
+<p>通过上面的分析，我们发现Server,Service,Engine,Host,Context都实现了<code>org.apache.catalina.Lifecycle</code>接口，通过这个接口管理了这些核心组件的生命周期，关于这些组件的生命周期，我们在下一篇文章描述。</p>
 ]]></content>
   </entry>
   

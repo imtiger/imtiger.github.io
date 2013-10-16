@@ -466,6 +466,12 @@ Host对应源代码中的<code>org.apache.catalina.core.StandardHost</code>,它�
 
 
 <p>这样的话，我们就可以通过<code>http://host:port/mypath</code>访问上面配置的context了。</p>
+
+<h2>Valve</h2>
+
+<p>Valve中文意思是阀门，Valve是Tomcat中责任链模式的实现，通过链接多个Valve对请求进行处理。其中Valve可以定义在任何的Container中，上面说的Engine,Host,Context都属于容器。tomcat 默认定义了一个名为<code>org.apache.catalina.valves.AccessLogValve</code>的Valve,这个Valve负责拦截每个请求，然后记录一条访问日志。</p>
+
+<p>通过上面的分析，我们发现Server,Service,Engine,Host,Context都实现了<code>org.apache.catalina.Lifecycle</code>接口，通过这个接口管理了这些核心组件的生命周期，关于这些组件的生命周期，我们在下一篇文章描述。</p>
 </div>
 
 </article>
