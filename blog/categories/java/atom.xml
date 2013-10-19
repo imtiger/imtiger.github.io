@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Java | I'm Tiger,一个有理想爱折腾的程序员!]]></title>
   <link href="http://imtiger.github.io/blog/categories/java/atom.xml" rel="self"/>
   <link href="http://imtiger.github.io/"/>
-  <updated>2013-10-19T16:35:29+08:00</updated>
+  <updated>2013-10-19T16:42:24+08:00</updated>
   <id>http://imtiger.github.io/</id>
   <author>
     <name><![CDATA[imtiger]]></name>
@@ -19,7 +19,7 @@
     <updated>2013-10-17T11:03:00+08:00</updated>
     <id>http://imtiger.github.io/blog/2013/10/17/tomcat-start-process</id>
     <content type="html"><![CDATA[<p><img class="center" src="/images/2013/10/14/apache_tomcat_bag.jpg">
-本文是<a href="/blog/2013/10/08/tomcat-source-code-study/">Tomcat源代码阅读系列</a>的第三篇文章，在阅读此文之前，建议先读前面的两期。<br/>
+本文是<a href="/blog/2013/10/08/tomcat-source-code-study/">Tomcat源代码阅读系列</a>的第三篇文章，在阅读此文之前，建议先读前面的两篇：
 <a href="/blog/2013/10/14/run-tomcat-in-idea-or-eclipse/">在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码（Tomcat源代码阅读系列之一）</a> <br/>
 <a href="/blog/2013/10/16/tomcat-architecture/">Tomcat总体结构                             （Tomcat源代码阅读系列之二）</a></p>
 
@@ -1171,6 +1171,9 @@ Host对应源代码中的<code>org.apache.catalina.core.StandardHost</code>,它�
 <p>Valve中文意思是阀门，Valve是Tomcat中责任链模式的实现，通过链接多个Valve对请求进行处理。其中Valve可以定义在任何的Container中，上面说的Engine,Host,Context都属于容器。tomcat 默认定义了一个名为<code>org.apache.catalina.valves.AccessLogValve</code>的Valve,这个Valve负责拦截每个请求，然后记录一条访问日志。</p>
 
 <p>通过上面的分析，我们发现Server,Service,Engine,Host,Context都实现了<code>org.apache.catalina.Lifecycle</code>接口，通过这个接口管理了这些核心组件的生命周期，关于这些组件的生命周期，我们在下一篇文章描述。</p>
+
+<p>下篇：<br/>
+<a href="/blog/2013/10/17/tomcat-start-process/">Tomcat启动过程（Tomcat源代码阅读系列之三）</a></p>
 ]]></content>
   </entry>
   
@@ -1391,6 +1394,9 @@ Have fun and Enjoy!
 
 
 <p>另外本文最终搭建好的环境，我已经放在Github上了，不想搭建的童鞋可以直接clone一份使用。<a href="https://github.com/imtiger/Tomcat">Github仓库地址</a></p>
+
+<p>下篇：<br/>
+<a href="/blog/2013/10/16/tomcat-architecture/">Tomcat总体结构（Tomcat源代码阅读系列之二）</a></p>
 ]]></content>
   </entry>
   
@@ -1407,7 +1413,7 @@ Have fun and Enjoy!
 <p>接下来我们就来说说本系列所涉及的主要内容吧。<br/>
 <a href="/blog/2013/10/14/run-tomcat-in-idea-or-eclipse/">在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码（Tomcat源代码阅读系列之一）</a>  <br/>
 <a href="/blog/2013/10/16/tomcat-architecture/">Tomcat总体结构（Tomcat源代码阅读系列之二）</a><br/>
-<a href="http://www.blog.com/blog/2013/10/17/tomcat-start-process/">Tomcat启动过程（Tomcat源代码阅读系列之三）</a><br/>
+<a href="/blog/2013/10/17/tomcat-start-process/">Tomcat启动过程（Tomcat源代码阅读系列之三）</a><br/>
 <a href="#">Tomcat关闭过程</a>  (未完成)<br/>
 <a href="#">Tomcat请求处理流程</a> (未完成)    <br/>
 <a href="#">Tomcat类加载器机制</a> (未完成) <br/>
