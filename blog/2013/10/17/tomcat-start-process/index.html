@@ -1,0 +1,1868 @@
+
+<!DOCTYPE HTML>
+
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<title>Tomcat启动过程（Tomcat源代码阅读系列之三） - I'm Tiger,一个有理想爱折腾的程序员!</title>
+	<meta name="author" content="imtiger">
+
+	
+	<meta name="description" content="Tomcat启动过程（Tomcat源代码阅读系列之三） 本文是Tomcat源代码阅读系列的第三篇文章，在阅读此文之前，建议先读前面的两期。
+在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码（Tomcat源代码阅读系列之一） Tomcat总体结构 （ &hellip;">
+	<meta name="keywords" content="tomcat源代码，java">
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<link href="/atom.xml" rel="alternate" title="I'm Tiger,一个有理想爱折腾的程序员!" type="application/atom+xml">
+	
+	<link rel="canonical" href="http://imtiger.github.io/blog/2013/10/17/tomcat-start-process/">
+	<link href="/favicon.png" rel="shortcut icon">
+	<link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+	<link href="/stylesheets/font-awesome.min.css" media="screen, projection" rel="stylesheet" type="text/css">
+	<!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+	<link href='http://fonts.googleapis.com/css?family=Open+Sans:400italic,400,700' rel='stylesheet' type='text/css'>
+	<script type="text/javascript" src="http://codeorigin.jquery.com/jquery-1.7.2.min.js"></script> 
+	
+</head>
+
+
+<body>
+	<div class="container">
+		<div class="left-col">
+			<div class="intrude-less">
+			<header id="header" class="inner"><div class="profilepic">
+	
+	<a href="/"><img src="http://www.gravatar.com/avatar/80695ffc8afc90667bb292139686239b?s=160" alt="Profile Picture" style="width: 160px;" /></a>
+	
+</div>
+<h1><a href="/">I'm Tiger</a></h1>
+<p class="subtitle">一个有理想爱折腾的程序员!</p>
+
+<nav id="main-nav"><ul>
+	<li><a href="/">Home</a></li>
+	<li><a href="/archives">Archive</a></li>
+<!--	<li><a href="/book">Books</a></li> -->
+	<li><a href="/about">About Me</a></li>
+</ul>
+
+
+</nav>
+<nav id="sub-nav">
+	<div class="social">
+		
+		
+		
+        
+        <a class="weibo" href="http://weibo.com/xmuzyq" title="新浪微博">新浪微博</a>
+        
+        
+		<a class="github" href="https://github.com/imtiger" title="GitHub">GitHub</a>
+		
+		
+		<a class="iteye" href="http://xmuzyq.iteye.com" title="我之前的博客">我的Iteye博客</a>
+		
+		
+		
+		
+		
+		
+		
+		
+		<a class="rss" href="/atom.xml" title="RSS">RSS</a>
+		
+	</div>
+</nav>
+<p class="subtitle">信心、恒心、爱心、野心兼具者可谓准成功人士!</p>
+<p style="text-align: right;" class="subtitle">-- imTiger</p>
+
+</header>				
+			</div>
+		</div>	
+		<div class="mid-col">
+			
+				
+			
+			<div class="mid-col-container">
+				<div id="content" class="inner"><article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+	<h1 class="title" itemprop="name">Tomcat启动过程（Tomcat源代码阅读系列之三）</h1>
+	<div class="entry-content" itemprop="articleBody"><p><img class="center" src="/images/2013/10/14/apache_tomcat_bag.jpg">
+本文是<a href="/blog/2013/10/08/tomcat-source-code-study/">Tomcat源代码阅读系列</a>的第三篇文章，在阅读此文之前，建议先读前面的两期。<br/>
+<a href="/blog/2013/10/14/run-tomcat-in-idea-or-eclipse/">在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码（Tomcat源代码阅读系列之一）</a> <br/>
+<a href="/blog/2013/10/16/tomcat-architecture/">Tomcat总体结构                             （Tomcat源代码阅读系列之二）</a></p>
+
+<p>本篇我们来一起分析一下Tomcat的启动过程，启动过程涉及到了Tomcat组件的生命周期管理，本文将从<strong>Tomcat组件生命周期管理</strong>,<strong>Tomcat启动的总过程</strong>，<strong>Tomcat启动过程关键步骤分析</strong>三个方面来进行描述。</p>
+
+<!-- more -->
+
+
+<h1>Tomcat组件生命周期管理</h1>
+
+<p>在<a href="/blog/2013/10/16/tomcat-architecture/">Tomcat总体结构                             （Tomcat源代码阅读系列之二）</a>中，我们列出了Tomcat中Server,Service,Connector,Engine,Host,Context的继承关系图，你会发现它们都实现了<code>org.apache.catalina.Lifecycle</code>接口，而<code>org.apache.catalina.util.LifecycleBase</code>采用了<code>模板方法模式</code>来对所有支持生命周期管理的组件的生命周期各个阶段进行了总体管理，每个需要生命周期管理的组件只需要继承这个基类，然后覆盖对应的钩子方法即可完成相应的生命周期阶段性的管理工作。
+下面我们首先来看看<code>org.apache.catalina.Lifecycle</code>接口的定义，它的类图如下图所示：
+<img class="center" src="/images/2013/10/17/LifeCycle.png">
+从上图我们可以清楚的看到LifeCycle中主要有四个生命周期阶段，它们分别是init(初始化)，start(启动),stop(停止)，destory(销毁)。知道了这四个生命周期阶段以后，咋们就来看看<code>org.apache.catalina.util.LifecycleBase</code>是如何实现<code>模板方法模式</code>的。
+那接下来我们就来看看<code>org.apache.catalina.util.LifecycleBase</code>类的定义，它的类图如下所示：
+<img class="center" src="/images/2013/10/17/LifeCycleBase.png">
+上图中用红色标注的四个方法就是<code>模板方法模式</code>中的钩子方法，子类可以通过实现钩子方法来纳入到基类已经流程化好的生命周期管理中。<br/>
+上面我们对LifeCycle和LifeCycleBase有了一个总体的认识，接下来，我们通过查看<code>org.apache.catalina.util.LifecycleBase</code>的源代码来具体的分析一下。
+咋们首先来看<code>org.apache.catalina.util.LifecycleBase</code>的init方法的实现。</p>
+
+<figure class='code'><figcaption><span>org.apache.catalina.util.LifecycleBase#init</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="nd">@Override</span>
+</span><span class='line'><span class="kd">public</span> <span class="kd">final</span> <span class="kd">synchronized</span> <span class="kt">void</span> <span class="nf">init</span><span class="o">()</span> <span class="kd">throws</span> <span class="n">LifecycleException</span> <span class="o">{</span>
+</span><span class='line'>        <span class="c1">// 1</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(!</span><span class="n">state</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">LifecycleState</span><span class="o">.</span><span class="na">NEW</span><span class="o">))</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">invalidTransition</span><span class="o">(</span><span class="n">Lifecycle</span><span class="o">.</span><span class="na">BEFORE_INIT_EVENT</span><span class="o">);</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>        <span class="n">setStateInternal</span><span class="o">(</span><span class="n">LifecycleState</span><span class="o">.</span><span class="na">INITIALIZING</span><span class="o">,</span> <span class="kc">null</span><span class="o">,</span> <span class="kc">false</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>            <span class="c1">// 2 </span>
+</span><span class='line'>            <span class="n">initInternal</span><span class="o">();</span>
+</span><span class='line'>        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">Throwable</span> <span class="n">t</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">ExceptionUtils</span><span class="o">.</span><span class="na">handleThrowable</span><span class="o">(</span><span class="n">t</span><span class="o">);</span>
+</span><span class='line'>            <span class="n">setStateInternal</span><span class="o">(</span><span class="n">LifecycleState</span><span class="o">.</span><span class="na">FAILED</span><span class="o">,</span> <span class="kc">null</span><span class="o">,</span> <span class="kc">false</span><span class="o">);</span>
+</span><span class='line'>            <span class="k">throw</span> <span class="k">new</span> <span class="nf">LifecycleException</span><span class="o">(</span>
+</span><span class='line'>                    <span class="n">sm</span><span class="o">.</span><span class="na">getString</span><span class="o">(</span><span class="s">&quot;lifecycleBase.initFail&quot;</span><span class="o">,</span><span class="n">toString</span><span class="o">()),</span> <span class="n">t</span><span class="o">);</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>        <span class="c1">// 3 </span>
+</span><span class='line'>        <span class="n">setStateInternal</span><span class="o">(</span><span class="n">LifecycleState</span><span class="o">.</span><span class="na">INITIALIZED</span><span class="o">,</span> <span class="kc">null</span><span class="o">,</span> <span class="kc">false</span><span class="o">);</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>下面我们逐一来分析一下上述代码中标注了数字的地方：</p>
+
+<ol>
+<li>标注1的代码首先检测当前组件的状态是不是<code>NEW</code>(新建)，如果不是就调用<code>org.apache.catalina.util.LifecycleBase#invalidTransition</code>方法来将当前的状态转换过程终止，而<code>invalidTransition</code>的实现是抛出了<code>org.apache.catalina.LifecycleException</code>异常。接着调用了<code>setStateInternal</code>方法将状态设置为INITIALIZING（正在初始化）</li>
+<li>标注2的代码就是init模板方法的钩子，子类可以通过实现<code>protected abstract void initInternal() throws LifecycleException;</code>方法来纳入初始化的流程。</li>
+<li>标注3的代码将组件的状态改为<code>INITIALIZED</code>(已初始化)。</li>
+</ol>
+
+
+<p>上面我们分析了init模板方法，接下来我们再看看start方法具体做了什么事情。start的代码如下：</p>
+
+<figure class='code'><figcaption><span>org.apache.catalina.util.LifecycleBase#start</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">final</span> <span class="kd">synchronized</span> <span class="kt">void</span> <span class="nf">start</span><span class="o">()</span> <span class="kd">throws</span> <span class="n">LifecycleException</span> <span class="o">{</span>
+</span><span class='line'>    <span class="c1">// 1</span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">LifecycleState</span><span class="o">.</span><span class="na">STARTING_PREP</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">state</span><span class="o">)</span> <span class="o">||</span>
+</span><span class='line'>            <span class="n">LifecycleState</span><span class="o">.</span><span class="na">STARTING</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">state</span><span class="o">)</span> <span class="o">||</span>
+</span><span class='line'>            <span class="n">LifecycleState</span><span class="o">.</span><span class="na">STARTED</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">state</span><span class="o">))</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">log</span><span class="o">.</span><span class="na">isDebugEnabled</span><span class="o">())</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">Exception</span> <span class="n">e</span> <span class="o">=</span> <span class="k">new</span> <span class="n">LifecycleException</span><span class="o">();</span>
+</span><span class='line'>            <span class="n">log</span><span class="o">.</span><span class="na">debug</span><span class="o">(</span><span class="n">sm</span><span class="o">.</span><span class="na">getString</span><span class="o">(</span><span class="s">&quot;lifecycleBase.alreadyStarted&quot;</span><span class="o">,</span>
+</span><span class='line'>                    <span class="n">toString</span><span class="o">()),</span> <span class="n">e</span><span class="o">);</span>
+</span><span class='line'>        <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">log</span><span class="o">.</span><span class="na">isInfoEnabled</span><span class="o">())</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">log</span><span class="o">.</span><span class="na">info</span><span class="o">(</span><span class="n">sm</span><span class="o">.</span><span class="na">getString</span><span class="o">(</span><span class="s">&quot;lifecycleBase.alreadyStarted&quot;</span><span class="o">,</span>
+</span><span class='line'>                    <span class="n">toString</span><span class="o">()));</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">return</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// 2</span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">state</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">LifecycleState</span><span class="o">.</span><span class="na">NEW</span><span class="o">))</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">init</span><span class="o">();</span>
+</span><span class='line'>    <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">state</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">LifecycleState</span><span class="o">.</span><span class="na">FAILED</span><span class="o">)){</span>
+</span><span class='line'>        <span class="n">stop</span><span class="o">();</span>
+</span><span class='line'>    <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(!</span><span class="n">state</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">LifecycleState</span><span class="o">.</span><span class="na">INITIALIZED</span><span class="o">)</span> <span class="o">&amp;&amp;</span>
+</span><span class='line'>            <span class="o">!</span><span class="n">state</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">LifecycleState</span><span class="o">.</span><span class="na">STOPPED</span><span class="o">))</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">invalidTransition</span><span class="o">(</span><span class="n">Lifecycle</span><span class="o">.</span><span class="na">BEFORE_START_EVENT</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>    <span class="c1">// 3</span>
+</span><span class='line'>    <span class="n">setStateInternal</span><span class="o">(</span><span class="n">LifecycleState</span><span class="o">.</span><span class="na">STARTING_PREP</span><span class="o">,</span> <span class="kc">null</span><span class="o">,</span> <span class="kc">false</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>    <span class="c1">//4   </span>
+</span><span class='line'>        <span class="n">startInternal</span><span class="o">();</span>
+</span><span class='line'>    <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">Throwable</span> <span class="n">t</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">ExceptionUtils</span><span class="o">.</span><span class="na">handleThrowable</span><span class="o">(</span><span class="n">t</span><span class="o">);</span>
+</span><span class='line'>        <span class="n">setStateInternal</span><span class="o">(</span><span class="n">LifecycleState</span><span class="o">.</span><span class="na">FAILED</span><span class="o">,</span> <span class="kc">null</span><span class="o">,</span> <span class="kc">false</span><span class="o">);</span>
+</span><span class='line'>        <span class="k">throw</span> <span class="k">new</span> <span class="nf">LifecycleException</span><span class="o">(</span>
+</span><span class='line'>                <span class="n">sm</span><span class="o">.</span><span class="na">getString</span><span class="o">(</span><span class="s">&quot;lifecycleBase.startFail&quot;</span><span class="o">,</span><span class="n">toString</span><span class="o">()),</span> <span class="n">t</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// 5</span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">state</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">LifecycleState</span><span class="o">.</span><span class="na">FAILED</span><span class="o">)</span> <span class="o">||</span>
+</span><span class='line'>            <span class="n">state</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">LifecycleState</span><span class="o">.</span><span class="na">MUST_STOP</span><span class="o">))</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">stop</span><span class="o">();</span>
+</span><span class='line'>    <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+</span><span class='line'>        <span class="c1">// Shouldn&#39;t be necessary but acts as a check that sub-classes are</span>
+</span><span class='line'>        <span class="c1">// doing what they are supposed to.</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(!</span><span class="n">state</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">LifecycleState</span><span class="o">.</span><span class="na">STARTING</span><span class="o">))</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">invalidTransition</span><span class="o">(</span><span class="n">Lifecycle</span><span class="o">.</span><span class="na">AFTER_START_EVENT</span><span class="o">);</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">setStateInternal</span><span class="o">(</span><span class="n">LifecycleState</span><span class="o">.</span><span class="na">STARTED</span><span class="o">,</span> <span class="kc">null</span><span class="o">,</span> <span class="kc">false</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>下面我们逐一来分析一下上述代码中标注了数字的地方：</p>
+
+<ol>
+<li>标注1的代码检测当前组件的状态是不是<code>STARTING_PREP</code>(准备启动),<code>STARTING</code>（正在启动）,<code>STARTED</code>（已启动）.如果是这三个状态中的任何一个，则抛出<code>LifecycleException</code>。</li>
+<li>标注2的代码的检查其实主要是为了保证组件状态的完整性，在正常启动的流程中，应该是不会出现没有初始化就启动，或者还没启动就已经失败的情况。</li>
+<li>标注3的代码设置组件的状态为<code>STARTING_PREP</code>（准备启动状态）</li>
+<li>标注4的代码是start模板方法的钩子方法，子类通过实现<code>org.apache.catalina.util.LifecycleBase#startInternal</code>这个方法来纳入到组件启动的流程中来。</li>
+<li>标注5的代码做了一些状态检查，然后最终将组件的状态设置为<code>STARTED</code>(已启动)</li>
+</ol>
+
+
+<p>上面我们分析了init和start方法的流程，对于stop和destroy方法的总体过程是类似的，大家可以自己阅读一下，但是通过上面的分析，我们可以得出生命周期方法的总体的骨架，如果用伪代码来表示可以简化为如下：</p>
+
+<figure class='code'><figcaption><span>org.apache.catalina.util.LifecycleBase#lifeCycleMethod</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'>    <span class="kd">public</span> <span class="kd">final</span> <span class="kd">synchronized</span> <span class="kt">void</span> <span class="nf">lfieCycleMethod</span><span class="o">()</span> <span class="kd">throws</span> <span class="n">LifecycleException</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">stateCheck</span><span class="o">();</span><span class="c1">//状态检查</span>
+</span><span class='line'>        <span class="c1">//设置为进入相应的生命周期之前的状态</span>
+</span><span class='line'>        <span class="n">setStateInternal</span><span class="o">(</span><span class="n">LifecycleState</span><span class="o">.</span><span class="na">BEFORE_STATE</span><span class="o">,</span> <span class="kc">null</span><span class="o">,</span> <span class="kc">false</span><span class="o">);</span>
+</span><span class='line'>        <span class="n">lfieCycleMethodInternal</span><span class="o">();</span><span class="c1">//钩子方法</span>
+</span><span class='line'>        <span class="c1">//进入相应的生命周期之后的状态</span>
+</span><span class='line'>        <span class="n">setStateInternal</span><span class="o">(</span><span class="n">LifecycleState</span><span class="o">.</span><span class="na">AFTER_STATE</span><span class="o">,</span> <span class="kc">null</span><span class="o">,</span> <span class="kc">false</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p></p>
+
+<h1>Tomcat启动的总过程</h1>
+
+<p>通过上面的介绍，我们总体上清楚了各个组件的生命周期的各个阶段具体都是如何运作的。接下来我们就来看看，Tomcat具体是如何一步步启动起来的。我们都知道任何Java程序都有一个main函数入口，Tomcat中的main入口是<code>org.apache.catalina.startup.Bootstrap#main</code>,下面我们就来分析一下它的代码：</p>
+
+<figure class='code'><figcaption><span>org.apache.catalina.startup.Bootstrap#main</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span> <span class="n">args</span><span class="o">[])</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">daemon</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="c1">// Don&#39;t set daemon until init() has completed</span>
+</span><span class='line'>        <span class="c1">// 1 </span>
+</span><span class='line'>        <span class="n">Bootstrap</span> <span class="n">bootstrap</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Bootstrap</span><span class="o">();</span>
+</span><span class='line'>        <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>            <span class="c1">// 2</span>
+</span><span class='line'>            <span class="n">bootstrap</span><span class="o">.</span><span class="na">init</span><span class="o">();</span>
+</span><span class='line'>        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">Throwable</span> <span class="n">t</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">handleThrowable</span><span class="o">(</span><span class="n">t</span><span class="o">);</span>
+</span><span class='line'>            <span class="n">t</span><span class="o">.</span><span class="na">printStackTrace</span><span class="o">();</span>
+</span><span class='line'>            <span class="k">return</span><span class="o">;</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>        <span class="c1">// 3</span>
+</span><span class='line'>        <span class="n">daemon</span> <span class="o">=</span> <span class="n">bootstrap</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+</span><span class='line'>        <span class="c1">// When running as a service the call to stop will be on a new</span>
+</span><span class='line'>        <span class="c1">// thread so make sure the correct class loader is used to prevent</span>
+</span><span class='line'>        <span class="c1">// a range of class not found exceptions.</span>
+</span><span class='line'>        <span class="n">Thread</span><span class="o">.</span><span class="na">currentThread</span><span class="o">().</span><span class="na">setContextClassLoader</span><span class="o">(</span><span class="n">daemon</span><span class="o">.</span><span class="na">catalinaLoader</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">String</span> <span class="n">command</span> <span class="o">=</span> <span class="s">&quot;start&quot;</span><span class="o">;</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">args</span><span class="o">.</span><span class="na">length</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">command</span> <span class="o">=</span> <span class="n">args</span><span class="o">[</span><span class="n">args</span><span class="o">.</span><span class="na">length</span> <span class="o">-</span> <span class="mi">1</span><span class="o">];</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">command</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="s">&quot;startd&quot;</span><span class="o">))</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">args</span><span class="o">[</span><span class="n">args</span><span class="o">.</span><span class="na">length</span> <span class="o">-</span> <span class="mi">1</span><span class="o">]</span> <span class="o">=</span> <span class="s">&quot;start&quot;</span><span class="o">;</span>
+</span><span class='line'>            <span class="n">daemon</span><span class="o">.</span><span class="na">load</span><span class="o">(</span><span class="n">args</span><span class="o">);</span>
+</span><span class='line'>            <span class="n">daemon</span><span class="o">.</span><span class="na">start</span><span class="o">();</span>
+</span><span class='line'>        <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">command</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="s">&quot;stopd&quot;</span><span class="o">))</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">args</span><span class="o">[</span><span class="n">args</span><span class="o">.</span><span class="na">length</span> <span class="o">-</span> <span class="mi">1</span><span class="o">]</span> <span class="o">=</span> <span class="s">&quot;stop&quot;</span><span class="o">;</span>
+</span><span class='line'>            <span class="n">daemon</span><span class="o">.</span><span class="na">stop</span><span class="o">();</span>
+</span><span class='line'>        <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">command</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="s">&quot;start&quot;</span><span class="o">))</span> <span class="o">{</span>
+</span><span class='line'>            <span class="c1">// 4</span>
+</span><span class='line'>            <span class="n">daemon</span><span class="o">.</span><span class="na">setAwait</span><span class="o">(</span><span class="kc">true</span><span class="o">);</span>
+</span><span class='line'>            <span class="n">daemon</span><span class="o">.</span><span class="na">load</span><span class="o">(</span><span class="n">args</span><span class="o">);</span>
+</span><span class='line'>            <span class="n">daemon</span><span class="o">.</span><span class="na">start</span><span class="o">();</span>
+</span><span class='line'>        <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">command</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="s">&quot;stop&quot;</span><span class="o">))</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">daemon</span><span class="o">.</span><span class="na">stopServer</span><span class="o">(</span><span class="n">args</span><span class="o">);</span>
+</span><span class='line'>        <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">command</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="s">&quot;configtest&quot;</span><span class="o">))</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">daemon</span><span class="o">.</span><span class="na">load</span><span class="o">(</span><span class="n">args</span><span class="o">);</span>
+</span><span class='line'>            <span class="k">if</span> <span class="o">(</span><span class="kc">null</span><span class="o">==</span><span class="n">daemon</span><span class="o">.</span><span class="na">getServer</span><span class="o">())</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">System</span><span class="o">.</span><span class="na">exit</span><span class="o">(</span><span class="mi">1</span><span class="o">);</span>
+</span><span class='line'>            <span class="o">}</span>
+</span><span class='line'>            <span class="n">System</span><span class="o">.</span><span class="na">exit</span><span class="o">(</span><span class="mi">0</span><span class="o">);</span>
+</span><span class='line'>        <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">log</span><span class="o">.</span><span class="na">warn</span><span class="o">(</span><span class="s">&quot;Bootstrap: command \&quot;&quot;</span> <span class="o">+</span> <span class="n">command</span> <span class="o">+</span> <span class="s">&quot;\&quot; does not exist.&quot;</span><span class="o">);</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>    <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">Throwable</span> <span class="n">t</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="c1">// Unwrap the Exception for clearer error reporting</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">t</span> <span class="k">instanceof</span> <span class="n">InvocationTargetException</span> <span class="o">&amp;&amp;</span>
+</span><span class='line'>                <span class="n">t</span><span class="o">.</span><span class="na">getCause</span><span class="o">()</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">t</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="na">getCause</span><span class="o">();</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>        <span class="n">handleThrowable</span><span class="o">(</span><span class="n">t</span><span class="o">);</span>
+</span><span class='line'>        <span class="n">t</span><span class="o">.</span><span class="na">printStackTrace</span><span class="o">();</span>
+</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">exit</span><span class="o">(</span><span class="mi">1</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>下面我们逐一来分析一下上述代码中标注了数字的地方：</p>
+
+<ol>
+<li>标注1的代码初始化了自举类的实例，标注2的代码对BootStrap实例进行了初始化，标注3的代码将实例赋值给了daemon。</li>
+<li>标注4的代码首先调用了BootStrap的load方法，然后调用了start方法。</li>
+</ol>
+
+
+<p>接下来我们分别分析一下BootStrap的init,load，start方法具体做了哪些工作。</p>
+
+<h2>BootStrap#init方法</h2>
+
+<p>首先来看<code>org.apache.catalina.startup.Bootstrap#init</code>方法，它的代码如下：</p>
+
+<figure class='code'><figcaption><span>org.apache.catalina.startup.Bootstrap#init</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kt">void</span> <span class="nf">init</span><span class="o">()</span><span class="kd">throws</span> <span class="n">Exception</span><span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// Set Catalina path</span>
+</span><span class='line'>    <span class="n">setCatalinaHome</span><span class="o">();</span>
+</span><span class='line'>    <span class="n">setCatalinaBase</span><span class="o">();</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">initClassLoaders</span><span class="o">();</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">Thread</span><span class="o">.</span><span class="na">currentThread</span><span class="o">().</span><span class="na">setContextClassLoader</span><span class="o">(</span><span class="n">catalinaLoader</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">SecurityClassLoad</span><span class="o">.</span><span class="na">securityClassLoad</span><span class="o">(</span><span class="n">catalinaLoader</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// Load our startup class and call its process() method</span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">log</span><span class="o">.</span><span class="na">isDebugEnabled</span><span class="o">())</span>
+</span><span class='line'>        <span class="n">log</span><span class="o">.</span><span class="na">debug</span><span class="o">(</span><span class="s">&quot;Loading startup class&quot;</span><span class="o">);</span>
+</span><span class='line'>    <span class="c1">// 1</span>
+</span><span class='line'>    <span class="n">Class</span><span class="o">&lt;?&gt;</span> <span class="n">startupClass</span> <span class="o">=</span>
+</span><span class='line'>        <span class="n">catalinaLoader</span><span class="o">.</span><span class="na">loadClass</span>
+</span><span class='line'>        <span class="o">(</span><span class="s">&quot;org.apache.catalina.startup.Catalina&quot;</span><span class="o">);</span>
+</span><span class='line'>    <span class="n">Object</span> <span class="n">startupInstance</span> <span class="o">=</span> <span class="n">startupClass</span><span class="o">.</span><span class="na">newInstance</span><span class="o">();</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// Set the shared extensions class loader</span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">log</span><span class="o">.</span><span class="na">isDebugEnabled</span><span class="o">())</span>
+</span><span class='line'>        <span class="n">log</span><span class="o">.</span><span class="na">debug</span><span class="o">(</span><span class="s">&quot;Setting startup class properties&quot;</span><span class="o">);</span>
+</span><span class='line'>    <span class="n">String</span> <span class="n">methodName</span> <span class="o">=</span> <span class="s">&quot;setParentClassLoader&quot;</span><span class="o">;</span>
+</span><span class='line'>    <span class="n">Class</span><span class="o">&lt;?&gt;</span> <span class="n">paramTypes</span><span class="o">[]</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Class</span><span class="o">[</span><span class="mi">1</span><span class="o">];</span>
+</span><span class='line'>    <span class="n">paramTypes</span><span class="o">[</span><span class="mi">0</span><span class="o">]</span> <span class="o">=</span> <span class="n">Class</span><span class="o">.</span><span class="na">forName</span><span class="o">(</span><span class="s">&quot;java.lang.ClassLoader&quot;</span><span class="o">);</span>
+</span><span class='line'>    <span class="n">Object</span> <span class="n">paramValues</span><span class="o">[]</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Object</span><span class="o">[</span><span class="mi">1</span><span class="o">];</span>
+</span><span class='line'>    <span class="n">paramValues</span><span class="o">[</span><span class="mi">0</span><span class="o">]</span> <span class="o">=</span> <span class="n">sharedLoader</span><span class="o">;</span>
+</span><span class='line'>    <span class="n">Method</span> <span class="n">method</span> <span class="o">=</span>
+</span><span class='line'>        <span class="n">startupInstance</span><span class="o">.</span><span class="na">getClass</span><span class="o">().</span><span class="na">getMethod</span><span class="o">(</span><span class="n">methodName</span><span class="o">,</span> <span class="n">paramTypes</span><span class="o">);</span>
+</span><span class='line'>    <span class="c1">// 2</span>
+</span><span class='line'>    <span class="n">method</span><span class="o">.</span><span class="na">invoke</span><span class="o">(</span><span class="n">startupInstance</span><span class="o">,</span> <span class="n">paramValues</span><span class="o">);</span>
+</span><span class='line'>    <span class="c1">// 3</span>
+</span><span class='line'>    <span class="n">catalinaDaemon</span> <span class="o">=</span> <span class="n">startupInstance</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>
+下面我们重点逐一来分析一下上述代码中标注了数字的地方：</p>
+
+<ol>
+<li>标注1的代码通过反射实例化了<code>org.apache.catalina.startup.Catalina</code>类的实例;</li>
+<li>标注2的代码调用了Catalina实例的setParentClassLoader方法设置了父亲ClassLoader，对于ClassLoader方面的内容，我们在本系列的后续文章再来看看。标注3的代码将Catalina实例赋值给了Bootstrap实例的catalinaDaemon.</li>
+</ol>
+
+
+<h2>BootStrap#load</h2>
+
+<p>接下来我们再来看看<code>org.apache.catalina.startup.Bootstrap#load</code>方法，通过查看源代码，我们知道此方法通过反射调用了<code>org.apache.catalina.startup.Catalina#load</code>方法，那我们就来看看Catalina的load方法，Catalina#load方法代码如下：</p>
+
+<figure class='code'><figcaption><span>org.apache.catalina.startup.Catalina#load</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kt">void</span> <span class="nf">load</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// 1 </span>
+</span><span class='line'>    <span class="n">Digester</span> <span class="n">digester</span> <span class="o">=</span> <span class="n">createStartDigester</span><span class="o">();</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">InputSource</span> <span class="n">inputSource</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'>    <span class="n">InputStream</span> <span class="n">inputStream</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'>    <span class="n">File</span> <span class="n">file</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'>    <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">file</span> <span class="o">=</span> <span class="n">configFile</span><span class="o">();</span>
+</span><span class='line'>        <span class="n">inputStream</span> <span class="o">=</span> <span class="k">new</span> <span class="n">FileInputStream</span><span class="o">(</span><span class="n">file</span><span class="o">);</span>
+</span><span class='line'>        <span class="n">inputSource</span> <span class="o">=</span> <span class="k">new</span> <span class="n">InputSource</span><span class="o">(</span><span class="n">file</span><span class="o">.</span><span class="na">toURI</span><span class="o">().</span><span class="na">toURL</span><span class="o">().</span><span class="na">toString</span><span class="o">());</span>
+</span><span class='line'>    <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">Exception</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">log</span><span class="o">.</span><span class="na">isDebugEnabled</span><span class="o">())</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">log</span><span class="o">.</span><span class="na">debug</span><span class="o">(</span><span class="n">sm</span><span class="o">.</span><span class="na">getString</span><span class="o">(</span><span class="s">&quot;catalina.configFail&quot;</span><span class="o">,</span> <span class="n">file</span><span class="o">),</span> <span class="n">e</span><span class="o">);</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">inputSource</span><span class="o">.</span><span class="na">setByteStream</span><span class="o">(</span><span class="n">inputStream</span><span class="o">);</span>
+</span><span class='line'>        <span class="n">digester</span><span class="o">.</span><span class="na">push</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
+</span><span class='line'>        <span class="n">digester</span><span class="o">.</span><span class="na">parse</span><span class="o">(</span><span class="n">inputSource</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">SAXParseException</span> <span class="n">spe</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">log</span><span class="o">.</span><span class="na">warn</span><span class="o">(</span><span class="s">&quot;Catalina.start using &quot;</span> <span class="o">+</span> <span class="n">getConfigFile</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot;: &quot;</span> <span class="o">+</span>
+</span><span class='line'>                <span class="n">spe</span><span class="o">.</span><span class="na">getMessage</span><span class="o">());</span>
+</span><span class='line'>        <span class="k">return</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">Exception</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">log</span><span class="o">.</span><span class="na">warn</span><span class="o">(</span><span class="s">&quot;Catalina.start using &quot;</span> <span class="o">+</span> <span class="n">getConfigFile</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot;: &quot;</span> <span class="o">,</span> <span class="n">e</span><span class="o">);</span>
+</span><span class='line'>        <span class="k">return</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span> <span class="k">finally</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">inputStream</span><span class="o">.</span><span class="na">close</span><span class="o">();</span>
+</span><span class='line'>        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">IOException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="c1">// Ignore</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">getServer</span><span class="o">().</span><span class="na">setCatalina</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// Stream redirection</span>
+</span><span class='line'>    <span class="n">initStreams</span><span class="o">();</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// Start the new server</span>
+</span><span class='line'>    <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>        <span class="c1">// 2</span>
+</span><span class='line'>        <span class="n">getServer</span><span class="o">().</span><span class="na">init</span><span class="o">();</span>
+</span><span class='line'>    <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">LifecycleException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">Boolean</span><span class="o">.</span><span class="na">getBoolean</span><span class="o">(</span><span class="s">&quot;org.apache.catalina.startup.EXIT_ON_INIT_FAILURE&quot;</span><span class="o">))</span> <span class="o">{</span>
+</span><span class='line'>            <span class="k">throw</span> <span class="k">new</span> <span class="n">java</span><span class="o">.</span><span class="na">lang</span><span class="o">.</span><span class="na">Error</span><span class="o">(</span><span class="n">e</span><span class="o">);</span>
+</span><span class='line'>        <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">log</span><span class="o">.</span><span class="na">error</span><span class="o">(</span><span class="s">&quot;Catalina.start&quot;</span><span class="o">,</span> <span class="n">e</span><span class="o">);</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>上面的代码，我只保留了主流程核心的代码，下面我们重点逐一来分析一下上述代码中标注了数字的地方：</p>
+
+<ol>
+<li>标注1的代码创建Digester实例解析&#8221;conf/server.xml&#8221;文件</li>
+<li>标注2的代码最终调用了StandardServer的init方法。</li>
+</ol>
+
+
+<p>大家可以自行查看下源代码，我们会发现如下的一个调用流程：</p>
+
+<figure class='code'><figcaption><span>init call stack  </span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">catalina</span><span class="o">.</span><span class="na">core</span><span class="o">.</span><span class="na">StandardServer</span><span class="err">#</span><span class="n">init</span>
+</span><span class='line'><span class="o">-&gt;</span><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">catalina</span><span class="o">.</span><span class="na">core</span><span class="o">.</span><span class="na">StandardService</span><span class="err">#</span><span class="n">init</span>
+</span><span class='line'><span class="o">--&gt;</span><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">catalina</span><span class="o">.</span><span class="na">connector</span><span class="o">.</span><span class="na">Connector</span><span class="err">#</span><span class="n">init</span>
+</span><span class='line'><span class="o">--&gt;</span><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">catalina</span><span class="o">.</span><span class="na">core</span><span class="o">.</span><span class="na">StandardEngine</span><span class="err">#</span><span class="n">init</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<blockquote><p>因为StandardService，Connector，StandardEngine实现了LifeCycle接口，因此符合我们上文所获的生命周期的管理，最终都是通过他们自己实现的initInternal方法进行初始化</p></blockquote>
+
+<p>读到这里的时候，我想大家应该和我一样，以为StandardEngine#init方法会调用StandardHost#init方法，但是当我们查看StandardEngine#init方法的时候，发现并没有进行StandardHost的初始化，它到底做了什么呢？让我们来具体分析一下,我们首先拿StanderEngine的继承关系图来看下：
+<img class="center" src="/images/2013/10/16/StandardEngine.png">
+通过上图以及前面说的LifeCyecle的模板方法模式，我们知道StandardEngine的初始化钩子方法initInternal方法最终调用了ContainerBase的initInternal方法，那我们拿ContainerBase#initInternal方法的代码看看：</p>
+
+<figure class='code'><figcaption><span>org.apache.catalina.core.ContainerBase#initInternal</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">protected</span> <span class="kt">void</span> <span class="nf">initInternal</span><span class="o">()</span> <span class="kd">throws</span> <span class="n">LifecycleException</span> <span class="o">{</span>
+</span><span class='line'>    <span class="n">BlockingQueue</span><span class="o">&lt;</span><span class="n">Runnable</span><span class="o">&gt;</span> <span class="n">startStopQueue</span> <span class="o">=</span>
+</span><span class='line'>        <span class="k">new</span> <span class="n">LinkedBlockingQueue</span><span class="o">&lt;</span><span class="n">Runnable</span><span class="o">&gt;();</span>
+</span><span class='line'>    <span class="n">startStopExecutor</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ThreadPoolExecutor</span><span class="o">(</span>
+</span><span class='line'>            <span class="n">getStartStopThreadsInternal</span><span class="o">(),</span>
+</span><span class='line'>            <span class="n">getStartStopThreadsInternal</span><span class="o">(),</span> <span class="mi">10</span><span class="o">,</span> <span class="n">TimeUnit</span><span class="o">.</span><span class="na">SECONDS</span><span class="o">,</span>
+</span><span class='line'>            <span class="n">startStopQueue</span><span class="o">,</span>
+</span><span class='line'>            <span class="k">new</span> <span class="nf">StartStopThreadFactory</span><span class="o">(</span><span class="n">getName</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot;-startStop-&quot;</span><span class="o">));</span>
+</span><span class='line'>    <span class="n">startStopExecutor</span><span class="o">.</span><span class="na">allowCoreThreadTimeOut</span><span class="o">(</span><span class="kc">true</span><span class="o">);</span>
+</span><span class='line'>    <span class="kd">super</span><span class="o">.</span><span class="na">initInternal</span><span class="o">();</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>我们可以看到StandardEngine的初始化仅仅是创建了一个ThreadPoolExecutor，当看到这里的时候，笔者当时也纳闷了，StandardEngine#init竟然没有调用StandardHost#init方法，那么StandardHost的init方法是什么时候被调用的呢？遇到这种不知道到底方法怎么调用的时候怎么办呢？笔者介绍个方法给大家。我们现在需要知道StandardHost#init方法何时被调用的，而我们知道init最终会调用钩子的initInternal方法，因此这个时候，我们可以在StandardHost中override initInternal方法，增加了实现方法以后，有两种方法可以用，一种就是设置个断点debug一下就可以看出线程调用栈了，另外一种就是在新增的方法中打印出调用栈。笔者这里采用第二种方法，我们增加如下的initInternal方法到StandardHost中：</p>
+
+<figure class='code'><figcaption><span>org.apache.catalina.core.StandardHost#initInternal</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">protected</span> <span class="kt">void</span> <span class="nf">initInternal</span><span class="o">()</span> <span class="kd">throws</span> <span class="n">LifecycleException</span> <span class="o">{</span>
+</span><span class='line'>    <span class="n">Throwable</span> <span class="n">ex</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Throwable</span><span class="o">();</span>
+</span><span class='line'>    <span class="n">StackTraceElement</span><span class="o">[]</span> <span class="n">stackElements</span> <span class="o">=</span> <span class="n">ex</span><span class="o">.</span><span class="na">getStackTrace</span><span class="o">();</span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">stackElements</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="n">stackElements</span><span class="o">.</span><span class="na">length</span> <span class="o">-</span> <span class="mi">1</span><span class="o">;</span> <span class="n">i</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span><span class="o">--)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">print</span><span class="o">(</span><span class="n">stackElements</span><span class="o">[</span><span class="n">i</span><span class="o">].</span><span class="na">getClassName</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot;\t&quot;</span><span class="o">);</span>
+</span><span class='line'>            <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">print</span><span class="o">(</span><span class="n">stackElements</span><span class="o">[</span><span class="n">i</span><span class="o">].</span><span class="na">getMethodName</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot;\t&quot;</span><span class="o">);</span>
+</span><span class='line'>            <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">print</span><span class="o">(</span><span class="n">stackElements</span><span class="o">[</span><span class="n">i</span><span class="o">].</span><span class="na">getFileName</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot;\t&quot;</span><span class="o">);</span>
+</span><span class='line'>            <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">stackElements</span><span class="o">[</span><span class="n">i</span><span class="o">].</span><span class="na">getLineNumber</span><span class="o">());</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>    <span class="kd">super</span><span class="o">.</span><span class="na">initInternal</span><span class="o">();</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>上面的代码将会打印出方法调用堆栈，对于调试非常有用，上面的方法运行以后在控制台打印出了如下的堆栈信息：</p>
+
+<figure class='code'><figcaption><span>stack info</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">java</span><span class="o">.</span><span class="na">lang</span><span class="o">.</span><span class="na">Thread</span>    <span class="n">run</span>  <span class="n">Thread</span><span class="o">.</span><span class="na">java</span>   <span class="mi">680</span>
+</span><span class='line'><span class="n">java</span><span class="o">.</span><span class="na">util</span><span class="o">.</span><span class="na">concurrent</span><span class="o">.</span><span class="na">ThreadPoolExecutor</span><span class="n">$Worker</span> <span class="n">run</span>  <span class="n">ThreadPoolExecutor</span><span class="o">.</span><span class="na">java</span>   <span class="mi">918</span>
+</span><span class='line'><span class="n">java</span><span class="o">.</span><span class="na">util</span><span class="o">.</span><span class="na">concurrent</span><span class="o">.</span><span class="na">ThreadPoolExecutor</span><span class="n">$Worker</span> <span class="n">runTask</span>  <span class="n">ThreadPoolExecutor</span><span class="o">.</span><span class="na">java</span>   <span class="mi">895</span>
+</span><span class='line'><span class="n">java</span><span class="o">.</span><span class="na">util</span><span class="o">.</span><span class="na">concurrent</span><span class="o">.</span><span class="na">FutureTask</span>   <span class="n">run</span>  <span class="n">FutureTask</span><span class="o">.</span><span class="na">java</span>   <span class="mi">138</span>
+</span><span class='line'><span class="n">java</span><span class="o">.</span><span class="na">util</span><span class="o">.</span><span class="na">concurrent</span><span class="o">.</span><span class="na">FutureTask</span><span class="n">$Sync</span>   <span class="n">innerRun</span> <span class="n">FutureTask</span><span class="o">.</span><span class="na">java</span>   <span class="mi">303</span>
+</span><span class='line'><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">catalina</span><span class="o">.</span><span class="na">core</span><span class="o">.</span><span class="na">ContainerBase</span><span class="n">$StartChild</span>   <span class="n">call</span> <span class="n">ContainerBase</span><span class="o">.</span><span class="na">java</span>    <span class="mi">1549</span>
+</span><span class='line'><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">catalina</span><span class="o">.</span><span class="na">core</span><span class="o">.</span><span class="na">ContainerBase</span><span class="n">$StartChild</span>   <span class="n">call</span> <span class="n">ContainerBase</span><span class="o">.</span><span class="na">java</span>    <span class="mi">1559</span>
+</span><span class='line'><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">catalina</span><span class="o">.</span><span class="na">util</span><span class="o">.</span><span class="na">LifecycleBase</span> <span class="n">start</span>    <span class="n">LifecycleBase</span><span class="o">.</span><span class="na">java</span>    <span class="mi">139</span>
+</span><span class='line'><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">catalina</span><span class="o">.</span><span class="na">util</span><span class="o">.</span><span class="na">LifecycleBase</span> <span class="n">init</span> <span class="n">LifecycleBase</span><span class="o">.</span><span class="na">java</span>    <span class="mi">102</span>
+</span><span class='line'><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">catalina</span><span class="o">.</span><span class="na">core</span><span class="o">.</span><span class="na">StandardHost</span>  <span class="n">initInternal</span> <span class="n">StandardHost</span><span class="o">.</span><span class="na">java</span> <span class="mi">794</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>通过控制台的信息，我们看到是StartChild#call方法调用的，而我们查看StartChild#call方法其实是在StandardEngine的startInternal方法中通过异步线程池去初始化子容器。因此到这里我们就理清楚了，StarndardHost的init方法是在调用start方法的时候被初始化。那么接下来我们就来看看，start方法的整体调用流程。</p>
+
+<h2>BootStrap#start</h2>
+
+<p>采用分析load方法一样的方法，经过对BootStrap#start的分析，我们最终可以得到得到如下的调用链：</p>
+
+<figure class='code'><figcaption><span>org.apache.catalina.startup.Bootstrap#start call stack</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">catalina</span><span class="o">.</span><span class="na">startup</span><span class="o">.</span><span class="na">Bootstrap</span><span class="err">#</span><span class="n">start</span>
+</span><span class='line'><span class="o">-&gt;</span><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">catalina</span><span class="o">.</span><span class="na">startup</span><span class="o">.</span><span class="na">Catalina</span><span class="err">#</span><span class="n">start</span> <span class="err">通过反射调用</span>
+</span><span class='line'><span class="o">--&gt;</span><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">catalina</span><span class="o">.</span><span class="na">core</span><span class="o">.</span><span class="na">StandardServer</span><span class="err">#</span><span class="n">start</span>
+</span><span class='line'><span class="o">---&gt;</span><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">catalina</span><span class="o">.</span><span class="na">core</span><span class="o">.</span><span class="na">StandardService</span><span class="err">#</span><span class="n">start</span>
+</span><span class='line'><span class="o">----&gt;</span><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">catalina</span><span class="o">.</span><span class="na">core</span><span class="o">.</span><span class="na">StandardEngine</span><span class="err">#</span><span class="n">start</span>
+</span><span class='line'><span class="o">----&gt;</span><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">catalina</span><span class="o">.</span><span class="na">Executor</span><span class="err">#</span><span class="n">start</span>
+</span><span class='line'><span class="o">----&gt;</span><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">catalina</span><span class="o">.</span><span class="na">connector</span><span class="o">.</span><span class="na">Connector</span><span class="err">#</span><span class="n">start</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>综合上文的描述我们总体得到如下的调用链：</p>
+
+<figure class='code'><figcaption><span>org.apache.catalina.startup.Bootstrap#main call stack </span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">catalina</span><span class="o">.</span><span class="na">startup</span><span class="o">.</span><span class="na">Bootstrap</span><span class="err">#</span><span class="n">main</span>
+</span><span class='line'><span class="o">-&gt;</span><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">catalina</span><span class="o">.</span><span class="na">startup</span><span class="o">.</span><span class="na">Bootstrap</span><span class="err">#</span><span class="n">init</span>
+</span><span class='line'><span class="o">-&gt;</span><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">catalina</span><span class="o">.</span><span class="na">startup</span><span class="o">.</span><span class="na">Bootstrap</span><span class="err">#</span><span class="n">load</span>
+</span><span class='line'><span class="o">--&gt;</span><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">catalina</span><span class="o">.</span><span class="na">startup</span><span class="o">.</span><span class="na">Catalina</span><span class="err">#</span><span class="n">load</span>
+</span><span class='line'><span class="o">---&gt;</span><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">catalina</span><span class="o">.</span><span class="na">core</span><span class="o">.</span><span class="na">StandardServer</span><span class="err">#</span><span class="n">init</span>
+</span><span class='line'><span class="o">----&gt;</span><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">catalina</span><span class="o">.</span><span class="na">core</span><span class="o">.</span><span class="na">StandardService</span><span class="err">#</span><span class="n">init</span>
+</span><span class='line'><span class="o">-----&gt;</span><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">catalina</span><span class="o">.</span><span class="na">connector</span><span class="o">.</span><span class="na">Connector</span><span class="err">#</span><span class="n">init</span>
+</span><span class='line'><span class="o">-----&gt;</span><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">catalina</span><span class="o">.</span><span class="na">core</span><span class="o">.</span><span class="na">StandardEngine</span><span class="err">#</span><span class="n">init</span>
+</span><span class='line'><span class="o">-&gt;</span><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">catalina</span><span class="o">.</span><span class="na">startup</span><span class="o">.</span><span class="na">Bootstrap</span><span class="err">#</span><span class="n">start</span>
+</span><span class='line'><span class="o">--&gt;</span><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">catalina</span><span class="o">.</span><span class="na">startup</span><span class="o">.</span><span class="na">Catalina</span><span class="err">#</span><span class="n">start</span> <span class="err">通过反射调用</span>
+</span><span class='line'><span class="o">---&gt;</span><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">catalina</span><span class="o">.</span><span class="na">core</span><span class="o">.</span><span class="na">StandardServer</span><span class="err">#</span><span class="n">start</span>
+</span><span class='line'><span class="o">----&gt;</span><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">catalina</span><span class="o">.</span><span class="na">core</span><span class="o">.</span><span class="na">StandardService</span><span class="err">#</span><span class="n">start</span>
+</span><span class='line'><span class="o">-----&gt;</span><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">catalina</span><span class="o">.</span><span class="na">core</span><span class="o">.</span><span class="na">StandardEngine</span><span class="err">#</span><span class="n">start</span>
+</span><span class='line'><span class="o">-----&gt;</span><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">catalina</span><span class="o">.</span><span class="na">Executor</span><span class="err">#</span><span class="n">start</span>
+</span><span class='line'><span class="o">-----&gt;</span><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">catalina</span><span class="o">.</span><span class="na">connector</span><span class="o">.</span><span class="na">Connector</span><span class="err">#</span><span class="n">start</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>通过上面的分析我们已经搞清楚了Tomcat启动的总体的过程，但是有一些关键的步骤，我们还需要进行进一步的深入探究。let&rsquo;s do it.</p>
+
+<h1>Tomcat启动过程关键步骤分析</h1>
+
+<h2>Connector#init</h2>
+
+<p>我们首先来看一下<strong>org.apache.catalina.connector.Connector#init</strong>,我们知道Connector的生命周期也是通过LifeCycle的模板方法模式来管理的，那么我们只需要查看一下它的initInternal方法即可知道它是如何初始化的。接下来我们就来看一下initInternal方法，代码如下：</p>
+
+<figure class='code'><figcaption><span>org.apache.catalina.connector.Connector#initInternal</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">protected</span> <span class="kt">void</span> <span class="nf">initInternal</span><span class="o">()</span> <span class="kd">throws</span> <span class="n">LifecycleException</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="kd">super</span><span class="o">.</span><span class="na">initInternal</span><span class="o">();</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// Initialize adapter</span>
+</span><span class='line'>        <span class="n">adapter</span> <span class="o">=</span> <span class="k">new</span> <span class="n">CoyoteAdapter</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
+</span><span class='line'>        <span class="n">protocolHandler</span><span class="o">.</span><span class="na">setAdapter</span><span class="o">(</span><span class="n">adapter</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// Make sure parseBodyMethodsSet has a default</span>
+</span><span class='line'>        <span class="k">if</span><span class="o">(</span> <span class="kc">null</span> <span class="o">==</span> <span class="n">parseBodyMethodsSet</span> <span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">setParseBodyMethods</span><span class="o">(</span><span class="n">getParseBodyMethods</span><span class="o">());</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">protocolHandler</span><span class="o">.</span><span class="na">isAprRequired</span><span class="o">()</span> <span class="o">&amp;&amp;</span>
+</span><span class='line'>                <span class="o">!</span><span class="n">AprLifecycleListener</span><span class="o">.</span><span class="na">isAprAvailable</span><span class="o">())</span> <span class="o">{</span>
+</span><span class='line'>            <span class="k">throw</span> <span class="k">new</span> <span class="nf">LifecycleException</span><span class="o">(</span>
+</span><span class='line'>                    <span class="n">sm</span><span class="o">.</span><span class="na">getString</span><span class="o">(</span><span class="s">&quot;coyoteConnector.protocolHandlerNoApr&quot;</span><span class="o">,</span>
+</span><span class='line'>                            <span class="n">getProtocolHandlerClassName</span><span class="o">()));</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>            <span class="c1">// 1 </span>
+</span><span class='line'>            <span class="n">protocolHandler</span><span class="o">.</span><span class="na">init</span><span class="o">();</span>
+</span><span class='line'>        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">Exception</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="k">throw</span> <span class="k">new</span> <span class="nf">LifecycleException</span>
+</span><span class='line'>                <span class="o">(</span><span class="n">sm</span><span class="o">.</span><span class="na">getString</span>
+</span><span class='line'>                 <span class="o">(</span><span class="s">&quot;coyoteConnector.protocolHandlerInitializationFailed&quot;</span><span class="o">),</span> <span class="n">e</span><span class="o">);</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// Initialize mapper listener</span>
+</span><span class='line'>        <span class="n">mapperListener</span><span class="o">.</span><span class="na">init</span><span class="o">();</span>
+</span><span class='line'>    <span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>上面代码中，本文最关心的是标注了1的地方，这个地方调用了<code>org.apache.coyote.ProtocolHandler#init</code>方法，而ProtocolHandler是在Connector的构造函数中初始化，而Connector的构造函数又是Digester类解析conf/server.xml的时候调用的，明白了这点，我们在来具体看看Connector构造函数中调用的一个核心的方法setProtocol方法，下面是其代码：</p>
+
+<figure class='code'><figcaption><span>org.apache.catalina.connector.Connector#setProtocol</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kt">void</span> <span class="nf">setProtocol</span><span class="o">(</span><span class="n">String</span> <span class="n">protocol</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">AprLifecycleListener</span><span class="o">.</span><span class="na">isAprAvailable</span><span class="o">())</span> <span class="o">{</span>
+</span><span class='line'>            <span class="c1">//这里统一使用AprEndpoint</span>
+</span><span class='line'>            <span class="k">if</span> <span class="o">(</span><span class="s">&quot;HTTP/1.1&quot;</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">protocol</span><span class="o">))</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">setProtocolHandlerClassName</span>
+</span><span class='line'>                    <span class="o">(</span><span class="s">&quot;org.apache.coyote.http11.Http11AprProtocol&quot;</span><span class="o">);</span>   <span class="c1">//Http11AprProtocol$Http11ConnectionHandler</span>
+</span><span class='line'>            <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="s">&quot;AJP/1.3&quot;</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">protocol</span><span class="o">))</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">setProtocolHandlerClassName</span>
+</span><span class='line'>                    <span class="o">(</span><span class="s">&quot;org.apache.coyote.ajp.AjpAprProtocol&quot;</span><span class="o">);</span>     <span class="c1">//AjpAprProtocol$AjpConnectionHandler</span>
+</span><span class='line'>            <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">protocol</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">setProtocolHandlerClassName</span><span class="o">(</span><span class="n">protocol</span><span class="o">);</span>
+</span><span class='line'>            <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">setProtocolHandlerClassName</span>
+</span><span class='line'>                    <span class="o">(</span><span class="s">&quot;org.apache.coyote.http11.Http11AprProtocol&quot;</span><span class="o">);</span>
+</span><span class='line'>            <span class="o">}</span>
+</span><span class='line'>        <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+</span><span class='line'>            <span class="c1">// 1 </span>
+</span><span class='line'>            <span class="k">if</span> <span class="o">(</span><span class="s">&quot;HTTP/1.1&quot;</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">protocol</span><span class="o">))</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">setProtocolHandlerClassName</span>
+</span><span class='line'>                    <span class="o">(</span><span class="s">&quot;org.apache.coyote.http11.Http11Protocol&quot;</span><span class="o">);</span>  <span class="c1">//Http11Protocol$Http11ConnectionHandler</span>
+</span><span class='line'>            <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="s">&quot;AJP/1.3&quot;</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">protocol</span><span class="o">))</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">setProtocolHandlerClassName</span>
+</span><span class='line'>                    <span class="o">(</span><span class="s">&quot;org.apache.coyote.ajp.AjpProtocol&quot;</span><span class="o">);</span>    <span class="c1">//AjpProtocol$AjpConnectionHandler</span>
+</span><span class='line'>            <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">protocol</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">setProtocolHandlerClassName</span><span class="o">(</span><span class="n">protocol</span><span class="o">);</span>
+</span><span class='line'>            <span class="o">}</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>从setProtocol的代码中，我们可以看出主要逻辑分为了两块，一种情况是使用<a href="http://tomcat.apache.org/tomcat-7.0-doc/apr.html">APR(Apache Portable Runtime)</a>，另外一种是不使用APR的情况。缺省情况下不采用APR库，这样的话，代码会走到标注1的代码分支，这里通过协议的不同，最终初始化了不同的类。如果是http1.1协议就采用<code>org.apache.coyote.http11.Http11Protocol</code>,如果是AJP(Apache Jserv Protocol)协议，就采用<code>org.apache.coyote.ajp.AjpProtocol</code>类，下面我们来看一下Http11Protocol和AjpProtocol的继承关系图如下：
+<img class="center" src="/images/2013/10/17/Http11Protocol.png"><br/>
+<img class="center" src="/images/2013/10/17/AJPProtocol.png">
+通过上图我们可以看到它们都继承了公共的基类<code>org.apache.coyote.AbstractProtocol</code>,而它们自己的init方法最终其实都是调用了AbstractProtocol的init方法，通过查看AbstractProtocol#init代码，我们可以看到最终是调用了<code>org.apache.tomcat.util.net.AbstractEndpoint#init</code>,而AbstractEndpoint的实例化操作是在实例化AjpProtocol和Http11Protocol的时候在其构造函数中实例化的，而AjpProtocol和Http11Protocol构造函数中，其实都是初始化了<code>org.apache.tomcat.util.net.JIoEndpoint</code>类，只不过根据是http协议还是AJP协议，它们具有不同的连接处理类。其中Http11Protocol的连接处理类为<code>org.apache.coyote.http11.Http11Protocol.Http11ConnectionHandler</code>,而连接处理类为<code>org.apache.coyote.ajp.AjpProtocol.AjpConnectionHandler</code>，因此到这里我们基本清楚了Connector的初始化流程，总结如下：</p>
+
+<figure class='code'><figcaption><span>Connect init 采用APR的情况</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="c1">//1 HTTP/1.1协议连接器</span>
+</span><span class='line'><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">catalina</span><span class="o">.</span><span class="na">connector</span><span class="o">.</span><span class="na">Connector</span><span class="err">#</span><span class="n">init</span>
+</span><span class='line'><span class="o">-&gt;</span><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">coyote</span><span class="o">.</span><span class="na">http11</span><span class="o">.</span><span class="na">Http11AprProtocol</span><span class="err">#</span><span class="n">init</span>
+</span><span class='line'><span class="o">--&gt;</span><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">tomcat</span><span class="o">.</span><span class="na">util</span><span class="o">.</span><span class="na">net</span><span class="o">.</span><span class="na">AprEndpoint</span><span class="err">#</span><span class="n">init</span>
+</span><span class='line'><span class="o">(</span><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">coyote</span><span class="o">.</span><span class="na">http11</span><span class="o">.</span><span class="na">Http11AprProtocol</span><span class="o">.</span><span class="na">Http11ConnectionHandler</span><span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// 2 AJP/1.3协议连接器</span>
+</span><span class='line'><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">catalina</span><span class="o">.</span><span class="na">connector</span><span class="o">.</span><span class="na">Connector</span><span class="err">#</span><span class="n">init</span>
+</span><span class='line'><span class="o">-&gt;</span><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">coyote</span><span class="o">.</span><span class="na">ajp</span><span class="o">.</span><span class="na">AjpAprProtocol</span><span class="err">#</span><span class="n">init</span>
+</span><span class='line'><span class="o">--&gt;</span><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">tomcat</span><span class="o">.</span><span class="na">util</span><span class="o">.</span><span class="na">net</span><span class="o">.</span><span class="na">AprEndpoint</span><span class="err">#</span><span class="n">init</span>
+</span><span class='line'><span class="o">(</span><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">coyote</span><span class="o">.</span><span class="na">ajp</span><span class="o">.</span><span class="na">AjpAprProtocol</span><span class="o">.</span><span class="na">AjpConnectionHandler</span><span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<figure class='code'><figcaption><span>Connector init 不采用APR的情况</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="c1">// 1 HTTP/1.1协议连接器</span>
+</span><span class='line'><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">catalina</span><span class="o">.</span><span class="na">connector</span><span class="o">.</span><span class="na">Connector</span><span class="err">#</span><span class="n">init</span>
+</span><span class='line'><span class="o">-&gt;</span><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">coyote</span><span class="o">.</span><span class="na">http11</span><span class="o">.</span><span class="na">Http11Protocol</span><span class="err">#</span><span class="n">init</span>
+</span><span class='line'><span class="o">--&gt;</span><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">tomcat</span><span class="o">.</span><span class="na">util</span><span class="o">.</span><span class="na">net</span><span class="o">.</span><span class="na">JIoEndpoint</span><span class="err">#</span><span class="n">init</span>
+</span><span class='line'><span class="o">(</span><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">coyote</span><span class="o">.</span><span class="na">http11</span><span class="o">.</span><span class="na">Http11Protocol</span><span class="o">.</span><span class="na">Http11ConnectionHandler</span><span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// 2 AJP/1.3协议连接器</span>
+</span><span class='line'><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">catalina</span><span class="o">.</span><span class="na">connector</span><span class="o">.</span><span class="na">Connector</span><span class="err">#</span><span class="n">init</span>
+</span><span class='line'><span class="o">-&gt;</span><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">coyote</span><span class="o">.</span><span class="na">ajp</span><span class="o">.</span><span class="na">AjpProtocol</span><span class="err">#</span><span class="n">init</span>
+</span><span class='line'><span class="o">--&gt;</span><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">tomcat</span><span class="o">.</span><span class="na">util</span><span class="o">.</span><span class="na">net</span><span class="o">.</span><span class="na">JIoEndpoint</span><span class="err">#</span><span class="n">init</span>
+</span><span class='line'><span class="o">(</span><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">coyote</span><span class="o">.</span><span class="na">ajp</span><span class="o">.</span><span class="na">AjpProtocol</span><span class="o">.</span><span class="na">AjpConnectionHandler</span><span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<blockquote><p>这里需要注意，除了JIoEndpoint外，还有NIoEndpoint，对于Tomcat7.0.24的代码，并没有采用NIOEndPoint，NIOEndpoint采用了NIO的方式进行Socket的处理。</p></blockquote>
+
+<p>最后，咋们再来看看org.apache.tomcat.util.net.JIoEndpoint#init的初始化过程，我们首先来看一下JIoEndpoint的继承关系图如下：
+<img class="center" src="/images/2013/10/17/JIoEndpoint.png">
+通过上图我们知道JIoEndpoint继承了AbstractEndpoint，而通过查看源码可知，JIoEndpoint没有实现自己的init方法，它默认采用了父类的init方法，那么我们就来看看AbstractEndpoint的init，它的代码如下：</p>
+
+<figure class='code'><figcaption><span>org.apache.tomcat.util.net.AbstractEndpoint#init</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'> <span class="kd">public</span> <span class="kd">final</span> <span class="kt">void</span> <span class="nf">init</span><span class="o">()</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">bindOnInit</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">bind</span><span class="o">();</span>
+</span><span class='line'>            <span class="n">bindState</span> <span class="o">=</span> <span class="n">BindState</span><span class="o">.</span><span class="na">BOUND_ON_INIT</span><span class="o">;</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>通过查看上面的代码可知，因为bindOnInit默认是true,所以init调用了bind方法，而bind方法是抽象方法，最终由JIoEndpoint来实现，代码如下：</p>
+
+<figure class='code'><figcaption><span>org.apache.tomcat.util.net.JIoEndpoint#bind</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="nd">@Override</span>
+</span><span class='line'><span class="kd">public</span> <span class="kt">void</span> <span class="nf">bind</span><span class="o">()</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// Initialize thread count defaults for acceptor</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">acceptorThreadCount</span> <span class="o">==</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">acceptorThreadCount</span> <span class="o">=</span> <span class="mi">1</span><span class="o">;</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>        <span class="c1">// Initialize maxConnections</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">getMaxConnections</span><span class="o">()</span> <span class="o">==</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="c1">// User hasn&#39;t set a value - use the default</span>
+</span><span class='line'>            <span class="n">setMaxConnections</span><span class="o">(</span><span class="n">getMaxThreadsExecutor</span><span class="o">(</span><span class="kc">true</span><span class="o">));</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">serverSocketFactory</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="k">if</span> <span class="o">(</span><span class="n">isSSLEnabled</span><span class="o">())</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">serverSocketFactory</span> <span class="o">=</span>
+</span><span class='line'>                    <span class="n">handler</span><span class="o">.</span><span class="na">getSslImplementation</span><span class="o">().</span><span class="na">getServerSocketFactory</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
+</span><span class='line'>            <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">serverSocketFactory</span> <span class="o">=</span> <span class="k">new</span> <span class="n">DefaultServerSocketFactory</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
+</span><span class='line'>            <span class="o">}</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">serverSocket</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>                <span class="k">if</span> <span class="o">(</span><span class="n">getAddress</span><span class="o">()</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                    <span class="n">serverSocket</span> <span class="o">=</span> <span class="n">serverSocketFactory</span><span class="o">.</span><span class="na">createSocket</span><span class="o">(</span><span class="n">getPort</span><span class="o">(),</span>
+</span><span class='line'>                            <span class="n">getBacklog</span><span class="o">());</span>
+</span><span class='line'>                <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+</span><span class='line'>                    <span class="n">serverSocket</span> <span class="o">=</span> <span class="n">serverSocketFactory</span><span class="o">.</span><span class="na">createSocket</span><span class="o">(</span><span class="n">getPort</span><span class="o">(),</span>
+</span><span class='line'>                            <span class="n">getBacklog</span><span class="o">(),</span> <span class="n">getAddress</span><span class="o">());</span>
+</span><span class='line'>                <span class="o">}</span>
+</span><span class='line'>            <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">BindException</span> <span class="n">orig</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">String</span> <span class="n">msg</span><span class="o">;</span>
+</span><span class='line'>                <span class="k">if</span> <span class="o">(</span><span class="n">getAddress</span><span class="o">()</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span>
+</span><span class='line'>                    <span class="n">msg</span> <span class="o">=</span> <span class="n">orig</span><span class="o">.</span><span class="na">getMessage</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot; &lt;null&gt;:&quot;</span> <span class="o">+</span> <span class="n">getPort</span><span class="o">();</span>
+</span><span class='line'>                <span class="k">else</span>
+</span><span class='line'>                    <span class="n">msg</span> <span class="o">=</span> <span class="n">orig</span><span class="o">.</span><span class="na">getMessage</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot; &quot;</span> <span class="o">+</span>
+</span><span class='line'>                            <span class="n">getAddress</span><span class="o">().</span><span class="na">toString</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot;:&quot;</span> <span class="o">+</span> <span class="n">getPort</span><span class="o">();</span>
+</span><span class='line'>                <span class="n">BindException</span> <span class="n">be</span> <span class="o">=</span> <span class="k">new</span> <span class="n">BindException</span><span class="o">(</span><span class="n">msg</span><span class="o">);</span>
+</span><span class='line'>                <span class="n">be</span><span class="o">.</span><span class="na">initCause</span><span class="o">(</span><span class="n">orig</span><span class="o">);</span>
+</span><span class='line'>                <span class="k">throw</span> <span class="n">be</span><span class="o">;</span>
+</span><span class='line'>            <span class="o">}</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>通过上面代码可以看出，最终是调用了<code>org.apache.tomcat.util.net.ServerSocketFactory#createSocket</code>方法创建一个<code>java.net.ServerSocket</code>，并绑定在conf/server.xml中Connector中配置的端口。</p>
+
+<p>综上我们可以得出如下结论：</p>
+
+<blockquote><p>Connector#init的时候，无论是AJP还是HTTP最终其实是调用了JioEndpoint的初始化，默认情况在初始化的时候就会创建java.net.ServerSocket绑到到配置的端口上。</p></blockquote>
+
+<h2>Connector#start</h2>
+
+<p>接着我们再来分析一下Connector#start，因为Connector符合LifeCycle模板方法生命周期管理的机制，因此它的start最终会调用startInternal,org.apache.catalina.connector.Connector#startInternal代码如下：</p>
+
+<figure class='code'><figcaption><span>org.apache.catalina.connector.Connector#startInternal</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">protected</span> <span class="kt">void</span> <span class="nf">startInternal</span><span class="o">()</span> <span class="kd">throws</span> <span class="n">LifecycleException</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// Validate settings before starting</span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">getPort</span><span class="o">()</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">throw</span> <span class="k">new</span> <span class="nf">LifecycleException</span><span class="o">(</span><span class="n">sm</span><span class="o">.</span><span class="na">getString</span><span class="o">(</span>
+</span><span class='line'>                <span class="s">&quot;coyoteConnector.invalidPort&quot;</span><span class="o">,</span> <span class="n">Integer</span><span class="o">.</span><span class="na">valueOf</span><span class="o">(</span><span class="n">getPort</span><span class="o">())));</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">setState</span><span class="o">(</span><span class="n">LifecycleState</span><span class="o">.</span><span class="na">STARTING</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">protocolHandler</span><span class="o">.</span><span class="na">start</span><span class="o">();</span>
+</span><span class='line'>    <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">Exception</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">String</span> <span class="n">errPrefix</span> <span class="o">=</span> <span class="s">&quot;&quot;</span><span class="o">;</span>
+</span><span class='line'>        <span class="k">if</span><span class="o">(</span><span class="k">this</span><span class="o">.</span><span class="na">service</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">errPrefix</span> <span class="o">+=</span> <span class="s">&quot;service.getName(): \&quot;&quot;</span> <span class="o">+</span> <span class="k">this</span><span class="o">.</span><span class="na">service</span><span class="o">.</span><span class="na">getName</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot;\&quot;; &quot;</span><span class="o">;</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">throw</span> <span class="k">new</span> <span class="nf">LifecycleException</span>
+</span><span class='line'>            <span class="o">(</span><span class="n">errPrefix</span> <span class="o">+</span> <span class="s">&quot; &quot;</span> <span class="o">+</span> <span class="n">sm</span><span class="o">.</span><span class="na">getString</span>
+</span><span class='line'>             <span class="o">(</span><span class="s">&quot;coyoteConnector.protocolHandlerStartFailed&quot;</span><span class="o">),</span> <span class="n">e</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">mapperListener</span><span class="o">.</span><span class="na">start</span><span class="o">();</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>通过上面的代码，我们可以清晰的看到最终调用了protocolHandler.start()，而根据Connector#init流程的分析，这里会分是否采用APR，默认是不采用APR的，这里会根据不同的协议（AJP，HTTP）来调用对应的org.apache.coyote.ProtocolHandler#start.
+其中AJP会采用org.apache.coyote.ajp.AjpProtocol，HTTP协议采用org.apache.coyote.http11.Http11Protocol,而无论是AjpProtocol还是Http11Protocol都会调用JIoEndpoint的方法，那么接下来我们就来看看JioEndpoint的start方法，它的代码如下：</p>
+
+<figure class='code'><figcaption><span>org.apache.tomcat.util.net.JIoEndpoint#startInternal</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kt">void</span> <span class="nf">startInternal</span><span class="o">()</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(!</span><span class="n">running</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">running</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+</span><span class='line'>            <span class="n">paused</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>            <span class="c1">// Create worker collection</span>
+</span><span class='line'>            <span class="k">if</span> <span class="o">(</span><span class="n">getExecutor</span><span class="o">()</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">createExecutor</span><span class="o">();</span>
+</span><span class='line'>            <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>            <span class="n">initializeConnectionLatch</span><span class="o">();</span>
+</span><span class='line'>
+</span><span class='line'>            <span class="n">startAcceptorThreads</span><span class="o">();</span>
+</span><span class='line'>
+</span><span class='line'>            <span class="c1">// Start async timeout thread</span>
+</span><span class='line'>            <span class="n">Thread</span> <span class="n">timeoutThread</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Thread</span><span class="o">(</span><span class="k">new</span> <span class="n">AsyncTimeout</span><span class="o">(),</span>
+</span><span class='line'>                    <span class="n">getName</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot;-AsyncTimeout&quot;</span><span class="o">);</span>
+</span><span class='line'>            <span class="n">timeoutThread</span><span class="o">.</span><span class="na">setPriority</span><span class="o">(</span><span class="n">threadPriority</span><span class="o">);</span>
+</span><span class='line'>            <span class="n">timeoutThread</span><span class="o">.</span><span class="na">setDaemon</span><span class="o">(</span><span class="kc">true</span><span class="o">);</span>
+</span><span class='line'>            <span class="n">timeoutThread</span><span class="o">.</span><span class="na">start</span><span class="o">();</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>从上面的代码可以看出，启动了Acceptor线程和AsyncTimeout线程，首先来看看Acceptor线程，我们再来看看startAcceptorThreads方法，代码如下：</p>
+
+<figure class='code'><figcaption><span>org.apache.tomcat.util.net.AbstractEndpoint#startAcceptorThreads</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">protected</span> <span class="kd">final</span> <span class="kt">void</span> <span class="nf">startAcceptorThreads</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>        <span class="kt">int</span> <span class="n">count</span> <span class="o">=</span> <span class="n">getAcceptorThreadCount</span><span class="o">();</span>
+</span><span class='line'>        <span class="n">acceptors</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Acceptor</span><span class="o">[</span><span class="n">count</span><span class="o">];</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">count</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">acceptors</span><span class="o">[</span><span class="n">i</span><span class="o">]</span> <span class="o">=</span> <span class="n">createAcceptor</span><span class="o">();</span>
+</span><span class='line'>            <span class="n">String</span> <span class="n">threadName</span> <span class="o">=</span> <span class="n">getName</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot;-Acceptor-&quot;</span> <span class="o">+</span> <span class="n">i</span><span class="o">;</span>
+</span><span class='line'>            <span class="n">acceptors</span><span class="o">[</span><span class="n">i</span><span class="o">].</span><span class="na">setThreadName</span><span class="o">(</span><span class="n">threadName</span><span class="o">);</span>
+</span><span class='line'>            <span class="n">Thread</span> <span class="n">t</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Thread</span><span class="o">(</span><span class="n">acceptors</span><span class="o">[</span><span class="n">i</span><span class="o">],</span> <span class="n">threadName</span><span class="o">);</span>
+</span><span class='line'>            <span class="n">t</span><span class="o">.</span><span class="na">setPriority</span><span class="o">(</span><span class="n">getAcceptorThreadPriority</span><span class="o">());</span>
+</span><span class='line'>            <span class="n">t</span><span class="o">.</span><span class="na">setDaemon</span><span class="o">(</span><span class="n">getDaemon</span><span class="o">());</span>
+</span><span class='line'>            <span class="n">t</span><span class="o">.</span><span class="na">start</span><span class="o">();</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>通过上面的代码，我们可以看出其实是通过<code>org.apache.tomcat.util.net.AbstractEndpoint.Acceptor</code>这个Runable接口的实现类来启动线程，接下来我们就来看看Acceptor#run方法，通过查看run方法，它里面其实就是调用了<code>java.net.ServerSocket#accept</code>的方法来接受一个Socket连接。</p>
+
+<h2>StandardEngine#start</h2>
+
+<p>从本文上面的分析中，我们得知StandardEngine继承了ContainerBase，而StandardEngine的startInternal钩子方法也仅仅是调用了父类ContainerBase的startInternal方法，那接下来我们分析一下ContainerBase的startInternal方法，代码如下：</p>
+
+<figure class='code'><figcaption><span>org.apache.catalina.core.ContainerBase#startInternal </span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">protected</span> <span class="kd">synchronized</span> <span class="kt">void</span> <span class="nf">startInternal</span><span class="o">()</span> <span class="kd">throws</span> <span class="n">LifecycleException</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// Start our child containers, if any</span>
+</span><span class='line'>    <span class="n">Container</span> <span class="n">children</span><span class="o">[]</span> <span class="o">=</span> <span class="n">findChildren</span><span class="o">();</span>
+</span><span class='line'>    <span class="n">List</span><span class="o">&lt;</span><span class="n">Future</span><span class="o">&lt;</span><span class="n">Void</span><span class="o">&gt;&gt;</span> <span class="n">results</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ArrayList</span><span class="o">&lt;</span><span class="n">Future</span><span class="o">&lt;</span><span class="n">Void</span><span class="o">&gt;&gt;();</span>
+</span><span class='line'>    <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">children</span><span class="o">.</span><span class="na">length</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">results</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">startStopExecutor</span><span class="o">.</span><span class="na">submit</span><span class="o">(</span><span class="k">new</span> <span class="n">StartChild</span><span class="o">(</span><span class="n">children</span><span class="o">[</span><span class="n">i</span><span class="o">])));</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kt">boolean</span> <span class="n">fail</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+</span><span class='line'>    <span class="k">for</span> <span class="o">(</span><span class="n">Future</span><span class="o">&lt;</span><span class="n">Void</span><span class="o">&gt;</span> <span class="n">result</span> <span class="o">:</span> <span class="n">results</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">result</span><span class="o">.</span><span class="na">get</span><span class="o">();</span>
+</span><span class='line'>        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">Exception</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">log</span><span class="o">.</span><span class="na">error</span><span class="o">(</span><span class="n">sm</span><span class="o">.</span><span class="na">getString</span><span class="o">(</span><span class="s">&quot;containerBase.threadedStartFailed&quot;</span><span class="o">),</span> <span class="n">e</span><span class="o">);</span>
+</span><span class='line'>            <span class="n">fail</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">fail</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">throw</span> <span class="k">new</span> <span class="nf">LifecycleException</span><span class="o">(</span>
+</span><span class='line'>                <span class="n">sm</span><span class="o">.</span><span class="na">getString</span><span class="o">(</span><span class="s">&quot;containerBase.threadedStartFailed&quot;</span><span class="o">));</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">setState</span><span class="o">(</span><span class="n">LifecycleState</span><span class="o">.</span><span class="na">STARTING</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>我们删除了对本文的分析不相关的代码，只留下一些核心的代码，我们可以看到通过startStopExecutor异步的对子容器进行了启动，然后设置状态为<code>STARTING</code>的状态。而startStopExecutor是在容器的initInternal方法中进行初始化好的，接下来我们就来看看StartChild,StardChild的代码如下：</p>
+
+<figure class='code'><figcaption><span>org.apache.catalina.core.ContainerBase.StartChild</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">private</span> <span class="kd">static</span> <span class="kd">class</span> <span class="nc">StartChild</span> <span class="kd">implements</span> <span class="n">Callable</span><span class="o">&lt;</span><span class="n">Void</span><span class="o">&gt;</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="kd">private</span> <span class="n">Container</span> <span class="n">child</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="kd">public</span> <span class="nf">StartChild</span><span class="o">(</span><span class="n">Container</span> <span class="n">child</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="k">this</span><span class="o">.</span><span class="na">child</span> <span class="o">=</span> <span class="n">child</span><span class="o">;</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="nd">@Override</span>
+</span><span class='line'>        <span class="kd">public</span> <span class="n">Void</span> <span class="nf">call</span><span class="o">()</span> <span class="kd">throws</span> <span class="n">LifecycleException</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">child</span><span class="o">.</span><span class="na">start</span><span class="o">();</span>
+</span><span class='line'>            <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>通过上面的代码，我们可以看到StartChild实现了Callable接口，实现这个接口的类可以将其放到对应的executor中执行（对于executor不熟悉的童鞋可以去看一下相关的文章，本文不做介绍），StartChild在运行的时候就会调用到子容器的start方法，而此时的父容器是StandardEngine，子容器就是StandardHost,接下来我们就来看看StandardHost的启动过程。通过前面对于init流程的分析，我们知道StandardHost不是在StandardEngine#init的时候初始化，因此在执行StandardHost#start的时候，要首先进行init方法的调用，具体的代码如下：</p>
+
+<figure class='code'><figcaption><span>org.apache.catalina.util.LifecycleBase#start</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">final</span> <span class="kd">synchronized</span> <span class="kt">void</span> <span class="nf">start</span><span class="o">()</span> <span class="kd">throws</span> <span class="n">LifecycleException</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">state</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">LifecycleState</span><span class="o">.</span><span class="na">NEW</span><span class="o">))</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">init</span><span class="o">();</span> <span class="c1">//因为此时的StandardHost还没有初始化，因此会走到这一步代码</span>
+</span><span class='line'>    <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">state</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">LifecycleState</span><span class="o">.</span><span class="na">FAILED</span><span class="o">)){</span>
+</span><span class='line'>        <span class="n">stop</span><span class="o">();</span>
+</span><span class='line'>    <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(!</span><span class="n">state</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">LifecycleState</span><span class="o">.</span><span class="na">INITIALIZED</span><span class="o">)</span> <span class="o">&amp;&amp;</span>
+</span><span class='line'>            <span class="o">!</span><span class="n">state</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">LifecycleState</span><span class="o">.</span><span class="na">STOPPED</span><span class="o">))</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">invalidTransition</span><span class="o">(</span><span class="n">Lifecycle</span><span class="o">.</span><span class="na">BEFORE_START_EVENT</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">setStateInternal</span><span class="o">(</span><span class="n">LifecycleState</span><span class="o">.</span><span class="na">STARTING_PREP</span><span class="o">,</span> <span class="kc">null</span><span class="o">,</span> <span class="kc">false</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">startInternal</span><span class="o">();</span>
+</span><span class='line'>    <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">Throwable</span> <span class="n">t</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">ExceptionUtils</span><span class="o">.</span><span class="na">handleThrowable</span><span class="o">(</span><span class="n">t</span><span class="o">);</span>
+</span><span class='line'>        <span class="n">setStateInternal</span><span class="o">(</span><span class="n">LifecycleState</span><span class="o">.</span><span class="na">FAILED</span><span class="o">,</span> <span class="kc">null</span><span class="o">,</span> <span class="kc">false</span><span class="o">);</span>
+</span><span class='line'>        <span class="k">throw</span> <span class="k">new</span> <span class="nf">LifecycleException</span><span class="o">(</span>
+</span><span class='line'>                <span class="n">sm</span><span class="o">.</span><span class="na">getString</span><span class="o">(</span><span class="s">&quot;lifecycleBase.startFail&quot;</span><span class="o">,</span><span class="n">toString</span><span class="o">()),</span> <span class="n">t</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>   <span class="n">setStateInternal</span><span class="o">(</span><span class="n">LifecycleState</span><span class="o">.</span><span class="na">STARTED</span><span class="o">,</span> <span class="kc">null</span><span class="o">,</span> <span class="kc">false</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>上面省略了部分不相关的代码，在调用中我们可以清楚的看到，对于StandardHost的初始化，是在start的时候进行的。那接下来我们在来看一下StandardHost的init方法，通过查看代码，我们发现StandardHost本身没有实现initInternal的钩子方法，也就意味着最终初始化会调用ContainerBase#initInternal方法，而通过上文的描述，我们已经清楚ContainerBase#initInternal主要是初始化了一个startStopExecutor，这个线程池主要是为了异步的初始化子容器来用的。</p>
+
+<blockquote><p>我们知道StandardEngine初始化的时候，也是初始化了一个线程池，而StandardHost也初始化了一个线程池，他们的不同点在与创建线程的工厂方法不同，在采用缺省配置的情况下，StandardEngine的线程池中的线程是以<code>Catalina-startStop</code>的形式命名的，而StandardHost是以<code>localhost-startStop</code>的方式进行命名的。大家注意区分。</p></blockquote>
+
+<p>StandardHost#start调用init方法初始化完StandardHost以后，会调用钩子的startInternal方法，而startInternal方法又是调用了ContainerBased#startInternal方法，而ContainerBase#startInternal方法最终又会去启动子容器的，对于StandardHost来说，子容器就是StandardContext。
+因此分析到这里我们可以得出如下结论：</p>
+
+<blockquote><p>对于StandardEngine，StandardHost的启动，父容器在init的时候创建一个启动和停止子容器的线程池，然后父容器启动的时候首先通过异步的方式将子容器的启动通过<code>org.apache.catalina.core.ContainerBase.StartChild</code>提交到父容器中对应的线程池中进行启动，而子容器启动的时候首先会初始化，然后再启动。</p></blockquote>
+
+<p>经过上面的分析，我们已经清楚了StandardEngine启动的过程了，但是我们还有一个地方需要进一步的分析。因为上面的分析我们仅仅只是分析了容器通过conf/server.xml配置文件的配置结构进行的启动，而我们都知道<code>CATALINA-HOME/webapps/</code>中的应用也是需要启动的，那么webapps目录的应用又是如何启动的呢？我们下面来分析一下，通过<a href="/blog/2013/10/16/tomcat-architecture/">Tomcat总体结构</a>的描述，我们已经知道，webapps目录下面的应用其实是属于Context的，而Context对应Tomcat中的StandardContext类，因此我们就知道应该对谁下手了，知道了目标以后，咋们还是采用之前的那种方式，要么debug,要么打印调用栈，这里我们还是通过打印调用栈的方式进行，我们在<code>org.apache.catalina.core.StandardContext#initInternal</code>中增加打印调用栈的方法，具体代码如下：</p>
+
+<figure class='code'><figcaption><span>org.apache.catalina.core.StandardContext#initInternal </span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">protected</span> <span class="kt">void</span> <span class="nf">initInternal</span><span class="o">()</span> <span class="kd">throws</span> <span class="n">LifecycleException</span> <span class="o">{</span>
+</span><span class='line'>        <span class="kd">super</span><span class="o">.</span><span class="na">initInternal</span><span class="o">();</span>
+</span><span class='line'>        <span class="n">Throwable</span> <span class="n">ex</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Throwable</span><span class="o">();</span>
+</span><span class='line'>        <span class="n">StackTraceElement</span><span class="o">[]</span> <span class="n">stackElements</span> <span class="o">=</span> <span class="n">ex</span><span class="o">.</span><span class="na">getStackTrace</span><span class="o">();</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">stackElements</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="n">stackElements</span><span class="o">.</span><span class="na">length</span> <span class="o">-</span> <span class="mi">1</span><span class="o">;</span> <span class="n">i</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span><span class="o">--)</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">print</span><span class="o">(</span><span class="n">stackElements</span><span class="o">[</span><span class="n">i</span><span class="o">].</span><span class="na">getClassName</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot;\t&quot;</span><span class="o">);</span>
+</span><span class='line'>                <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">print</span><span class="o">(</span><span class="n">stackElements</span><span class="o">[</span><span class="n">i</span><span class="o">].</span><span class="na">getMethodName</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot;\t&quot;</span><span class="o">);</span>
+</span><span class='line'>                <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">print</span><span class="o">(</span><span class="n">stackElements</span><span class="o">[</span><span class="n">i</span><span class="o">].</span><span class="na">getFileName</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot;\t&quot;</span><span class="o">);</span>
+</span><span class='line'>                <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">stackElements</span><span class="o">[</span><span class="n">i</span><span class="o">].</span><span class="na">getLineNumber</span><span class="o">());</span>
+</span><span class='line'>            <span class="o">}</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">processTlds</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="k">this</span><span class="o">.</span><span class="na">addLifecycleListener</span><span class="o">(</span><span class="k">new</span> <span class="n">TldConfig</span><span class="o">());</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// Register the naming resources</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">namingResources</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">namingResources</span><span class="o">.</span><span class="na">init</span><span class="o">();</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// Send j2ee.object.created notification </span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="k">this</span><span class="o">.</span><span class="na">getObjectName</span><span class="o">()</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">Notification</span> <span class="n">notification</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Notification</span><span class="o">(</span><span class="s">&quot;j2ee.object.created&quot;</span><span class="o">,</span>
+</span><span class='line'>                    <span class="k">this</span><span class="o">.</span><span class="na">getObjectName</span><span class="o">(),</span> <span class="n">sequenceNumber</span><span class="o">.</span><span class="na">getAndIncrement</span><span class="o">());</span>
+</span><span class='line'>            <span class="n">broadcaster</span><span class="o">.</span><span class="na">sendNotification</span><span class="o">(</span><span class="n">notification</span><span class="o">);</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>运行代码，可以看到控制台有如下的输出：</p>
+
+<figure class='code'><figcaption><span>terminal info</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">java</span><span class="o">.</span><span class="na">util</span><span class="o">.</span><span class="na">concurrent</span><span class="o">.</span><span class="na">ThreadPoolExecutor</span><span class="n">$Worker</span>    <span class="n">run</span>  <span class="n">ThreadPoolExecutor</span><span class="o">.</span><span class="na">java</span>   <span class="mi">918</span>
+</span><span class='line'><span class="n">java</span><span class="o">.</span><span class="na">util</span><span class="o">.</span><span class="na">concurrent</span><span class="o">.</span><span class="na">ThreadPoolExecutor</span><span class="n">$Worker</span> <span class="n">runTask</span>  <span class="n">ThreadPoolExecutor</span><span class="o">.</span><span class="na">java</span>   <span class="mi">895</span>
+</span><span class='line'><span class="n">java</span><span class="o">.</span><span class="na">util</span><span class="o">.</span><span class="na">concurrent</span><span class="o">.</span><span class="na">FutureTask</span>   <span class="n">run</span>  <span class="n">FutureTask</span><span class="o">.</span><span class="na">java</span>   <span class="mi">138</span>
+</span><span class='line'><span class="n">java</span><span class="o">.</span><span class="na">util</span><span class="o">.</span><span class="na">concurrent</span><span class="o">.</span><span class="na">FutureTask</span><span class="n">$Sync</span>   <span class="n">innerRun</span> <span class="n">FutureTask</span><span class="o">.</span><span class="na">java</span>   <span class="mi">303</span>
+</span><span class='line'><span class="n">java</span><span class="o">.</span><span class="na">util</span><span class="o">.</span><span class="na">concurrent</span><span class="o">.</span><span class="na">Executors</span><span class="n">$RunnableAdapter</span> <span class="n">call</span> <span class="n">Executors</span><span class="o">.</span><span class="na">java</span>    <span class="mi">439</span>
+</span><span class='line'><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">catalina</span><span class="o">.</span><span class="na">startup</span><span class="o">.</span><span class="na">HostConfig</span><span class="n">$DeployDirectory</span>  <span class="n">run</span>  <span class="n">HostConfig</span><span class="o">.</span><span class="na">java</span>   <span class="mi">1671</span>
+</span><span class='line'><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">catalina</span><span class="o">.</span><span class="na">startup</span><span class="o">.</span><span class="na">HostConfig</span> <span class="n">deployDirectory</span>  <span class="n">HostConfig</span><span class="o">.</span><span class="na">java</span>   <span class="mi">1113</span>
+</span><span class='line'><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">catalina</span><span class="o">.</span><span class="na">core</span><span class="o">.</span><span class="na">StandardHost</span>  <span class="n">addChild</span> <span class="n">StandardHost</span><span class="o">.</span><span class="na">java</span> <span class="mi">622</span>
+</span><span class='line'><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">catalina</span><span class="o">.</span><span class="na">core</span><span class="o">.</span><span class="na">ContainerBase</span> <span class="n">addChild</span> <span class="n">ContainerBase</span><span class="o">.</span><span class="na">java</span>    <span class="mi">877</span>
+</span><span class='line'><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">catalina</span><span class="o">.</span><span class="na">core</span><span class="o">.</span><span class="na">ContainerBase</span> <span class="n">addChildInternal</span> <span class="n">ContainerBase</span><span class="o">.</span><span class="na">java</span>    <span class="mi">901</span>
+</span><span class='line'><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">catalina</span><span class="o">.</span><span class="na">util</span><span class="o">.</span><span class="na">LifecycleBase</span> <span class="n">start</span>    <span class="n">LifecycleBase</span><span class="o">.</span><span class="na">java</span>    <span class="mi">139</span>
+</span><span class='line'><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">catalina</span><span class="o">.</span><span class="na">util</span><span class="o">.</span><span class="na">LifecycleBase</span> <span class="n">init</span> <span class="n">LifecycleBase</span><span class="o">.</span><span class="na">java</span>    <span class="mi">102</span>
+</span><span class='line'><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">catalina</span><span class="o">.</span><span class="na">core</span><span class="o">.</span><span class="na">StandardContext</span>   <span class="n">initInternal</span> <span class="n">StandardContext</span><span class="o">.</span><span class="na">java</span>  <span class="mi">6449</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>通过查看控制台的输出，我们可以看到有一个<code>org.apache.catalina.startup.HostConfig$DeployDirectory</code>类，于是乎找到这个类去看看呗。打开一看它是一个Runable接口的实现类，因此我们推断它也是放到某个线程池中进行异步运行的，最终通过IntellIJ IDEA提供的类调用栈分析工具（ctrl+alt+h）得到DeployDirectory构造器方法的调用栈如下图所示：
+<img class="center" src="/images/2013/10/17/DeployDirectory-call-stack.png">
+通过上图我们可以清楚的看到，最终的调用方是<code>org.apache.catalina.startup.HostConfig#lifecycleEvent</code>,到这里我们就知道了Context的启动是通过某个组件的生命周期事件的监听器来启动的，而HostConfig到底是谁的监听器呢？通过名称我们应该可以猜测出它是StandardHost的监听器,那么它到底监听哪个事件呢？我们查看下org.apache.catalina.startup.HostConfig#lifecycleEvent的代码如下：</p>
+
+<figure class='code'><figcaption><span>org.apache.catalina.startup.HostConfig#lifecycleEvent</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kt">void</span> <span class="nf">lifecycleEvent</span><span class="o">(</span><span class="n">LifecycleEvent</span> <span class="n">event</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// Identify the host we are associated with</span>
+</span><span class='line'>        <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">host</span> <span class="o">=</span> <span class="o">(</span><span class="n">Host</span><span class="o">)</span> <span class="n">event</span><span class="o">.</span><span class="na">getLifecycle</span><span class="o">();</span>
+</span><span class='line'>            <span class="k">if</span> <span class="o">(</span><span class="n">host</span> <span class="k">instanceof</span> <span class="n">StandardHost</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">setCopyXML</span><span class="o">(((</span><span class="n">StandardHost</span><span class="o">)</span> <span class="n">host</span><span class="o">).</span><span class="na">isCopyXML</span><span class="o">());</span>
+</span><span class='line'>                <span class="n">setDeployXML</span><span class="o">(((</span><span class="n">StandardHost</span><span class="o">)</span> <span class="n">host</span><span class="o">).</span><span class="na">isDeployXML</span><span class="o">());</span>
+</span><span class='line'>                <span class="n">setUnpackWARs</span><span class="o">(((</span><span class="n">StandardHost</span><span class="o">)</span> <span class="n">host</span><span class="o">).</span><span class="na">isUnpackWARs</span><span class="o">());</span>
+</span><span class='line'>            <span class="o">}</span>
+</span><span class='line'>        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">ClassCastException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">log</span><span class="o">.</span><span class="na">error</span><span class="o">(</span><span class="n">sm</span><span class="o">.</span><span class="na">getString</span><span class="o">(</span><span class="s">&quot;hostConfig.cce&quot;</span><span class="o">,</span> <span class="n">event</span><span class="o">.</span><span class="na">getLifecycle</span><span class="o">()),</span> <span class="n">e</span><span class="o">);</span>
+</span><span class='line'>            <span class="k">return</span><span class="o">;</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// Process the event that has occurred</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">event</span><span class="o">.</span><span class="na">getType</span><span class="o">().</span><span class="na">equals</span><span class="o">(</span><span class="n">Lifecycle</span><span class="o">.</span><span class="na">PERIODIC_EVENT</span><span class="o">))</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">check</span><span class="o">();</span>
+</span><span class='line'>        <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">event</span><span class="o">.</span><span class="na">getType</span><span class="o">().</span><span class="na">equals</span><span class="o">(</span><span class="n">Lifecycle</span><span class="o">.</span><span class="na">START_EVENT</span><span class="o">))</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">start</span><span class="o">();</span>
+</span><span class='line'>        <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">event</span><span class="o">.</span><span class="na">getType</span><span class="o">().</span><span class="na">equals</span><span class="o">(</span><span class="n">Lifecycle</span><span class="o">.</span><span class="na">STOP_EVENT</span><span class="o">))</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">stop</span><span class="o">();</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>通过上面的代码，我们可以看出监听的事件是<code>Lifecycle.START_EVENT</code>,而通过查看<code>org.apache.catalina.LifecycleState</code>的代码<code>STARTING(true,Lifecycle.START_EVENT)</code>就可以得知，此时生命周期状态应该是STARTING,到这里我们应该已经猜到了，HostConfig是在StandardHost#start的时候通过监听器调用，为了验证我们的猜测，我们debug一下代码，我们可以在HostConfig#start方法中打个断点，运行以后得到如下内存结构：
+<img class="center" src="/images/2013/10/17/HostConfig.png">
+通过上图也就验证了我们刚才的猜测。</p>
+
+<p>通过上面的分析我们清楚了webapps目录中context的启动，总结如下：</p>
+
+<blockquote><p>webapps目录中应用的启动在StandardHost#start的时候，通过<code>Lifecycle.START_EVENT</code>这个事件的监听器HostConfig进行进一步的启动。</p></blockquote>
+</div>
+
+</article>
+
+
+
+<div class="post-copyright">
+	<div class="avator" style="">
+		<img alt="" src="http://www.gravatar.com/avatar/80695ffc8afc90667bb292139686239b?s=160" width="100" height="100"/>
+	</div>
+	<div class="info">
+			作者： <A href="http://imtiger.net">imtiger</A> <br>
+			出处： <A href="http://imtiger.net">http://imtiger.net/</A>
+			<br>本文通过<a href="http://creativecommons.org/licenses/by-nc/3.0/deed.zh">署名-非商业性使用 3.0</a>进行许可,欢迎转载,但是必须保留本文的署名和连接,谢谢配合！
+			<a href="http://imtiger.net">imtiger</a>。 
+	</div>
+</div>
+
+
+
+
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	
+	
+	  <!-- JiaThis Button BEGIN -->
+<div class="jiathis_style">
+	<span class="jiathis_txt"></span>
+  <a class="jiathis_button_tsina"></a>
+	<a class="jiathis_button_qzone">QQ</a>
+	<a class="jiathis_button_tqq"></a>
+	<a class="jiathis_button_weixin"></a>
+	<a href="http://www.jiathis.com/share?uid=1845643" class="jiathis jiathis_txt jiathis_separator jtico jtico_jiathis" target="_blank"></a>
+	<a class="jiathis_counter_style"></a>
+</div>
+<script type="text/javascript">
+var jiathis_config = {data_track_clickback:'true'};
+</script>
+<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js?uid=1372156002529710" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+
+<!-- UY BEGIN -->
+<div id="uyan_frame"></div>
+<script type="text/javascript" src="http://v2.uyan.cc/code/uyan.js?uid=1845643"></script>
+<!-- UY END -->
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <!-- <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid="></script> -->
+</div>
+
+
+</div>
+			</div>
+			<footer id="footer" class="inner"><p>
+</a>本站点采用<a href="http://creativecommons.org/licenses/by-nc/3.0/deed.zh" rel="license">知识共享署名-非商业性使用 3.0 国际版本许可协议</a>进行许可
+</p>
+Copyright &copy; 2013
+
+    imtiger
+
+<br>
+Powered by Octopress.
+
+Design credit: <a href="http://shashankmehta.in/archive/2012/greyshade.html">Shashank Mehta</a></footer>
+			<script src="/javascripts/slash.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script> <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+
+	<script type="text/javascript">
+		var host = location.host;
+		if(host.indexOf("imtiger.net")>=0){
+		var _gaq = _gaq || [];
+		_gaq.push(['_setAccount', 'UA-44429269-1']);
+		_gaq.push(['_trackPageview']);
+
+		(function() {
+			var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+			ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+			var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+		})();
+		}
+	</script>
+
+
+
+<script>
+var host=location.host;
+if(host.indexOf("imtiger.net")>=0){
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?21e144d0df165d6556d664e2836dadfe";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+}
+</script>
+
+
+
+<script type="text/javascript">
+
+(function($){
+	
+	//左折叠栏
+	(function(){
+
+		function isPC() {
+	        var userAgentInfo = navigator.userAgent;
+	        var Agents = new Array("Android", "iPhone", "SymbianOS", "Windows Phone", "iPad", "iPod");
+	        var flag = true;
+	        for (var v = 0; v < Agents.length; v++) {
+	            if (userAgentInfo.indexOf(Agents[v]) > 0) {
+	                flag = false;
+	                break;
+	            }
+	        }
+	        return flag;
+	    }
+
+	    function addSwitchPanel(){
+	    	var leftCol = $(".left-col"),
+	    		midCol = $(".mid-col"),
+	    		intrude = leftCol.find(".intrude-less"),
+	    		switchPanel = $('<a href="javascript:void(0);" class="switchPanel"><span class="btn_click"><em class="arrow"></em></span></a>');
+	    	leftCol.append(switchPanel);
+	    	switchPanel.toggle(function(){
+	    		leftCol.animate({"width": "3%"}, 200);
+	    		intrude.hide();
+	    		midCol.animate({"width": "97%"}, 200);
+	    		switchPanel.addClass("in");
+	    	},function(){
+	    		leftCol.animate({"width": "23%"}, 200);
+	    		midCol.animate({"width": "77%"}, 200);
+	    		intrude.show();
+	    		switchPanel.removeClass("in");
+	    	});
+	    }
+
+	    addSwitchPanel();	
+
+	})();
+
+	//到顶部
+	(function(){
+		var domHeight = $(document).height(),
+			scrollTop = $(document).scrollTop(),
+			winWidth = $(window).width(),
+			winHeight = $(window).height(); 
+
+		if (domHeight>winHeight+500){
+			var toTop = document.createElement("div"),
+				pot_t=0,
+				pot_b=1;
+			
+			toTop.id = "to-top";	
+			toTop.className = "to-top";
+			var toright=15;
+			
+			$(window).bind("scroll.toTop", function(){
+				var scrollTop = $(document).scrollTop();
+					if(scrollTop>290&&pot_t==0){
+						$(toTop).stop().animate({"right":toright,"opacity":"1"},200);
+						pot_t=1;
+						pot_b=0;
+					}else if(scrollTop<290&&pot_b==0){
+						$(toTop).stop().animate({"right":"-60px","opacity":"0"},200);
+						pot_t=0;
+						pot_b=1;
+					}
+			});
+			
+			document.body.appendChild(toTop);
+			toTop.onclick = function(){
+				$("html"+( ! $.browser.opera ? ",body" : "")).animate({scrollTop: 0}, 500);
+			};
+		}
+			
+	})();
+	
+	//时间线
+	(function(){
+		var timeline = $("#timeline"),
+			timelineSingle = $(">ul>li", timeline),
+			duration = 400,
+			line = timeline.find('.line'),
+			singleHeight = timelineSingle.height()+50,
+			Len = timelineSingle.length;
+
+		//计算时间线
+		line.animate({"height": singleHeight*(Len-1)}, Len*duration);
+		timeline.find(".circle").each(function(i){
+			var thisCir = $(this);
+			thisCir.delay(i*duration).animate({"opacity":1},duration);
+			setTimeout(function(){
+				thisCir.removeClass('cur');
+				thisCir.next('.wrap').show(duration);
+			},i*duration);
+			
+		});
+
+		//移入动画
+		timelineSingle.each(function(){
+			var title = $(this).find("h3"),
+				content = $(this).find('dl'),
+				circle = $(this).find('.circle');
+
+			title.hover(
+				itemShow,
+				itemHide
+			);
+			
+			circle.hover(
+				itemShow,
+				itemHide
+			);
+			
+			function itemShow(){
+				content.show();
+		  	circle.addClass('cur');
+			};
+		
+			function itemHide(){
+				content.hide();
+				circle.removeClass('cur');
+			};
+		});
+		
+		
+	})();
+
+
+})(jQuery);
+
+</script>
+
+
+		</div>
+	</div>
+</body>
+</html>

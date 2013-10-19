@@ -9,7 +9,8 @@
 	<meta name="author" content="imtiger">
 
 	
-	<meta name="description" content="Oct 16th, 2013 Java, Tomcat, 技术 Tomcat总体结构（Tomcat源代码阅读系列之二） 我们在在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码一文中介绍了如何在intelliJ IDEA 和 Eclipse中运行Tomcat源代码， &hellip;">
+	<meta name="description" content="Oct 17th, 2013 Java, Tomcat, 技术 Tomcat启动过程（Tomcat源代码阅读系列之三） 本文是Tomcat源代码阅读系列的第三篇文章，在阅读此文之前，建议先读前面的两期。
+在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码（ &hellip;">
 	<meta name="keywords" content="java,ios,mac,linux,objective-c,软件设计,软件架构,摄影,imtiger.">
 
   <!-- http://t.co/dKP3o1e -->
@@ -105,6 +106,47 @@
   
 
 
+<time datetime="2013-10-17T11:03:00+08:00" data-updated="true" itemprop="datePublished">Oct 17<span>th</span>, 2013</time></div>
+		<div class="tags">
+
+
+	<a class='category' href='/blog/categories/java/'>Java</a>, <a class='category' href='/blog/categories/tomcat/'>Tomcat</a>, <a class='category' href='/blog/categories/ji-zhu/'>技术</a>
+
+
+</div>
+		
+	</div>
+	<h1 class="title" itemprop="name"><a href="/blog/2013/10/17/tomcat-start-process/" itemprop="url">Tomcat启动过程（Tomcat源代码阅读系列之三）</a></h1>
+	<div class="entry-content" itemprop="articleBody">
+		<p><img class="center" src="/images/2013/10/14/apache_tomcat_bag.jpg">
+本文是<a href="/blog/2013/10/08/tomcat-source-code-study/">Tomcat源代码阅读系列</a>的第三篇文章，在阅读此文之前，建议先读前面的两期。<br/>
+<a href="/blog/2013/10/14/run-tomcat-in-idea-or-eclipse/">在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码（Tomcat源代码阅读系列之一）</a> <br/>
+<a href="/blog/2013/10/16/tomcat-architecture/">Tomcat总体结构                             （Tomcat源代码阅读系列之二）</a></p>
+
+<p>本篇我们来一起分析一下Tomcat的启动过程，启动过程涉及到了Tomcat组件的生命周期管理，本文将从<strong>Tomcat组件生命周期管理</strong>,<strong>Tomcat启动的总过程</strong>，<strong>Tomcat启动过程关键步骤分析</strong>三个方面来进行描述。</p>
+
+
+		
+		<a href="/blog/2013/10/17/tomcat-start-process/" class="more-link">Read on(阅读全文) &rarr;</a>
+	</div>
+
+</article>
+
+
+    <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
+	<div class="meta">
+		<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
 <time datetime="2013-10-16T14:33:00+08:00" data-updated="true" itemprop="datePublished">Oct 16<span>th</span>, 2013</time></div>
 		<div class="tags">
 
@@ -117,14 +159,14 @@
 	</div>
 	<h1 class="title" itemprop="name"><a href="/blog/2013/10/16/tomcat-architecture/" itemprop="url">Tomcat总体结构（Tomcat源代码阅读系列之二）</a></h1>
 	<div class="entry-content" itemprop="articleBody">
-		<p>我们在<a href="/blog/2013/10/14/run-tomcat-in-idea-or-eclipse/">在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码</a>一文中介绍了如何在intelliJ IDEA 和 Eclipse中运行Tomcat源代码，本文介绍一下Tomcat的总体结构。</p>
+		<p><img class="center" src="/images/2013/10/14/apache_tomcat_bag.jpg">
+本文是<a href="/blog/2013/10/08/tomcat-source-code-study/">Tomcat源代码阅读系列</a>的第二篇文章，我们在本系列的第一篇文章：<a href="/blog/2013/10/14/run-tomcat-in-idea-or-eclipse/">在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码</a>一文中介绍了如何在intelliJ IDEA 和 Eclipse中运行Tomcat源代码，本文介绍一下Tomcat的总体结构。</p>
 
 <blockquote><p>本文没有特别指明的地方，源代码都是针对tomcat7.0.42来说。</p></blockquote>
 
 <h1>Tomcat的总体结构</h1>
 
-<p>Tomcat即是一个Http服务器也是一个Servlet容器，它的总体结构我们可以用下图来描述：
-<img class="center" src="/images/2013/10/16/TomcatArchitecture.png"></p>
+<p>Tomcat即是一个Http服务器也是一个Servlet容器，它的总体结构我们可以用下图来描述：</p>
 
 
 		
@@ -161,7 +203,7 @@
 	<h1 class="title" itemprop="name"><a href="/blog/2013/10/14/run-tomcat-in-idea-or-eclipse/" itemprop="url">在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码（Tomcat源代码阅读系列之一）</a></h1>
 	<div class="entry-content" itemprop="articleBody">
 		<p><img class="center" src="/images/2013/10/14/apache_tomcat_bag.jpg">
-在阅读Tomcat源代码之前，我们首先需要将Tomcat的源代码在IDE里面运行起来，这样方便我们阅读的过程中调试。本文总结一下在IDEA 或者 Eclipse中运行Tomcat源代码环境的搭建过程，同时我们通过Maven来负责项目的构建。</p>
+本文是<a href="/blog/2013/10/08/tomcat-source-code-study/">Tomcat源代码阅读系列</a>的第一篇文章，在阅读Tomcat源代码之前，我们首先需要将Tomcat的源代码在IDE里面运行起来，这样方便我们阅读的过程中调试。本文总结一下在IDEA 或者 Eclipse中运行Tomcat源代码环境的搭建过程，同时我们通过Maven来负责项目的构建。</p>
 
 <p>在进行搭建之前，我们首先来说一下总体的思路。我们知道Tomcat运行的时候，一部分是源代码编译以后的可运行的Jar,另外一部分则是运行时的环境（也就是我们从官方下载下来的二进制分发包中的一系列的配置文件以及目录结构，说的更直白点就是CATALINA_HOME环境变量指定的目录）,本文对于第一部分采用IntelliJ IDEA 运行tomcat-7.0.42 tag的源代码，而对于第二部分运行环境，我们则直接采用tomcat-7.0.42的二进制分发包。明白了上述的思路以后，咋们就来一步步的搭建吧。</p>
 
@@ -229,6 +271,54 @@
   
 
 
+<time datetime="2013-10-08T11:18:00+08:00" data-updated="true" itemprop="datePublished">Oct 8<span>th</span>, 2013</time></div>
+		<div class="tags">
+
+
+	<a class='category' href='/blog/categories/java/'>Java</a>, <a class='category' href='/blog/categories/tomcat/'>Tomcat</a>, <a class='category' href='/blog/categories/ji-zhu/'>技术</a>
+
+
+</div>
+		
+	</div>
+	<h1 class="title" itemprop="name"><a href="/blog/2013/10/08/tomcat-source-code-study/" itemprop="url">Tomcat源代码阅读系列开篇</a></h1>
+	<div class="entry-content" itemprop="articleBody">
+		<p><img class="center" src="/images/2013/10/14/apache_tomcat_bag.jpg">
+我想学习Java开发的童鞋，或多或少的都应该接触过Tomcat，Tomcat在Java web开发中占据着非常重要的地位。</p>
+
+<p>之前的时候也林林总总的阅读过Tomcat源代码，但是没有进行过总结。另外我觉得一个技术自己掌握了是一个层次，能将自己掌握的技术，通过文字或者语言跟其他人交流，并让其他人也能快速的理解自己表达意思有是另外一个层次了。因此我决定将自己阅读Tomcat源代码的过程记录一下，并分享到博客中，让有同样兴趣的童鞋可以参考下，也欢迎各位童鞋讨论。</p>
+
+<p>接下来我们就来说说本系列所涉及的主要内容吧。<br/>
+<a href="/blog/2013/10/14/run-tomcat-in-idea-or-eclipse/">在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码（Tomcat源代码阅读系列之一）</a>  <br/>
+<a href="/blog/2013/10/16/tomcat-architecture/">Tomcat总体结构（Tomcat源代码阅读系列之二）</a><br/>
+<a href="http://www.blog.com/blog/2013/10/17/tomcat-start-process/">Tomcat启动过程（Tomcat源代码阅读系列之三）</a><br/>
+<a href="#">Tomcat关闭过程</a>  (未完成)<br/>
+<a href="#">Tomcat请求处理流程</a> (未完成)    <br/>
+<a href="#">Tomcat类加载器机制</a> (未完成) <br/>
+<a href="#">Tomcat Session管理机制</a>(未完成)  <br/>
+<a href="#">Tomcat 涉及的设计模式总结</a> (未完成)</p>
+
+		
+		
+	</div>
+
+</article>
+
+
+    <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
+	<div class="meta">
+		<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
 <time datetime="2013-09-27T15:29:00+08:00" data-updated="true" itemprop="datePublished">Sep 27<span>th</span>, 2013</time></div>
 		<div class="tags">
 
@@ -250,7 +340,7 @@
 月薪:    15k-20k</p>
 
 <p>公司介绍: <br/>
-我们公司<a href="http://www.ejushang.com">易居尚</a>秉承着<code>让品质走进生活的理念</code>，致力于打造一个品质、高效、便捷的居家用品网络销售平台.咋们公司不打卡，弹性工作制，每天下午有公司大厨做的下午茶，攻城狮童鞋每周可以自由支配20%的工作时间做自己想做的事情，我们技术团队内部有很强互助和知识分享意识（包括技术骚们喜欢的爱情动作片，嘘&hellip;，其他人我不告诉他）当然了还有很多美女和帅哥，想置身互联网和电子商务有理想的的技术骚们，请你加入我们 一起high，<strong>我们不求改变世界，但求超越自我</strong>。也请各位朋友帮忙推荐，推荐成功有神秘礼物相送哦，有意者请联系:<a href="&#x6d;&#x61;&#105;&#108;&#116;&#111;&#58;&#116;&#x69;&#x67;&#101;&#x72;&#x2e;&#122;&#104;&#111;&#117;&#x40;&#x6b;&#97;&#x72;&#x69;&#113;&#117;&#46;&#99;&#x6f;&#x6d;">&#116;&#x69;&#x67;&#x65;&#114;&#46;&#122;&#x68;&#111;&#117;&#x40;&#107;&#x61;&#x72;&#x69;&#x71;&#x75;&#x2e;&#x63;&#111;&#109;</a> 或者留言给我，另外也可以通过<a href="http://weibo.com/xmuzyq">@krq_tiger</a>新浪微博与我取的联系.</p>
+我们公司<a href="http://www.ejushang.com">易居尚</a>秉承着<code>让品质走进生活的理念</code>，致力于打造一个品质、高效、便捷的居家用品网络销售平台.咋们公司不打卡，弹性工作制，每天下午有公司大厨做的下午茶，攻城狮童鞋每周可以自由支配20%的工作时间做自己想做的事情，我们技术团队内部有很强互助和知识分享意识（包括技术骚们喜欢的爱情动作片，嘘&hellip;，其他人我不告诉他）当然了还有很多美女和帅哥，想置身互联网和电子商务有理想的的技术骚们，请你加入我们 一起high，<strong>我们不求改变世界，但求超越自我</strong>。也请各位朋友帮忙推荐，推荐成功有神秘礼物相送哦，有意者请联系:<a href="&#x6d;&#97;&#105;&#108;&#116;&#111;&#x3a;&#116;&#105;&#103;&#101;&#x72;&#x2e;&#x7a;&#x68;&#x6f;&#x75;&#64;&#107;&#97;&#x72;&#105;&#x71;&#x75;&#46;&#99;&#x6f;&#x6d;">&#116;&#105;&#103;&#101;&#x72;&#46;&#122;&#x68;&#x6f;&#x75;&#x40;&#x6b;&#x61;&#114;&#x69;&#113;&#x75;&#46;&#x63;&#111;&#109;</a> 或者留言给我，另外也可以通过<a href="http://weibo.com/xmuzyq">@krq_tiger</a>新浪微博与我取的联系.</p>
 
 
 		
@@ -444,90 +534,6 @@
 
 		
 		<a href="/blog/2013/01/30/java-class-file-format/" class="more-link">Read on(阅读全文) &rarr;</a>
-	</div>
-
-</article>
-
-
-    <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
-	<div class="meta">
-		<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-01-22T11:44:00+08:00" data-updated="true" itemprop="datePublished">Jan 22<span>nd</span>, 2013</time></div>
-		<div class="tags">
-
-</div>
-		
-	</div>
-	<h1 class="title" itemprop="name"><a href="/blog/2013/01/22/2012-summary/" itemprop="url">2012年创业回顾与总结</a></h1>
-	<div class="entry-content" itemprop="articleBody">
-		<p><img class="center" src="/images/2013/01/22/2012-summary.jpg" width="450" height="350">
-自从用了Evernote以后，发现自己写博客的频率变低了好多，很多时候都是自己直接在Evernote里面直接写笔记，很少来写博客了。不过今天还是把自己前几天在Evernote写的2012年度总结贴出来和大家分享以下，一起交流和进步。</p>
-
-<p>从2012年3月底辞职创业到现在已经10个月了，在过去的10个月里面，我们取得了一些成果，另外一方面我们也犯过一些错误。下面我主要从公司以及个人两个方面对过去的10个月做一下回顾和总结。</p>
-
-
-		
-		<a href="/blog/2013/01/22/2012-summary/" class="more-link">Read on(阅读全文) &rarr;</a>
-	</div>
-
-</article>
-
-
-    <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
-	<div class="meta">
-		<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-10-28T18:20:00+08:00" data-updated="true" itemprop="datePublished">Oct 28<span>th</span>, 2012</time></div>
-		<div class="tags">
-
-
-	<a class='category' href='/blog/categories/linux/'>linux</a>, <a class='category' href='/blog/categories/ji-zhu/'>技术</a>
-
-
-</div>
-		
-	</div>
-	<h1 class="title" itemprop="name"><a href="/blog/2012/10/28/mutil-appservers-manage/" itemprop="url">Shell 脚本简化Java Web开发中繁琐的打包、部署等重复劳动</a></h1>
-	<div class="entry-content" itemprop="articleBody">
-		<p>在平时的开发工作当中，经常会遇到如下一种场景：</p>
-
-<p>本地需要启动多个tomcat实例，多个tomcat实例通过统一的一个apache web server来管理，并且项目是maven管理的，每次修改了文件要部署的时候，一般会重复做如下事情：</p>
-
-<ol>
-<li>maven 打包工程</li>
-<li>删除日志文件</li>
-<li>启动tomcat实例</li>
-</ol>
-
-
-<p>这样的工作做多了，真的既不高效，也不符合优秀的程序猿的习惯，所以我一般会将其写一个脚本，每次运行下脚本，让脚本帮我们来完成这件事情，岂不快哉！</p>
-
-<p>Ok,I will show the code !</p>
-
-
-		
-		<a href="/blog/2012/10/28/mutil-appservers-manage/" class="more-link">Read on(阅读全文) &rarr;</a>
 	</div>
 
 </article>

@@ -9,7 +9,7 @@
 	<meta name="author" content="imtiger">
 
 	
-	<meta name="description" content="Tomcat总体结构（Tomcat源代码阅读系列之二） 我们在在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码一文中介绍了如何在intelliJ IDEA 和 Eclipse中运行Tomcat源代码，本文介绍一下Tomcat的总体结构。 本文没有特别指明的地方， &hellip;">
+	<meta name="description" content="Tomcat总体结构（Tomcat源代码阅读系列之二） 本文是Tomcat源代码阅读系列的第二篇文章，我们在本系列的第一篇文章：在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码一文中介绍了如何在intelliJ IDEA 和 Eclipse中运行Tomcat源代码， &hellip;">
 	<meta name="keywords" content="tomcat源代码，java,tomcat">
 
   <!-- http://t.co/dKP3o1e -->
@@ -89,19 +89,20 @@
 			<div class="mid-col-container">
 				<div id="content" class="inner"><article class="post" itemscope itemtype="http://schema.org/BlogPosting">
 	<h1 class="title" itemprop="name">Tomcat总体结构（Tomcat源代码阅读系列之二）</h1>
-	<div class="entry-content" itemprop="articleBody"><p>我们在<a href="/blog/2013/10/14/run-tomcat-in-idea-or-eclipse/">在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码</a>一文中介绍了如何在intelliJ IDEA 和 Eclipse中运行Tomcat源代码，本文介绍一下Tomcat的总体结构。</p>
+	<div class="entry-content" itemprop="articleBody"><p><img class="center" src="/images/2013/10/14/apache_tomcat_bag.jpg">
+本文是<a href="/blog/2013/10/08/tomcat-source-code-study/">Tomcat源代码阅读系列</a>的第二篇文章，我们在本系列的第一篇文章：<a href="/blog/2013/10/14/run-tomcat-in-idea-or-eclipse/">在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码</a>一文中介绍了如何在intelliJ IDEA 和 Eclipse中运行Tomcat源代码，本文介绍一下Tomcat的总体结构。</p>
 
 <blockquote><p>本文没有特别指明的地方，源代码都是针对tomcat7.0.42来说。</p></blockquote>
 
 <h1>Tomcat的总体结构</h1>
 
-<p>Tomcat即是一个Http服务器也是一个Servlet容器，它的总体结构我们可以用下图来描述：
-<img class="center" src="/images/2013/10/16/TomcatArchitecture.png"></p>
+<p>Tomcat即是一个Http服务器也是一个Servlet容器，它的总体结构我们可以用下图来描述：</p>
 
 <!-- more -->
 
 
-<p>通过上图我们可以看出Tomcat中主要涉及Server,Service,Engine,Connector,Host,Context组件，之前用过Tomcat的童鞋是不是觉得这些组件的名称有点似曾相识的赶脚，没赶脚？！您再想想。好吧，不用你想了，我来告诉你吧。其实在Tomcat二进制分发包解压后,在conf目录中有一个server.xml文件，你打开它瞄两眼看看，是不是发现server.xml文件中已经包含了上述的几个名称。我拿我本地Tomcat7.0.42分发包中的server.xml来具体分析一下，它的内容如下：</p>
+<p><img class="center" src="/images/2013/10/16/TomcatArchitecture.png">
+通过上图我们可以看出Tomcat中主要涉及Server,Service,Engine,Connector,Host,Context组件，之前用过Tomcat的童鞋是不是觉得这些组件的名称有点似曾相识的赶脚，没赶脚？！您再想想。好吧，不用你想了，我来告诉你吧。其实在Tomcat二进制分发包解压后,在conf目录中有一个server.xml文件，你打开它瞄两眼看看，是不是发现server.xml文件中已经包含了上述的几个名称。我拿我本地Tomcat7.0.42分发包中的server.xml来具体分析一下，它的内容如下：</p>
 
 <figure class='code'><figcaption><span>conf/server.xml(Tomcat 7.0.42)</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>

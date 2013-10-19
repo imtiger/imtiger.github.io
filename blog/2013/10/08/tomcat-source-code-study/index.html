@@ -5,12 +5,12 @@
 
 <head>
 	<meta charset="utf-8">
-	<title>Categories - I'm Tiger,一个有理想爱折腾的程序员!</title>
+	<title>Tomcat源代码阅读系列开篇 - I'm Tiger,一个有理想爱折腾的程序员!</title>
 	<meta name="author" content="imtiger">
 
 	
-	<meta name="description" content=" Java [ 13 ] 技术 [ 21 ] 系统架构 [ 1 ] Web开发 [ 1 ] 缓存 [ 1 ] Javascript [ 1 ] Linux [ 2 ] Ios [ 1 ] 生活 [ 1 ] Tomcat [ 4 ] ">
-	<meta name="keywords" content="java,ios,mac,linux,objective-c,软件设计,软件架构,摄影,imtiger.">
+	<meta name="description" content="Tomcat源代码阅读系列开篇 我想学习Java开发的童鞋，或多或少的都应该接触过Tomcat，Tomcat在Java web开发中占据着非常重要的地位。 之前的时候也林林总总的阅读过Tomcat源代码，但是没有进行过总结。另外我觉得一个技术自己掌握了是一个层次，能将自己掌握的技术， &hellip;">
+	<meta name="keywords" content="Tomcat源代码，java">
 
   <!-- http://t.co/dKP3o1e -->
   <meta name="HandheldFriendly" content="True">
@@ -19,7 +19,7 @@
 
 	<link href="/atom.xml" rel="alternate" title="I'm Tiger,一个有理想爱折腾的程序员!" type="application/atom+xml">
 	
-	<link rel="canonical" href="http://imtiger.github.io/blog/categories/">
+	<link rel="canonical" href="http://imtiger.github.io/blog/2013/10/08/tomcat-source-code-study/">
 	<link href="/favicon.png" rel="shortcut icon">
 	<link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
 	<link href="/stylesheets/font-awesome.min.css" media="screen, projection" rel="stylesheet" type="text/css">
@@ -87,36 +87,75 @@
 				
 			
 			<div class="mid-col-container">
-				<div id="content" class="inner"><article class="page">
-    
-    <h1 class="title">Categories</h1>
-    
-    <div class="entry-content"><ul>
+				<div id="content" class="inner"><article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+	<h1 class="title" itemprop="name">Tomcat源代码阅读系列开篇</h1>
+	<div class="entry-content" itemprop="articleBody"><p><img class="center" src="/images/2013/10/14/apache_tomcat_bag.jpg">
+我想学习Java开发的童鞋，或多或少的都应该接触过Tomcat，Tomcat在Java web开发中占据着非常重要的地位。</p>
 
-    <li><a href="/blog/categories/Java/">Java</a> [ 13 ]</li>
+<p>之前的时候也林林总总的阅读过Tomcat源代码，但是没有进行过总结。另外我觉得一个技术自己掌握了是一个层次，能将自己掌握的技术，通过文字或者语言跟其他人交流，并让其他人也能快速的理解自己表达意思有是另外一个层次了。因此我决定将自己阅读Tomcat源代码的过程记录一下，并分享到博客中，让有同样兴趣的童鞋可以参考下，也欢迎各位童鞋讨论。</p>
 
-    <li><a href="/blog/categories/技术/">技术</a> [ 21 ]</li>
-
-    <li><a href="/blog/categories/系统架构/">系统架构</a> [ 1 ]</li>
-
-    <li><a href="/blog/categories/Web开发/">Web开发</a> [ 1 ]</li>
-
-    <li><a href="/blog/categories/缓存/">缓存</a> [ 1 ]</li>
-
-    <li><a href="/blog/categories/JavaScript/">Javascript</a> [ 1 ]</li>
-
-    <li><a href="/blog/categories/linux/">Linux</a> [ 2 ]</li>
-
-    <li><a href="/blog/categories/iOS/">Ios</a> [ 1 ]</li>
-
-    <li><a href="/blog/categories/生活/">生活</a> [ 1 ]</li>
-
-    <li><a href="/blog/categories/Tomcat/">Tomcat</a> [ 4 ]</li>
-
-</ul>
-
+<p>接下来我们就来说说本系列所涉及的主要内容吧。<br/>
+<a href="/blog/2013/10/14/run-tomcat-in-idea-or-eclipse/">在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码（Tomcat源代码阅读系列之一）</a>  <br/>
+<a href="/blog/2013/10/16/tomcat-architecture/">Tomcat总体结构（Tomcat源代码阅读系列之二）</a><br/>
+<a href="http://www.blog.com/blog/2013/10/17/tomcat-start-process/">Tomcat启动过程（Tomcat源代码阅读系列之三）</a><br/>
+<a href="#">Tomcat关闭过程</a>  (未完成)<br/>
+<a href="#">Tomcat请求处理流程</a> (未完成)    <br/>
+<a href="#">Tomcat类加载器机制</a> (未完成) <br/>
+<a href="#">Tomcat Session管理机制</a>(未完成)  <br/>
+<a href="#">Tomcat 涉及的设计模式总结</a> (未完成)</p>
 </div>
+
 </article>
+
+
+
+<div class="post-copyright">
+	<div class="avator" style="">
+		<img alt="" src="http://www.gravatar.com/avatar/80695ffc8afc90667bb292139686239b?s=160" width="100" height="100"/>
+	</div>
+	<div class="info">
+			作者： <A href="http://imtiger.net">imtiger</A> <br>
+			出处： <A href="http://imtiger.net">http://imtiger.net/</A>
+			<br>本文通过<a href="http://creativecommons.org/licenses/by-nc/3.0/deed.zh">署名-非商业性使用 3.0</a>进行许可,欢迎转载,但是必须保留本文的署名和连接,谢谢配合！
+			<a href="http://imtiger.net">imtiger</a>。 
+	</div>
+</div>
+
+
+
+
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	
+	
+	  <!-- JiaThis Button BEGIN -->
+<div class="jiathis_style">
+	<span class="jiathis_txt"></span>
+  <a class="jiathis_button_tsina"></a>
+	<a class="jiathis_button_qzone">QQ</a>
+	<a class="jiathis_button_tqq"></a>
+	<a class="jiathis_button_weixin"></a>
+	<a href="http://www.jiathis.com/share?uid=1845643" class="jiathis jiathis_txt jiathis_separator jtico jtico_jiathis" target="_blank"></a>
+	<a class="jiathis_counter_style"></a>
+</div>
+<script type="text/javascript">
+var jiathis_config = {data_track_clickback:'true'};
+</script>
+<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js?uid=1372156002529710" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+
+<!-- UY BEGIN -->
+<div id="uyan_frame"></div>
+<script type="text/javascript" src="http://v2.uyan.cc/code/uyan.js?uid=1845643"></script>
+<!-- UY END -->
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <!-- <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid="></script> -->
+</div>
 
 
 </div>

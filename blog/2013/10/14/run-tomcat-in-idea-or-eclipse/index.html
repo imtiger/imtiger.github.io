@@ -9,7 +9,7 @@
 	<meta name="author" content="imtiger">
 
 	
-	<meta name="description" content="在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码（Tomcat源代码阅读系列之一） 在阅读Tomcat源代码之前，我们首先需要将Tomcat的源代码在IDE里面运行起来，这样方便我们阅读的过程中调试。本文总结一下在IDEA 或者 &hellip;">
+	<meta name="description" content="在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码（Tomcat源代码阅读系列之一） 本文是Tomcat源代码阅读系列的第一篇文章，在阅读Tomcat源代码之前，我们首先需要将Tomcat的源代码在IDE里面运行起来，这样方便我们阅读的过程中调试。本文总结一下在IDEA &hellip;">
 	<meta name="keywords" content="java,ios,mac,linux,objective-c,软件设计,软件架构,摄影,imtiger.">
 
   <!-- http://t.co/dKP3o1e -->
@@ -90,7 +90,7 @@
 				<div id="content" class="inner"><article class="post" itemscope itemtype="http://schema.org/BlogPosting">
 	<h1 class="title" itemprop="name">在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码（Tomcat源代码阅读系列之一）</h1>
 	<div class="entry-content" itemprop="articleBody"><p><img class="center" src="/images/2013/10/14/apache_tomcat_bag.jpg">
-在阅读Tomcat源代码之前，我们首先需要将Tomcat的源代码在IDE里面运行起来，这样方便我们阅读的过程中调试。本文总结一下在IDEA 或者 Eclipse中运行Tomcat源代码环境的搭建过程，同时我们通过Maven来负责项目的构建。</p>
+本文是<a href="/blog/2013/10/08/tomcat-source-code-study/">Tomcat源代码阅读系列</a>的第一篇文章，在阅读Tomcat源代码之前，我们首先需要将Tomcat的源代码在IDE里面运行起来，这样方便我们阅读的过程中调试。本文总结一下在IDEA 或者 Eclipse中运行Tomcat源代码环境的搭建过程，同时我们通过Maven来负责项目的构建。</p>
 
 <p>在进行搭建之前，我们首先来说一下总体的思路。我们知道Tomcat运行的时候，一部分是源代码编译以后的可运行的Jar,另外一部分则是运行时的环境（也就是我们从官方下载下来的二进制分发包中的一系列的配置文件以及目录结构，说的更直白点就是CATALINA_HOME环境变量指定的目录）,本文对于第一部分采用IntelliJ IDEA 运行tomcat-7.0.42 tag的源代码，而对于第二部分运行环境，我们则直接采用tomcat-7.0.42的二进制分发包。明白了上述的思路以后，咋们就来一步步的搭建吧。</p>
 

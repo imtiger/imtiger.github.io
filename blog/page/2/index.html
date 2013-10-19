@@ -9,7 +9,7 @@
 	<meta name="author" content="imtiger">
 
 	
-	<meta name="description" content="May 10th, 2012 Java, 技术 如何构建Java Web应用的session框架 之前写过一个Java web的session框架，并且已经用于生产环境，运行良好。今天将我之前Evernote的笔记重新整理一下发布到博客上供有兴趣的同学参考下，也欢迎各位一起讨论。 &hellip;">
+	<meta name="description" content="Jan 22nd, 2013 2012年创业回顾与总结 自从用了Evernote以后，发现自己写博客的频率变低了好多，很多时候都是自己直接在Evernote里面直接写笔记，很少来写博客了。不过今天还是把自己前几天在Evernote写的2012年度总结贴出来和大家分享以下，一起交流和进步。 &hellip;">
 	<meta name="keywords" content="java,ios,mac,linux,objective-c,软件设计,软件架构,摄影,imtiger.">
 
   <!-- http://t.co/dKP3o1e -->
@@ -89,6 +89,90 @@
 			<div class="mid-col-container">
 				<div id="content" class="inner">
 <div itemscope itemtype="http://schema.org/Blog">
+
+
+    <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
+	<div class="meta">
+		<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-01-22T11:44:00+08:00" data-updated="true" itemprop="datePublished">Jan 22<span>nd</span>, 2013</time></div>
+		<div class="tags">
+
+</div>
+		
+	</div>
+	<h1 class="title" itemprop="name"><a href="/blog/2013/01/22/2012-summary/" itemprop="url">2012年创业回顾与总结</a></h1>
+	<div class="entry-content" itemprop="articleBody">
+		<p><img class="center" src="/images/2013/01/22/2012-summary.jpg" width="450" height="350">
+自从用了Evernote以后，发现自己写博客的频率变低了好多，很多时候都是自己直接在Evernote里面直接写笔记，很少来写博客了。不过今天还是把自己前几天在Evernote写的2012年度总结贴出来和大家分享以下，一起交流和进步。</p>
+
+<p>从2012年3月底辞职创业到现在已经10个月了，在过去的10个月里面，我们取得了一些成果，另外一方面我们也犯过一些错误。下面我主要从公司以及个人两个方面对过去的10个月做一下回顾和总结。</p>
+
+
+		
+		<a href="/blog/2013/01/22/2012-summary/" class="more-link">Read on(阅读全文) &rarr;</a>
+	</div>
+
+</article>
+
+
+    <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
+	<div class="meta">
+		<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-10-28T18:20:00+08:00" data-updated="true" itemprop="datePublished">Oct 28<span>th</span>, 2012</time></div>
+		<div class="tags">
+
+
+	<a class='category' href='/blog/categories/linux/'>linux</a>, <a class='category' href='/blog/categories/ji-zhu/'>技术</a>
+
+
+</div>
+		
+	</div>
+	<h1 class="title" itemprop="name"><a href="/blog/2012/10/28/mutil-appservers-manage/" itemprop="url">Shell 脚本简化Java Web开发中繁琐的打包、部署等重复劳动</a></h1>
+	<div class="entry-content" itemprop="articleBody">
+		<p>在平时的开发工作当中，经常会遇到如下一种场景：</p>
+
+<p>本地需要启动多个tomcat实例，多个tomcat实例通过统一的一个apache web server来管理，并且项目是maven管理的，每次修改了文件要部署的时候，一般会重复做如下事情：</p>
+
+<ol>
+<li>maven 打包工程</li>
+<li>删除日志文件</li>
+<li>启动tomcat实例</li>
+</ol>
+
+
+<p>这样的工作做多了，真的既不高效，也不符合优秀的程序猿的习惯，所以我一般会将其写一个脚本，每次运行下脚本，让脚本帮我们来完成这件事情，岂不快哉！</p>
+
+<p>Ok,I will show the code !</p>
+
+
+		
+		<a href="/blog/2012/10/28/mutil-appservers-manage/" class="more-link">Read on(阅读全文) &rarr;</a>
+	</div>
+
+</article>
 
 
     <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
@@ -457,95 +541,13 @@ Bootstrp加载器是用C++语言写的，它是在Java虚拟机启动后初始�
 
 </article>
 
-
-    <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
-	<div class="meta">
-		<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2009-10-02T16:28:00+08:00" data-updated="true" itemprop="datePublished">Oct 2<span>nd</span>, 2009</time></div>
-		<div class="tags">
-
-
-	<a class='category' href='/blog/categories/java/'>Java</a>, <a class='category' href='/blog/categories/ji-zhu/'>技术</a>
-
-
-</div>
-		
-	</div>
-	<h1 class="title" itemprop="name"><a href="/blog/2009/10/02/java-oom-summary/" itemprop="url">Java常见内存溢出异常分析</a></h1>
-	<div class="entry-content" itemprop="articleBody">
-		<p><img class="center" src="http://ww3.sinaimg.cn/bmiddle/a43155b1gw1e32ay9f202g.gif">
-Java虚拟机规范规定JVM的内存分为了好几块，比如堆，栈，程序计数器，方法区等，而Hotspot jvm的实现中，将堆内存分为了三部分，新生代，老年代，持久带，其中持久带实现了规范中规定的方法区，而内存模型中不同的部分都会出现相应的OOM错误，接下来我们就分开来讨论一下。</p>
-
-<h1>栈溢出(StackOverflowError)</h1>
-
-<p>栈溢出抛出<code>java.lang.StackOverflowError</code>错误，出现此种情况是因为方法运行的时候栈的深度超过了虚拟机容许的最大深度所致。</p>
-
-<p>出现这种情况，一般情况下是程序错误所致的，比如写了一个死递归，就有可能造成此种情况。
-下面我们通过一段代码来模拟一下此种情况的内存溢出。</p>
-
-
-		
-		<a href="/blog/2009/10/02/java-oom-summary/" class="more-link">Read on(阅读全文) &rarr;</a>
-	</div>
-
-</article>
-
-
-    <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
-	<div class="meta">
-		<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2008-12-07T20:40:00+08:00" data-updated="true" itemprop="datePublished">Dec 7<span>th</span>, 2008</time></div>
-		<div class="tags">
-
-
-	<a class='category' href='/blog/categories/java/'>Java</a>, <a class='category' href='/blog/categories/ji-zhu/'>技术</a>
-
-
-</div>
-		
-	</div>
-	<h1 class="title" itemprop="name"><a href="/blog/2008/12/07/javaee-resource-manager-strategy-summary/" itemprop="url">JavaEE资源管理常见策略总结</a></h1>
-	<div class="entry-content" itemprop="articleBody">
-		<p>公所周知JavaEE是多线程的，同时资源管理的策略都是与线程相关的，因此通过合理的资源管理来应对多线程的环境是非常关键的。下面我们就来总结一下JavaEE中常见的资源管理策略。</p>
-
-<h1>第一种：实例池</h1>
-
-<p>实例池管理策略就是通过将我们的业务组件的实例保存到池中，这样可以达到重用的目的。说到实例池，需要明确一下单线程模型的概念，所谓单线程模型就是一个实例在某一时间只能服务于同一个线程，单线程模型使得无状态的业务组件不需要关注复杂的线程问题（通俗点讲，单线程模型使得业务开发人员可以采用不需要显示的同步机制来编写业务组件代码，但是业务组件可以安全的运行与多线程环境之下）。如果采用实例池将有助于实现单线程模型。比如EJB对于无状态的会话bean的管理就采取的是实例池的管理策略，这样以来我们的SLSB中是不需要同步的（这也是为什么EJB组件中不能有显示的同步代码的原因，因为EJB本来就是单线程的模型），从而减轻了业务开发人员的负担。</p>
-
-
-		
-		<a href="/blog/2008/12/07/javaee-resource-manager-strategy-summary/" class="more-link">Read on(阅读全文) &rarr;</a>
-	</div>
-
-</article>
-
 </div>
 <nav id="pagenavi">
     
         <a href="/" class="prev">Prev</a>
     
+    
+        <a href="/blog/page/3/" class="next">Next</a>
     
     <div class="center"><a href="/blog/archives">Blog Archives</a></div>
 </nav></div>
