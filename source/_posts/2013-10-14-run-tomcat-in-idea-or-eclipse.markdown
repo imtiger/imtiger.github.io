@@ -10,7 +10,7 @@ categories:
 - 技术
 ---
 {% img center /images/2013/10/14/apache_tomcat_bag.jpg %}
-在阅读Tomcat源代码之前，我们首先需要将Tomcat的源代码在IDE里面运行起来，这样方便我们阅读的过程中调试。本文总结一下在IDEA 或者 Eclipse中运行Tomcat源代码环境的搭建过程，同时我们通过Maven来负责项目的构建。
+本文是[Tomcat源代码阅读系列](/blog/2013/10/08/tomcat-source-code-study/)的第一篇文章，在阅读Tomcat源代码之前，我们首先需要将Tomcat的源代码在IDE里面运行起来，这样方便我们阅读的过程中调试。本文总结一下在IDEA 或者 Eclipse中运行Tomcat源代码环境的搭建过程，同时我们通过Maven来负责项目的构建。
 
 在进行搭建之前，我们首先来说一下总体的思路。我们知道Tomcat运行的时候，一部分是源代码编译以后的可运行的Jar,另外一部分则是运行时的环境（也就是我们从官方下载下来的二进制分发包中的一系列的配置文件以及目录结构，说的更直白点就是CATALINA_HOME环境变量指定的目录）,本文对于第一部分采用IntelliJ IDEA 运行tomcat-7.0.42 tag的源代码，而对于第二部分运行环境，我们则直接采用tomcat-7.0.42的二进制分发包。明白了上述的思路以后，咋们就来一步步的搭建吧。
 
@@ -198,5 +198,8 @@ Have fun and Enjoy!
 2. `CompilationUnit`类中的`public boolean ignoreOptionalProblems()`方法被标记为了@Override，但是其实现的接口`ICompilationUnit`属于`org.eclipse.jdt.core.compiler:ecj`，而3.x版本的`ICompilationUnit`中没有`ignoreOptionalProblems`方法，4.x的版本中才有，因此为了编译通过，本文采用了4.2.2版本。  
 
 另外本文最终搭建好的环境，我已经放在Github上了，不想搭建的童鞋可以直接clone一份使用。[Github仓库地址](https://github.com/imtiger/Tomcat)
+
+下篇：  
+[Tomcat总体结构（Tomcat源代码阅读系列之二）](/blog/2013/10/16/tomcat-architecture/) 
 	
 
