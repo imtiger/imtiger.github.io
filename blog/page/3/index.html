@@ -9,7 +9,7 @@
 	<meta name="author" content="imtiger">
 
 	
-	<meta name="description" content="Oct 2nd, 2009 Java, 技术 Java常见内存溢出异常分析 Java虚拟机规范规定JVM的内存分为了好几块，比如堆，栈，程序计数器，方法区等，而Hotspot jvm的实现中，将堆内存分为了三部分，新生代，老年代，持久带，其中持久带实现了规范中规定的方法区， &hellip;">
+	<meta name="description" content="Nov 9th, 2009 Java, 技术 Java Classloader机制解析 做Java开发，对于ClassLoader的机制是必须要熟悉的基础知识，本文针对Java ClassLoader的机制做一个简要的总结。因为不同的JVM的实现不同，本文所描述的内容均只限于Hotspot &hellip;">
 	<meta name="keywords" content="java,ios,mac,linux,objective-c,软件设计,软件架构,摄影,imtiger.">
 
   <!-- http://t.co/dKP3o1e -->
@@ -89,6 +89,54 @@
 			<div class="mid-col-container">
 				<div id="content" class="inner">
 <div itemscope itemtype="http://schema.org/Blog">
+
+
+    <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
+	<div class="meta">
+		<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2009-11-09T10:10:00+08:00" data-updated="true" itemprop="datePublished">Nov 9<span>th</span>, 2009</time></div>
+		<div class="tags">
+
+
+	<a class='category' href='/blog/categories/java/'>Java</a>, <a class='category' href='/blog/categories/ji-zhu/'>技术</a>
+
+
+</div>
+		
+	</div>
+	<h1 class="title" itemprop="name"><a href="/blog/2009/11/09/java-classloader/" itemprop="url">Java Classloader机制解析</a></h1>
+	<div class="entry-content" itemprop="articleBody">
+		<p>做Java开发，对于ClassLoader的机制是必须要熟悉的基础知识，本文针对Java ClassLoader的机制做一个简要的总结。因为不同的JVM的实现不同，本文所描述的内容均只限于Hotspot Jvm.</p>
+
+<p>本文将会从JDK默认的提供的ClassLoader，双亲委托模型，如何自定义ClassLoader以及Java中打破双亲委托机制的场景四个方面入手去讨论和总结一下。</p>
+
+<h1>JDK默认ClassLoader</h1>
+
+<p>JDK 默认提供了如下几种ClassLoader</p>
+
+<ol>
+<li>Bootstrp loader<br/>
+Bootstrp加载器是用C++语言写的，它是在Java虚拟机启动后初始化的，它主要负责加载<code>%JAVA_HOME%/jre/lib</code>,<code>-Xbootclasspath</code>参数指定的路径以及<code>%JAVA_HOME%/jre/classes</code>中的类。</li>
+</ol>
+
+
+
+		
+		<a href="/blog/2009/11/09/java-classloader/" class="more-link">Read on(阅读全文) &rarr;</a>
+	</div>
+
+</article>
 
 
     <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">

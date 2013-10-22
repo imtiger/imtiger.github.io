@@ -9,7 +9,7 @@
 	<meta name="author" content="imtiger">
 
 	
-	<meta name="description" content="Jan 22nd, 2013 2012年创业回顾与总结 自从用了Evernote以后，发现自己写博客的频率变低了好多，很多时候都是自己直接在Evernote里面直接写笔记，很少来写博客了。不过今天还是把自己前几天在Evernote写的2012年度总结贴出来和大家分享以下，一起交流和进步。 &hellip;">
+	<meta name="description" content="Jan 30th, 2013 Java, 技术 实例分析Java Class文件的结构-理论篇 今天把之前在Evernote中的笔记重新整理了一下，发上来供对java class 文件结构的有兴趣的同学参考一下。 学习Java的朋友应该都知道Java从刚开始的时候就打着平台无关性的旗号，说“ &hellip;">
 	<meta name="keywords" content="java,ios,mac,linux,objective-c,软件设计,软件架构,摄影,imtiger.">
 
   <!-- http://t.co/dKP3o1e -->
@@ -89,6 +89,45 @@
 			<div class="mid-col-container">
 				<div id="content" class="inner">
 <div itemscope itemtype="http://schema.org/Blog">
+
+
+    <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
+	<div class="meta">
+		<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-01-30T10:33:00+08:00" data-updated="true" itemprop="datePublished">Jan 30<span>th</span>, 2013</time></div>
+		<div class="tags">
+
+
+	<a class='category' href='/blog/categories/java/'>Java</a>, <a class='category' href='/blog/categories/ji-zhu/'>技术</a>
+
+
+</div>
+		
+	</div>
+	<h1 class="title" itemprop="name"><a href="/blog/2013/01/30/java-class-file-format/" itemprop="url">实例分析Java Class文件的结构-理论篇</a></h1>
+	<div class="entry-content" itemprop="articleBody">
+		<p><img class="center" src="/images/2013/01/30/java-logo.jpg" width="500" height="300">  <br/>
+今天把之前在Evernote中的笔记重新整理了一下，发上来供对java class 文件结构的有兴趣的同学参考一下。</p>
+
+<p>学习Java的朋友应该都知道Java从刚开始的时候就打着平台无关性的旗号，说“一次编写，到处运行”，其实说到无关性，Java平台还有另外一个无关性那就是语言无关性，要实现语言无关性，那么Java体系中的class的文件结构或者说是字节码就显得相当重要了，其实Java从刚开始的时候就有两套规范，一个是Java语言规范，另外一个是Java虚拟机规范，Java语言规范只是规定了Java语言相关的约束以及规则，而虚拟机规范则才是真正从跨平台的角度去设计的。今天我们就以一个实际的例子来看看，到底Java中一个Class文件对应的字节码应该是什么样子。 这篇文章将首先总体上阐述一下Class到底由哪些内容构成，然后再用一个实际的Java类入手去分析class的文件结构。</p>
+
+
+		
+		<a href="/blog/2013/01/30/java-class-file-format/" class="more-link">Read on(阅读全文) &rarr;</a>
+	</div>
+
+</article>
 
 
     <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
@@ -489,54 +528,6 @@
 
 		
 		<a href="/blog/2010/02/21/jvm-memory-and-gc/" class="more-link">Read on(阅读全文) &rarr;</a>
-	</div>
-
-</article>
-
-
-    <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
-	<div class="meta">
-		<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2009-11-09T10:10:00+08:00" data-updated="true" itemprop="datePublished">Nov 9<span>th</span>, 2009</time></div>
-		<div class="tags">
-
-
-	<a class='category' href='/blog/categories/java/'>Java</a>, <a class='category' href='/blog/categories/ji-zhu/'>技术</a>
-
-
-</div>
-		
-	</div>
-	<h1 class="title" itemprop="name"><a href="/blog/2009/11/09/java-classloader/" itemprop="url">Java Classloader机制解析</a></h1>
-	<div class="entry-content" itemprop="articleBody">
-		<p>做Java开发，对于ClassLoader的机制是必须要熟悉的基础知识，本文针对Java ClassLoader的机制做一个简要的总结。因为不同的JVM的实现不同，本文所描述的内容均只限于Hotspot Jvm.</p>
-
-<p>本文将会从JDK默认的提供的ClassLoader，双亲委托模型，如何自定义ClassLoader以及Java中打破双亲委托机制的场景四个方面入手去讨论和总结一下。</p>
-
-<h1>JDK默认ClassLoader</h1>
-
-<p>JDK 默认提供了如下几种ClassLoader</p>
-
-<ol>
-<li>Bootstrp loader<br/>
-Bootstrp加载器是用C++语言写的，它是在Java虚拟机启动后初始化的，它主要负责加载<code>%JAVA_HOME%/jre/lib</code>,<code>-Xbootclasspath</code>参数指定的路径以及<code>%JAVA_HOME%/jre/classes</code>中的类。</li>
-</ol>
-
-
-
-		
-		<a href="/blog/2009/11/09/java-classloader/" class="more-link">Read on(阅读全文) &rarr;</a>
 	</div>
 
 </article>

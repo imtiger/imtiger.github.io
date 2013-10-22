@@ -9,7 +9,7 @@
 	<meta name="author" content="imtiger">
 
 	
-	<meta name="description" content="Oct 17th, 2013 Java, Tomcat, 技术 Tomcat启动过程（Tomcat源代码阅读系列之三） 本文是Tomcat源代码阅读系列的第三篇文章，在阅读此文之前，建议先读前面的两篇：
+	<meta name="description" content="Oct 21st, 2013 Java, Tomcat, 技术 Tomcat关闭过程（Tomcat源代码阅读系列之四） 本文是Tomcat源代码阅读系列的第四篇文章，在阅读此文之前，建议先读前三篇：
 在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码（ &hellip;">
 	<meta name="keywords" content="java,ios,mac,linux,objective-c,软件设计,软件架构,摄影,imtiger.">
 
@@ -89,6 +89,48 @@
 			
 			<div class="mid-col-container">
 				<div id="content" class="inner">
+
+
+    <article class="post">
+	<div class="meta">
+		<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-10-21T14:45:00+08:00" data-updated="true" itemprop="datePublished">Oct 21<span>st</span>, 2013</time></div>
+		<div class="tags">
+
+
+	<a class='category' href='/blog/categories/java/'>Java</a>, <a class='category' href='/blog/categories/tomcat/'>Tomcat</a>, <a class='category' href='/blog/categories/ji-zhu/'>技术</a>
+
+
+</div>
+		
+	</div>
+	<h1 class="title" itemprop="name"><a href="/blog/2013/10/21/tomcat-shutdown/" itemprop="url">Tomcat关闭过程（Tomcat源代码阅读系列之四）</a></h1>
+	<div class="entry-content" itemprop="articleBody">
+		<p><img class="center" src="/images/2013/10/14/apache_tomcat_bag.jpg">
+本文是<a href="/blog/2013/10/08/tomcat-source-code-study/">Tomcat源代码阅读系列</a>的第四篇文章，在阅读此文之前，建议先读前三篇：<br/>
+<a href="/blog/2013/10/14/run-tomcat-in-idea-or-eclipse/">在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码（Tomcat源代码阅读系列之一）</a> <br/>
+<a href="/blog/2013/10/16/tomcat-architecture/">Tomcat总体结构                             （Tomcat源代码阅读系列之二）</a><br/>
+<a href="/blog/2013/10/17/tomcat-start-process/">Tomcat启动过程（Tomcat源代码阅读系列之三）</a></p>
+
+<p>我们在<a href="/blog/2013/10/17/tomcat-start-process/">Tomcat启动过程（Tomcat源代码阅读系列之三）</a>一文中已经知道Tomcat启动以后，会启动6条线程，他们分别如下：</p>
+
+
+		
+		<a href="/blog/2013/10/21/tomcat-shutdown/" class="more-link">Read on(阅读全文) &rarr;</a>
+	</div>
+
+</article>
 
 
     <article class="post">
@@ -339,7 +381,7 @@
 月薪:    15k-20k</p>
 
 <p>公司介绍: <br/>
-我们公司<a href="http://www.ejushang.com">易居尚</a>秉承着<code>让品质走进生活的理念</code>，致力于打造一个品质、高效、便捷的居家用品网络销售平台.咋们公司不打卡，弹性工作制，每天下午有公司大厨做的下午茶，攻城狮童鞋每周可以自由支配20%的工作时间做自己想做的事情，我们技术团队内部有很强互助和知识分享意识（包括技术骚们喜欢的爱情动作片，嘘&hellip;，其他人我不告诉他）当然了还有很多美女和帅哥，想置身互联网和电子商务有理想的的技术骚们，请你加入我们 一起high，<strong>我们不求改变世界，但求超越自我</strong>。也请各位朋友帮忙推荐，推荐成功有神秘礼物相送哦，有意者请联系:<a href="&#109;&#x61;&#x69;&#x6c;&#x74;&#x6f;&#58;&#116;&#105;&#103;&#101;&#114;&#46;&#x7a;&#104;&#111;&#117;&#64;&#x6b;&#x61;&#114;&#105;&#x71;&#117;&#x2e;&#x63;&#111;&#109;">&#116;&#x69;&#103;&#x65;&#114;&#46;&#122;&#104;&#x6f;&#x75;&#64;&#x6b;&#x61;&#114;&#x69;&#x71;&#x75;&#46;&#x63;&#111;&#109;</a> 或者留言给我，另外也可以通过<a href="http://weibo.com/xmuzyq">@krq_tiger</a>新浪微博与我取的联系.</p>
+我们公司<a href="http://www.ejushang.com">易居尚</a>秉承着<code>让品质走进生活的理念</code>，致力于打造一个品质、高效、便捷的居家用品网络销售平台.咋们公司不打卡，弹性工作制，每天下午有公司大厨做的下午茶，攻城狮童鞋每周可以自由支配20%的工作时间做自己想做的事情，我们技术团队内部有很强互助和知识分享意识（包括技术骚们喜欢的爱情动作片，嘘&hellip;，其他人我不告诉他）当然了还有很多美女和帅哥，想置身互联网和电子商务有理想的的技术骚们，请你加入我们 一起high，<strong>我们不求改变世界，但求超越自我</strong>。也请各位朋友帮忙推荐，推荐成功有神秘礼物相送哦，有意者请联系:<a href="&#x6d;&#x61;&#x69;&#x6c;&#116;&#x6f;&#x3a;&#x74;&#x69;&#x67;&#x65;&#x72;&#x2e;&#x7a;&#x68;&#111;&#x75;&#64;&#x6b;&#x61;&#x72;&#x69;&#113;&#117;&#46;&#x63;&#111;&#109;">&#116;&#x69;&#x67;&#101;&#114;&#46;&#x7a;&#104;&#x6f;&#117;&#64;&#x6b;&#x61;&#x72;&#105;&#x71;&#117;&#x2e;&#x63;&#111;&#x6d;</a> 或者留言给我，另外也可以通过<a href="http://weibo.com/xmuzyq">@krq_tiger</a>新浪微博与我取的联系.</p>
 
 
 		
@@ -494,45 +536,6 @@
 
 		
 		<a href="/blog/2013/01/30/java-class-file-format-demo/" class="more-link">Read on(阅读全文) &rarr;</a>
-	</div>
-
-</article>
-
-
-    <article class="post">
-	<div class="meta">
-		<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-01-30T10:33:00+08:00" data-updated="true" itemprop="datePublished">Jan 30<span>th</span>, 2013</time></div>
-		<div class="tags">
-
-
-	<a class='category' href='/blog/categories/java/'>Java</a>, <a class='category' href='/blog/categories/ji-zhu/'>技术</a>
-
-
-</div>
-		
-	</div>
-	<h1 class="title" itemprop="name"><a href="/blog/2013/01/30/java-class-file-format/" itemprop="url">实例分析Java Class文件的结构-理论篇</a></h1>
-	<div class="entry-content" itemprop="articleBody">
-		<p><img class="center" src="/images/2013/01/30/java-logo.jpg" width="500" height="300">  <br/>
-今天把之前在Evernote中的笔记重新整理了一下，发上来供对java class 文件结构的有兴趣的同学参考一下。</p>
-
-<p>学习Java的朋友应该都知道Java从刚开始的时候就打着平台无关性的旗号，说“一次编写，到处运行”，其实说到无关性，Java平台还有另外一个无关性那就是语言无关性，要实现语言无关性，那么Java体系中的class的文件结构或者说是字节码就显得相当重要了，其实Java从刚开始的时候就有两套规范，一个是Java语言规范，另外一个是Java虚拟机规范，Java语言规范只是规定了Java语言相关的约束以及规则，而虚拟机规范则才是真正从跨平台的角度去设计的。今天我们就以一个实际的例子来看看，到底Java中一个Class文件对应的字节码应该是什么样子。 这篇文章将首先总体上阐述一下Class到底由哪些内容构成，然后再用一个实际的Java类入手去分析class的文件结构。</p>
-
-
-		
-		<a href="/blog/2013/01/30/java-class-file-format/" class="more-link">Read on(阅读全文) &rarr;</a>
 	</div>
 
 </article>

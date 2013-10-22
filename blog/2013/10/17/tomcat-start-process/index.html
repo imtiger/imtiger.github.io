@@ -1298,6 +1298,8 @@
 
 <p>通过上面的代码，我们可以看出其实是通过<code>org.apache.tomcat.util.net.AbstractEndpoint.Acceptor</code>这个Runable接口的实现类来启动线程，接下来我们就来看看Acceptor#run方法，通过查看run方法，它里面其实就是调用了<code>java.net.ServerSocket#accept</code>的方法来接受一个Socket连接。</p>
 
+<p>启动完了Acceptor线程以后，接着就会启动AsyncTimeout线程，而这里面需要注意的时候，无论是Acceptor还是AsyncTimeout线程，它们都是Daemon线程，而设置为Daemon的原因，我们会在下篇<a href="">Tomcat的关闭</a>中进行说明。</p>
+
 <h2>StandardEngine#start</h2>
 
 <p>从本文上面的分析中，我们得知StandardEngine继承了ContainerBase，而StandardEngine的startInternal钩子方法也仅仅是调用了父类ContainerBase的startInternal方法，那接下来我们分析一下ContainerBase的startInternal方法，代码如下：</p>
@@ -1460,6 +1462,41 @@
 
 <blockquote><p>对于StandardEngine，StandardHost的启动，父容器在init的时候创建一个启动和停止子容器的线程池，然后父容器启动的时候首先通过异步的方式将子容器的启动通过<code>org.apache.catalina.core.ContainerBase.StartChild</code>提交到父容器中对应的线程池中进行启动，而子容器启动的时候首先会初始化，然后再启动。</p></blockquote>
 
+<p>另外这里还需要注意一点就是，StandEngine#start的时候，最终调用了ContainerBase#startInternal方法，而ContainerBase#startInternal的最后，调用了threadStart(),我们来看看它的代码如下：</p>
+
+<figure class='code'><figcaption><span>org.apache.catalina.core.ContainerBase#threadStart</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">protected</span> <span class="kt">void</span> <span class="nf">threadStart</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">thread</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span>
+</span><span class='line'>            <span class="k">return</span><span class="o">;</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">backgroundProcessorDelay</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="o">)</span>
+</span><span class='line'>            <span class="k">return</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">threadDone</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+</span><span class='line'>        <span class="n">String</span> <span class="n">threadName</span> <span class="o">=</span> <span class="s">&quot;ContainerBackgroundProcessor[&quot;</span> <span class="o">+</span> <span class="n">toString</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot;]&quot;</span><span class="o">;</span>
+</span><span class='line'>        <span class="n">thread</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Thread</span><span class="o">(</span><span class="k">new</span> <span class="n">ContainerBackgroundProcessor</span><span class="o">(),</span> <span class="n">threadName</span><span class="o">);</span>
+</span><span class='line'>        <span class="n">thread</span><span class="o">.</span><span class="na">setDaemon</span><span class="o">(</span><span class="kc">true</span><span class="o">);</span>
+</span><span class='line'>        <span class="n">thread</span><span class="o">.</span><span class="na">start</span><span class="o">();</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>上面的代码，首先会判断backgroundProcessorDelay是否小于0，而这个值默认情况下是-1，也就意味这后面的代码不会运行，而对于StandardEngine来说，它将backgroundProcessorDelay的值在构造函数中赋值为了10，这样的话，当StandardEngine启动的时候，就会启动名称为“ContainerBackgroundProcessor[StandardEngine[Catalina]]”的线程。</p>
+
 <p>经过上面的分析，我们已经清楚了StandardEngine启动的过程了，但是我们还有一个地方需要进一步的分析。因为上面的分析我们仅仅只是分析了容器通过conf/server.xml配置文件的配置结构进行的启动，而我们都知道<code>CATALINA-HOME/webapps/</code>中的应用也是需要启动的，那么webapps目录的应用又是如何启动的呢？我们下面来分析一下，通过<a href="/blog/2013/10/16/tomcat-architecture/">Tomcat总体结构</a>的描述，我们已经知道，webapps目录下面的应用其实是属于Context的，而Context对应Tomcat中的StandardContext类，因此我们就知道应该对谁下手了，知道了目标以后，咋们还是采用之前的那种方式，要么debug,要么打印调用栈，这里我们还是通过打印调用栈的方式进行，我们在<code>org.apache.catalina.core.StandardContext#initInternal</code>中增加打印调用栈的方法，具体代码如下：</p>
 
 <figure class='code'><figcaption><span>org.apache.catalina.core.StandardContext#initInternal </span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
@@ -1614,6 +1651,171 @@
 <p>通过上面的分析我们清楚了webapps目录中context的启动，总结如下：</p>
 
 <blockquote><p>webapps目录中应用的启动在StandardHost#start的时候，通过<code>Lifecycle.START_EVENT</code>这个事件的监听器HostConfig进行进一步的启动。</p></blockquote>
+
+<p>综合上面的文章所述,最后我们再来一下总结，我们知道Java程序启动以后，最终会以进程的形式存在，而Java进程中又会有很多条线程存在，因此最后我们就来看看Tomcat启动以后，到底启动了哪些线程，通过这些我们可以反过来验证我们对源代码的理解是否正确。接下来我们启动Tomcat，然后运行<code>jstack -l &lt;pid&gt;</code>来看看，在笔者的机器上面，jstack的输入如下所示：</p>
+
+<figure class='code'><figcaption><span>Tomcat threads</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+<span class='line-number'>68</span>
+<span class='line-number'>69</span>
+<span class='line-number'>70</span>
+<span class='line-number'>71</span>
+<span class='line-number'>72</span>
+<span class='line-number'>73</span>
+<span class='line-number'>74</span>
+<span class='line-number'>75</span>
+<span class='line-number'>76</span>
+<span class='line-number'>77</span>
+<span class='line-number'>78</span>
+<span class='line-number'>79</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">Full</span> <span class="n">thread</span> <span class="n">dump</span> <span class="n">Java</span> <span class="nf">HotSpot</span><span class="o">(</span><span class="n">TM</span><span class="o">)</span> <span class="mi">64</span><span class="o">-</span><span class="n">Bit</span> <span class="n">Server</span> <span class="n">VM</span> <span class="o">(</span><span class="mf">20.51</span><span class="o">-</span><span class="n">b01</span><span class="o">-</span><span class="mi">457</span> <span class="n">mixed</span> <span class="n">mode</span><span class="o">):</span>
+</span><span class='line'>
+</span><span class='line'><span class="s">&quot;ajp-bio-8009-AsyncTimeout&quot;</span> <span class="n">daemon</span> <span class="n">prio</span><span class="o">=</span><span class="mi">5</span> <span class="n">tid</span><span class="o">=</span><span class="mi">7</span><span class="n">f8738afe000</span> <span class="n">nid</span><span class="o">=</span><span class="mh">0x115ad6000</span> <span class="n">waiting</span> <span class="n">on</span> <span class="n">condition</span> <span class="o">[</span><span class="mi">115</span><span class="n">ad5000</span><span class="o">]</span>
+</span><span class='line'>   <span class="n">java</span><span class="o">.</span><span class="na">lang</span><span class="o">.</span><span class="na">Thread</span><span class="o">.</span><span class="na">State</span><span class="o">:</span> <span class="n">TIMED_WAITING</span> <span class="o">(</span><span class="n">sleeping</span><span class="o">)</span>
+</span><span class='line'>        <span class="n">at</span> <span class="n">java</span><span class="o">.</span><span class="na">lang</span><span class="o">.</span><span class="na">Thread</span><span class="o">.</span><span class="na">sleep</span><span class="o">(</span><span class="n">Native</span> <span class="n">Method</span><span class="o">)</span>
+</span><span class='line'>        <span class="n">at</span> <span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">tomcat</span><span class="o">.</span><span class="na">util</span><span class="o">.</span><span class="na">net</span><span class="o">.</span><span class="na">JIoEndpoint</span><span class="n">$AsyncTimeout</span><span class="o">.</span><span class="na">run</span><span class="o">(</span><span class="n">JIoEndpoint</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">148</span><span class="o">)</span>
+</span><span class='line'>        <span class="n">at</span> <span class="n">java</span><span class="o">.</span><span class="na">lang</span><span class="o">.</span><span class="na">Thread</span><span class="o">.</span><span class="na">run</span><span class="o">(</span><span class="n">Thread</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">680</span><span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'>   <span class="n">Locked</span> <span class="n">ownable</span> <span class="nl">synchronizers:</span>
+</span><span class='line'>        <span class="o">-</span> <span class="n">None</span>
+</span><span class='line'>
+</span><span class='line'><span class="s">&quot;ajp-bio-8009-Acceptor-0&quot;</span> <span class="n">daemon</span> <span class="n">prio</span><span class="o">=</span><span class="mi">5</span> <span class="n">tid</span><span class="o">=</span><span class="mi">7</span><span class="n">f8738b05800</span> <span class="n">nid</span><span class="o">=</span><span class="mh">0x1159d3000</span> <span class="n">runnable</span> <span class="o">[</span><span class="mi">1159</span><span class="n">d2000</span><span class="o">]</span>
+</span><span class='line'>   <span class="n">java</span><span class="o">.</span><span class="na">lang</span><span class="o">.</span><span class="na">Thread</span><span class="o">.</span><span class="na">State</span><span class="o">:</span> <span class="n">RUNNABLE</span>
+</span><span class='line'>        <span class="n">at</span> <span class="n">java</span><span class="o">.</span><span class="na">net</span><span class="o">.</span><span class="na">PlainSocketImpl</span><span class="o">.</span><span class="na">socketAccept</span><span class="o">(</span><span class="n">Native</span> <span class="n">Method</span><span class="o">)</span>
+</span><span class='line'>        <span class="n">at</span> <span class="n">java</span><span class="o">.</span><span class="na">net</span><span class="o">.</span><span class="na">PlainSocketImpl</span><span class="o">.</span><span class="na">accept</span><span class="o">(</span><span class="n">PlainSocketImpl</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">439</span><span class="o">)</span>
+</span><span class='line'>        <span class="o">-</span> <span class="n">locked</span> <span class="o">&lt;</span><span class="mi">7</span><span class="n">f46a8710</span><span class="o">&gt;</span> <span class="o">(</span><span class="n">a</span> <span class="n">java</span><span class="o">.</span><span class="na">net</span><span class="o">.</span><span class="na">SocksSocketImpl</span><span class="o">)</span>
+</span><span class='line'>        <span class="n">at</span> <span class="n">java</span><span class="o">.</span><span class="na">net</span><span class="o">.</span><span class="na">ServerSocket</span><span class="o">.</span><span class="na">implAccept</span><span class="o">(</span><span class="n">ServerSocket</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">468</span><span class="o">)</span>
+</span><span class='line'>        <span class="n">at</span> <span class="n">java</span><span class="o">.</span><span class="na">net</span><span class="o">.</span><span class="na">ServerSocket</span><span class="o">.</span><span class="na">accept</span><span class="o">(</span><span class="n">ServerSocket</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">436</span><span class="o">)</span>
+</span><span class='line'>        <span class="n">at</span> <span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">tomcat</span><span class="o">.</span><span class="na">util</span><span class="o">.</span><span class="na">net</span><span class="o">.</span><span class="na">DefaultServerSocketFactory</span><span class="o">.</span><span class="na">acceptSocket</span><span class="o">(</span><span class="n">DefaultServerSocketFactory</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">60</span><span class="o">)</span>
+</span><span class='line'>        <span class="n">at</span> <span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">tomcat</span><span class="o">.</span><span class="na">util</span><span class="o">.</span><span class="na">net</span><span class="o">.</span><span class="na">JIoEndpoint</span><span class="n">$Acceptor</span><span class="o">.</span><span class="na">run</span><span class="o">(</span><span class="n">JIoEndpoint</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">216</span><span class="o">)</span>
+</span><span class='line'>        <span class="n">at</span> <span class="n">java</span><span class="o">.</span><span class="na">lang</span><span class="o">.</span><span class="na">Thread</span><span class="o">.</span><span class="na">run</span><span class="o">(</span><span class="n">Thread</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">680</span><span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'>   <span class="n">Locked</span> <span class="n">ownable</span> <span class="nl">synchronizers:</span>
+</span><span class='line'>        <span class="o">-</span> <span class="n">None</span>
+</span><span class='line'>
+</span><span class='line'><span class="s">&quot;http-bio-8080-AsyncTimeout&quot;</span> <span class="n">daemon</span> <span class="n">prio</span><span class="o">=</span><span class="mi">5</span> <span class="n">tid</span><span class="o">=</span><span class="mi">7</span><span class="n">f8735acb800</span> <span class="n">nid</span><span class="o">=</span><span class="mh">0x1158d0000</span> <span class="n">waiting</span> <span class="n">on</span> <span class="n">condition</span> <span class="o">[</span><span class="mi">1158</span><span class="n">cf000</span><span class="o">]</span>
+</span><span class='line'>   <span class="n">java</span><span class="o">.</span><span class="na">lang</span><span class="o">.</span><span class="na">Thread</span><span class="o">.</span><span class="na">State</span><span class="o">:</span> <span class="n">TIMED_WAITING</span> <span class="o">(</span><span class="n">sleeping</span><span class="o">)</span>
+</span><span class='line'>        <span class="n">at</span> <span class="n">java</span><span class="o">.</span><span class="na">lang</span><span class="o">.</span><span class="na">Thread</span><span class="o">.</span><span class="na">sleep</span><span class="o">(</span><span class="n">Native</span> <span class="n">Method</span><span class="o">)</span>
+</span><span class='line'>        <span class="n">at</span> <span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">tomcat</span><span class="o">.</span><span class="na">util</span><span class="o">.</span><span class="na">net</span><span class="o">.</span><span class="na">JIoEndpoint</span><span class="n">$AsyncTimeout</span><span class="o">.</span><span class="na">run</span><span class="o">(</span><span class="n">JIoEndpoint</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">148</span><span class="o">)</span>
+</span><span class='line'>        <span class="n">at</span> <span class="n">java</span><span class="o">.</span><span class="na">lang</span><span class="o">.</span><span class="na">Thread</span><span class="o">.</span><span class="na">run</span><span class="o">(</span><span class="n">Thread</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">680</span><span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'>   <span class="n">Locked</span> <span class="n">ownable</span> <span class="nl">synchronizers:</span>
+</span><span class='line'>        <span class="o">-</span> <span class="n">None</span>
+</span><span class='line'>
+</span><span class='line'><span class="s">&quot;http-bio-8080-Acceptor-0&quot;</span> <span class="n">daemon</span> <span class="n">prio</span><span class="o">=</span><span class="mi">5</span> <span class="n">tid</span><span class="o">=</span><span class="mi">7</span><span class="n">f8735acd000</span> <span class="n">nid</span><span class="o">=</span><span class="mh">0x1157cd000</span> <span class="n">runnable</span> <span class="o">[</span><span class="mi">1157</span><span class="n">cc000</span><span class="o">]</span>
+</span><span class='line'>   <span class="n">java</span><span class="o">.</span><span class="na">lang</span><span class="o">.</span><span class="na">Thread</span><span class="o">.</span><span class="na">State</span><span class="o">:</span> <span class="n">RUNNABLE</span>
+</span><span class='line'>        <span class="n">at</span> <span class="n">java</span><span class="o">.</span><span class="na">net</span><span class="o">.</span><span class="na">PlainSocketImpl</span><span class="o">.</span><span class="na">socketAccept</span><span class="o">(</span><span class="n">Native</span> <span class="n">Method</span><span class="o">)</span>
+</span><span class='line'>        <span class="n">at</span> <span class="n">java</span><span class="o">.</span><span class="na">net</span><span class="o">.</span><span class="na">PlainSocketImpl</span><span class="o">.</span><span class="na">accept</span><span class="o">(</span><span class="n">PlainSocketImpl</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">439</span><span class="o">)</span>
+</span><span class='line'>        <span class="o">-</span> <span class="n">locked</span> <span class="o">&lt;</span><span class="mi">7</span><span class="n">f46a8690</span><span class="o">&gt;</span> <span class="o">(</span><span class="n">a</span> <span class="n">java</span><span class="o">.</span><span class="na">net</span><span class="o">.</span><span class="na">SocksSocketImpl</span><span class="o">)</span>
+</span><span class='line'>        <span class="n">at</span> <span class="n">java</span><span class="o">.</span><span class="na">net</span><span class="o">.</span><span class="na">ServerSocket</span><span class="o">.</span><span class="na">implAccept</span><span class="o">(</span><span class="n">ServerSocket</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">468</span><span class="o">)</span>
+</span><span class='line'>        <span class="n">at</span> <span class="n">java</span><span class="o">.</span><span class="na">net</span><span class="o">.</span><span class="na">ServerSocket</span><span class="o">.</span><span class="na">accept</span><span class="o">(</span><span class="n">ServerSocket</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">436</span><span class="o">)</span>
+</span><span class='line'>        <span class="n">at</span> <span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">tomcat</span><span class="o">.</span><span class="na">util</span><span class="o">.</span><span class="na">net</span><span class="o">.</span><span class="na">DefaultServerSocketFactory</span><span class="o">.</span><span class="na">acceptSocket</span><span class="o">(</span><span class="n">DefaultServerSocketFactory</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">60</span><span class="o">)</span>
+</span><span class='line'>        <span class="n">at</span> <span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">tomcat</span><span class="o">.</span><span class="na">util</span><span class="o">.</span><span class="na">net</span><span class="o">.</span><span class="na">JIoEndpoint</span><span class="n">$Acceptor</span><span class="o">.</span><span class="na">run</span><span class="o">(</span><span class="n">JIoEndpoint</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">216</span><span class="o">)</span>
+</span><span class='line'>        <span class="n">at</span> <span class="n">java</span><span class="o">.</span><span class="na">lang</span><span class="o">.</span><span class="na">Thread</span><span class="o">.</span><span class="na">run</span><span class="o">(</span><span class="n">Thread</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">680</span><span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'>   <span class="n">Locked</span> <span class="n">ownable</span> <span class="nl">synchronizers:</span>
+</span><span class='line'>        <span class="o">-</span> <span class="n">None</span>
+</span><span class='line'>
+</span><span class='line'><span class="s">&quot;ContainerBackgroundProcessor[StandardEngine[Catalina]]&quot;</span> <span class="n">daemon</span> <span class="n">prio</span><span class="o">=</span><span class="mi">5</span> <span class="n">tid</span><span class="o">=</span><span class="mi">7</span><span class="n">f8732850800</span> <span class="n">nid</span><span class="o">=</span><span class="mh">0x111203000</span> <span class="n">waiting</span> <span class="n">on</span> <span class="n">condition</span> <span class="o">[</span><span class="mi">111202000</span><span class="o">]</span>
+</span><span class='line'>   <span class="n">java</span><span class="o">.</span><span class="na">lang</span><span class="o">.</span><span class="na">Thread</span><span class="o">.</span><span class="na">State</span><span class="o">:</span> <span class="n">TIMED_WAITING</span> <span class="o">(</span><span class="n">sleeping</span><span class="o">)</span>
+</span><span class='line'>        <span class="n">at</span> <span class="n">java</span><span class="o">.</span><span class="na">lang</span><span class="o">.</span><span class="na">Thread</span><span class="o">.</span><span class="na">sleep</span><span class="o">(</span><span class="n">Native</span> <span class="n">Method</span><span class="o">)</span>
+</span><span class='line'>        <span class="n">at</span> <span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">catalina</span><span class="o">.</span><span class="na">core</span><span class="o">.</span><span class="na">ContainerBase</span><span class="n">$ContainerBackgroundProcessor</span><span class="o">.</span><span class="na">run</span><span class="o">(</span><span class="n">ContainerBase</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">1508</span><span class="o">)</span>
+</span><span class='line'>        <span class="n">at</span> <span class="n">java</span><span class="o">.</span><span class="na">lang</span><span class="o">.</span><span class="na">Thread</span><span class="o">.</span><span class="na">run</span><span class="o">(</span><span class="n">Thread</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">680</span><span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'>   <span class="n">Locked</span> <span class="n">ownable</span> <span class="nl">synchronizers:</span>
+</span><span class='line'>        <span class="o">-</span> <span class="n">None</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="s">&quot;main&quot;</span> <span class="n">prio</span><span class="o">=</span><span class="mi">5</span> <span class="n">tid</span><span class="o">=</span><span class="mi">7</span><span class="n">f8735000800</span> <span class="n">nid</span><span class="o">=</span><span class="mh">0x10843e000</span> <span class="n">runnable</span> <span class="o">[</span><span class="mi">10843</span><span class="n">c000</span><span class="o">]</span>
+</span><span class='line'>   <span class="n">java</span><span class="o">.</span><span class="na">lang</span><span class="o">.</span><span class="na">Thread</span><span class="o">.</span><span class="na">State</span><span class="o">:</span> <span class="n">RUNNABLE</span>
+</span><span class='line'>        <span class="n">at</span> <span class="n">java</span><span class="o">.</span><span class="na">net</span><span class="o">.</span><span class="na">PlainSocketImpl</span><span class="o">.</span><span class="na">socketAccept</span><span class="o">(</span><span class="n">Native</span> <span class="n">Method</span><span class="o">)</span>
+</span><span class='line'>        <span class="n">at</span> <span class="n">java</span><span class="o">.</span><span class="na">net</span><span class="o">.</span><span class="na">PlainSocketImpl</span><span class="o">.</span><span class="na">accept</span><span class="o">(</span><span class="n">PlainSocketImpl</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">439</span><span class="o">)</span>
+</span><span class='line'>        <span class="o">-</span> <span class="n">locked</span> <span class="o">&lt;</span><span class="mi">7</span><span class="n">f32ea7c8</span><span class="o">&gt;</span> <span class="o">(</span><span class="n">a</span> <span class="n">java</span><span class="o">.</span><span class="na">net</span><span class="o">.</span><span class="na">SocksSocketImpl</span><span class="o">)</span>
+</span><span class='line'>        <span class="n">at</span> <span class="n">java</span><span class="o">.</span><span class="na">net</span><span class="o">.</span><span class="na">ServerSocket</span><span class="o">.</span><span class="na">implAccept</span><span class="o">(</span><span class="n">ServerSocket</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">468</span><span class="o">)</span>
+</span><span class='line'>        <span class="n">at</span> <span class="n">java</span><span class="o">.</span><span class="na">net</span><span class="o">.</span><span class="na">ServerSocket</span><span class="o">.</span><span class="na">accept</span><span class="o">(</span><span class="n">ServerSocket</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">436</span><span class="o">)</span>
+</span><span class='line'>        <span class="n">at</span> <span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">catalina</span><span class="o">.</span><span class="na">core</span><span class="o">.</span><span class="na">StandardServer</span><span class="o">.</span><span class="na">await</span><span class="o">(</span><span class="n">StandardServer</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">452</span><span class="o">)</span>
+</span><span class='line'>        <span class="n">at</span> <span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">catalina</span><span class="o">.</span><span class="na">startup</span><span class="o">.</span><span class="na">Catalina</span><span class="o">.</span><span class="na">await</span><span class="o">(</span><span class="n">Catalina</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">779</span><span class="o">)</span>
+</span><span class='line'>        <span class="n">at</span> <span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">catalina</span><span class="o">.</span><span class="na">startup</span><span class="o">.</span><span class="na">Catalina</span><span class="o">.</span><span class="na">start</span><span class="o">(</span><span class="n">Catalina</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">725</span><span class="o">)</span>
+</span><span class='line'>        <span class="n">at</span> <span class="n">sun</span><span class="o">.</span><span class="na">reflect</span><span class="o">.</span><span class="na">NativeMethodAccessorImpl</span><span class="o">.</span><span class="na">invoke0</span><span class="o">(</span><span class="n">Native</span> <span class="n">Method</span><span class="o">)</span>
+</span><span class='line'>        <span class="n">at</span> <span class="n">sun</span><span class="o">.</span><span class="na">reflect</span><span class="o">.</span><span class="na">NativeMethodAccessorImpl</span><span class="o">.</span><span class="na">invoke</span><span class="o">(</span><span class="n">NativeMethodAccessorImpl</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">39</span><span class="o">)</span>
+</span><span class='line'>        <span class="n">at</span> <span class="n">sun</span><span class="o">.</span><span class="na">reflect</span><span class="o">.</span><span class="na">DelegatingMethodAccessorImpl</span><span class="o">.</span><span class="na">invoke</span><span class="o">(</span><span class="n">DelegatingMethodAccessorImpl</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">25</span><span class="o">)</span>
+</span><span class='line'>        <span class="n">at</span> <span class="n">java</span><span class="o">.</span><span class="na">lang</span><span class="o">.</span><span class="na">reflect</span><span class="o">.</span><span class="na">Method</span><span class="o">.</span><span class="na">invoke</span><span class="o">(</span><span class="n">Method</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">597</span><span class="o">)</span>
+</span><span class='line'>        <span class="n">at</span> <span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">catalina</span><span class="o">.</span><span class="na">startup</span><span class="o">.</span><span class="na">Bootstrap</span><span class="o">.</span><span class="na">start</span><span class="o">(</span><span class="n">Bootstrap</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">322</span><span class="o">)</span>
+</span><span class='line'>        <span class="n">at</span> <span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">catalina</span><span class="o">.</span><span class="na">startup</span><span class="o">.</span><span class="na">Bootstrap</span><span class="o">.</span><span class="na">main</span><span class="o">(</span><span class="n">Bootstrap</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">456</span><span class="o">)</span>
+</span><span class='line'>        <span class="n">at</span> <span class="n">sun</span><span class="o">.</span><span class="na">reflect</span><span class="o">.</span><span class="na">NativeMethodAccessorImpl</span><span class="o">.</span><span class="na">invoke0</span><span class="o">(</span><span class="n">Native</span> <span class="n">Method</span><span class="o">)</span>
+</span><span class='line'>        <span class="n">at</span> <span class="n">sun</span><span class="o">.</span><span class="na">reflect</span><span class="o">.</span><span class="na">NativeMethodAccessorImpl</span><span class="o">.</span><span class="na">invoke</span><span class="o">(</span><span class="n">NativeMethodAccessorImpl</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">39</span><span class="o">)</span>
+</span><span class='line'>        <span class="n">at</span> <span class="n">sun</span><span class="o">.</span><span class="na">reflect</span><span class="o">.</span><span class="na">DelegatingMethodAccessorImpl</span><span class="o">.</span><span class="na">invoke</span><span class="o">(</span><span class="n">DelegatingMethodAccessorImpl</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">25</span><span class="o">)</span>
+</span><span class='line'>        <span class="n">at</span> <span class="n">java</span><span class="o">.</span><span class="na">lang</span><span class="o">.</span><span class="na">reflect</span><span class="o">.</span><span class="na">Method</span><span class="o">.</span><span class="na">invoke</span><span class="o">(</span><span class="n">Method</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">597</span><span class="o">)</span>
+</span><span class='line'>        <span class="n">at</span> <span class="n">com</span><span class="o">.</span><span class="na">intellij</span><span class="o">.</span><span class="na">rt</span><span class="o">.</span><span class="na">execution</span><span class="o">.</span><span class="na">application</span><span class="o">.</span><span class="na">AppMain</span><span class="o">.</span><span class="na">main</span><span class="o">(</span><span class="n">AppMain</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">120</span><span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>上面的截图我已经取消了JVM自己本生的线程，从上图中我们可以清楚的看到，有6条线程，其中<code>ajp-bio-8009-AsyncTimeout</code>和<code>ajp-bio-8009-Acceptor-0</code>是在Ajp的Connector启动的时候启动的，<code>http-bio-8080-AsyncTimeout</code>和<code>http-bio-8080-Acceptor-0</code>是http的Connector启动的时候启动的，<code>ContainerBackgroundProcessor[StandardEngine[Catalina]]</code>是在StandardEngine启动的时候启动的，而main线程就是我们的主线程。这里还需要注意一点就是除了Main线程以外，其它的线程都是Dameon线程，相关的内容在下篇<a href="">Tomcat的关闭</a>我们再来详细说明。</p>
 </div>
 
 </article>

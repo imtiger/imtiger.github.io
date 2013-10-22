@@ -4,7 +4,7 @@
   <title><![CDATA[Category: 技术 | I'm Tiger,一个有理想爱折腾的程序员!]]></title>
   <link href="http://imtiger.github.io/blog/categories/ji-zhu/atom.xml" rel="self"/>
   <link href="http://imtiger.github.io/"/>
-  <updated>2013-10-19T16:45:42+08:00</updated>
+  <updated>2013-10-22T14:58:03+08:00</updated>
   <id>http://imtiger.github.io/</id>
   <author>
     <name><![CDATA[imtiger]]></name>
@@ -12,6 +12,337 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Tomcat关闭过程（Tomcat源代码阅读系列之四）]]></title>
+    <link href="http://imtiger.github.io/blog/2013/10/21/tomcat-shutdown/"/>
+    <updated>2013-10-21T14:45:00+08:00</updated>
+    <id>http://imtiger.github.io/blog/2013/10/21/tomcat-shutdown</id>
+    <content type="html"><![CDATA[<p><img class="center" src="/images/2013/10/14/apache_tomcat_bag.jpg">
+本文是<a href="/blog/2013/10/08/tomcat-source-code-study/">Tomcat源代码阅读系列</a>的第四篇文章，在阅读此文之前，建议先读前三篇：<br/>
+<a href="/blog/2013/10/14/run-tomcat-in-idea-or-eclipse/">在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码（Tomcat源代码阅读系列之一）</a> <br/>
+<a href="/blog/2013/10/16/tomcat-architecture/">Tomcat总体结构                             （Tomcat源代码阅读系列之二）</a><br/>
+<a href="/blog/2013/10/17/tomcat-start-process/">Tomcat启动过程（Tomcat源代码阅读系列之三）</a></p>
+
+<p>我们在<a href="/blog/2013/10/17/tomcat-start-process/">Tomcat启动过程（Tomcat源代码阅读系列之三）</a>一文中已经知道Tomcat启动以后，会启动6条线程，他们分别如下：</p>
+
+<!-- more -->
+
+
+<p>```java Tomcat threads
+&ldquo;ajp-bio-8009-AsyncTimeout&rdquo; daemon prio=5 tid=7f8738afe000 nid=0x115ad6000 waiting on condition [115ad5000]</p>
+
+<p>&ldquo;ajp-bio-8009-Acceptor-0&rdquo; daemon prio=5 tid=7f8738b05800 nid=0x1159d3000 runnable [1159d2000]</p>
+
+<p>&ldquo;http-bio-8080-AsyncTimeout&rdquo; daemon prio=5 tid=7f8735acb800 nid=0x1158d0000 waiting on condition [1158cf000]</p>
+
+<p>&ldquo;http-bio-8080-Acceptor-0&rdquo; daemon prio=5 tid=7f8735acd000 nid=0x1157cd000 runnable [1157cc000]</p>
+
+<p>&ldquo;ContainerBackgroundProcessor[StandardEngine[Catalina]]&rdquo; daemon prio=5 tid=7f8732850800 nid=0x111203000 waiting on condition [111202000]</p>
+
+<p>&ldquo;main&rdquo; prio=5 tid=7f8735000800 nid=0x10843e000 runnable [10843c000]
+```</p>
+
+<p>其中5条是Dameon线程，而对于Java程序来说，当所有非Dameon程序都终止的时候，Jvm就会退出，因此要想终止Tomcat就只需要将main这一条非Dameon线程终止了即可。</p>
+
+<blockquote><p>Dameon线程又叫后台或者守护线程，它负责在程序运行期提供一种通用服务的线程，比如垃圾收集线程，非Dameon线程和Dameon线程的区别就在于当程序中所有的非Daemon线程都终止的时候，Jvm会杀死余下的Dameon线程，然后退出。</p></blockquote>
+
+<p>接下来，我们就来一步步的分析如何来让main线程终止，要想终止它，我们还是得从Tomcat的启动中来寻找答案，我们在分析Tomcat容器启动的时候，在Catalina#start中有一段代码，我们没有关注，接下来就来看看这段代码：
+```java org.apache.catalina.startup.Catalina#start
+public void start() {</p>
+
+<pre><code>// ignore other code 
+
+// Register shutdown hook
+// 1 
+if (useShutdownHook) {
+    if (shutdownHook == null) {
+        shutdownHook = new CatalinaShutdownHook();
+    }
+    Runtime.getRuntime().addShutdownHook(shutdownHook);
+
+    // If JULI is being used, disable JULI's shutdown hook since
+    // shutdown hooks run in parallel and log messages may be lost
+    // if JULI's hook completes before the CatalinaShutdownHook()
+    LogManager logManager = LogManager.getLogManager();
+    if (logManager instanceof ClassLoaderLogManager) {
+        ((ClassLoaderLogManager) logManager).setUseShutdownHook(
+                false);
+    }
+}
+
+// 2
+if (await) {
+    await();
+    stop();
+}
+</code></pre>
+
+<p>}</p>
+
+<p>```</p>
+
+<p>这里就是Tomcat关闭流程的入口代码了。我在代码中标注了两处，我们首先来看标注1的地方。标注1的代码，我们用到了Jvm的shutdownHook机制。对于shutdownHook大家可以参考<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Runtime.html#addShutdownHook%28java.lang.Thread%29">这个连接</a>,我这里做一个简单的介绍，shutdown hook是一个已经初始化但是还没有启动的线程，当Jvm关闭的时候，它会启动并并发的运行所有已经注册过的shutdown hooks，知道了这点，我们就来看看<code>CatalinaShutdownHook</code>线程做了什么事情？它的代码如下：
+```java org.apache.catalina.startup.Catalina.CatalinaShutdownHook#run</p>
+
+<p>public void run() {</p>
+
+<pre><code>try {
+    if (getServer() != null) {
+        Catalina.this.stop();
+    }
+} catch (Throwable ex) {
+    ExceptionUtils.handleThrowable(ex);
+    log.error(sm.getString("catalina.shutdownHookFail"), ex);
+} finally {
+    // If JULI is used, shut JULI down *after* the server shuts down
+    // so log messages aren't lost
+    LogManager logManager = LogManager.getLogManager();
+    if (logManager instanceof ClassLoaderLogManager) {
+        ((ClassLoaderLogManager) logManager).shutdown();
+    }
+}
+</code></pre>
+
+<p>}
+```
+通过上面的代码，我们可以清楚的看到调用了Catalina的stop方法。而Catalina#stop方法最终又是调用了StandardServer#stop方法和destroy方法。通过这里，我们知道Tomcat利用了shutdown hook机制来在Jvm关闭的时候关闭各个组件。但是Jvm又是何时退出的呢？这就要来看标注为2的代码了。</p>
+
+<p>接下来我们再来看看标注2的地方：在标注为2的代码中，首先判断了await属性是否为true,如果为true就调用await()，调用完以后，再调用stop方法，接下来我们就来看await()方法,而catalina的awit方法又调用了StandardServer#awit方法，它的代码如下：
+```java org.apache.catalina.core.StandardServer#await
+public void await() {</p>
+
+<pre><code>// Set up a server socket to wait on
+try {
+    awaitSocket = new ServerSocket(port, 1,
+            InetAddress.getByName(address));
+} catch (IOException e) {
+    log.error("StandardServer.await: create[" + address
+                       + ":" + port
+                       + "]: ", e);
+    return;
+}
+
+try {
+    awaitThread = Thread.currentThread();
+
+    // Loop waiting for a connection and a valid command
+    while (!stopAwait) {
+        ServerSocket serverSocket = awaitSocket;
+        if (serverSocket == null) {
+            break;
+        }
+
+        // Wait for the next connection
+        Socket socket = null;
+        StringBuilder command = new StringBuilder();
+        try {
+            InputStream stream;
+            try {
+                socket = serverSocket.accept();
+                socket.setSoTimeout(10 * 1000);  // Ten seconds
+                stream = socket.getInputStream();
+            } catch (AccessControlException ace) {
+                log.warn("StandardServer.accept security exception: "
+                        + ace.getMessage(), ace);
+                continue;
+            } catch (IOException e) {
+                if (stopAwait) {
+                    // Wait was aborted with socket.close()
+                    break;
+                }
+                log.error("StandardServer.await: accept: ", e);
+                break;
+            }
+
+            // Read a set of characters from the socket
+            int expected = 1024; // Cut off to avoid DoS attack
+            while (expected &lt; shutdown.length()) {
+                if (random == null)
+                    random = new Random();
+                expected += (random.nextInt() % 1024);
+            }
+            while (expected &gt; 0) {
+                int ch = -1;
+                try {
+                    ch = stream.read();
+                } catch (IOException e) {
+                    log.warn("StandardServer.await: read: ", e);
+                    ch = -1;
+                }
+                if (ch &lt; 32)  // Control character or EOF terminates loop
+                    break;
+                command.append((char) ch);
+                expected--;
+            }
+        } finally {
+            // Close the socket now that we are done with it
+            try {
+                if (socket != null) {
+                    socket.close();
+                }
+            } catch (IOException e) {
+                // Ignore
+            }
+        }
+
+        // Match against our command string
+        boolean match = command.toString().equals(shutdown);
+        if (match) {
+            log.info(sm.getString("standardServer.shutdownViaPort"));
+            break;
+        } else
+            log.warn("StandardServer.await: Invalid command '"
+                    + command.toString() + "' received");
+    }
+} finally {
+    ServerSocket serverSocket = awaitSocket;
+    awaitThread = null;
+    awaitSocket = null;
+
+    // Close the server socket and return
+    if (serverSocket != null) {
+        try {
+            serverSocket.close();
+        } catch (IOException e) {
+            // Ignore
+        }
+    }
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>通过上面的代码，我们可以看出在配置的端口上通过ServerSocket来监听一个请求的到来，如果请求的字符串和配置的字符串相同的话即跳出循环，这样的话就会运行stop方法，运行完了以后，main线程就退出了。</p>
+
+<blockquote><p>这里ServerSocket监听的端口，以及对比的字符串都是在conf/server.xml中配置的，缺省情况下，配置如下：<Server port="8005" shutdown="SHUTDOWN"></Server>,从这里可以看出监听端口为8005,关闭请求发送的字符串为SHUTDOWN.</p></blockquote>
+
+<p>看到这里，我们基本上已经清楚了Tomcat的关闭就是通过在8005端口，发送一个SHUTDOWN字符串。那么我们就来实验一下。首先启动Tomcat，然后在终端运行如下指令：
+<code>bash telnet
+telnet 127.0.0.1 8005
+Trying 127.0.0.1...
+Connected to localhost.
+Escape character is '^]'.
+SHUTDOWN
+Connection closed by foreign host.
+</code>
+运行telnet命令，并发送SHUTDOWN字符串以后，我们发现Tomcat就会退出await方法，然后执行stop方法最终停止。</p>
+
+<p>但是一般情况下，我们停止tomcat都不会像上面那种方式来关闭，我们一般有两种方式来关闭：</p>
+
+<ol>
+<li>ps aux | grep java ,kill -9 <pid><br/>
+对于这种方式，比较简单粗暴会直接干掉进程，不过这种简单粗暴的方式我也经常用。</li>
+<li>运行shutdown.sh<br/>
+这种方式其实最终也是向server发送了一个SHUTDOWN字符串，我们接下来分析下第二种情况。<br/>
+查看shutdown.sh最终是调用了 catalina.sh，并传递了stop参数。查看catalina.sh脚本，最终其实是调用了 <code>org.apache.catalina.startup.Bootstrap#main</code>,并传递参数stop.我们查看Bootstrap#main方法，发现会调用<code>org.apache.catalina.startup.Bootstrap#stopServer</code>,而Bootstrap#stopServer通过反射调用了<code>org.apache.catalina.startup.Catalina#stopServer</code>,我们来看看Catalina#stopServer方法，代码如下：
+```java org.apache.catalina.startup.Catalina#stopServer</li>
+</ol>
+
+
+<p>public void stopServer(String[] arguments) {</p>
+
+<pre><code>if (arguments != null) {
+    arguments(arguments);
+}
+
+Server s = getServer();
+// 1 
+if( s == null ) {
+    // Create and execute our Digester
+    Digester digester = createStopDigester();
+    digester.setClassLoader(Thread.currentThread().getContextClassLoader());
+    File file = configFile();
+    FileInputStream fis = null;
+    try {
+        InputSource is =
+            new InputSource(file.toURI().toURL().toString());
+        fis = new FileInputStream(file);
+        is.setByteStream(fis);
+        digester.push(this);
+        digester.parse(is);
+    } catch (Exception e) {
+        log.error("Catalina.stop: ", e);
+        System.exit(1);
+    } finally {
+        if (fis != null) {
+            try {
+                fis.close();
+            } catch (IOException e) {
+                // Ignore
+            }
+        }
+    }
+} else {
+    // Server object already present. Must be running as a service
+    try {
+        s.stop();
+    } catch (LifecycleException e) {
+        log.error("Catalina.stop: ", e);
+    }
+    return;
+}
+
+// Stop the existing server
+s = getServer();
+// 2
+if (s.getPort()&gt;0) {
+    Socket socket = null;
+    OutputStream stream = null;
+    try {
+        socket = new Socket(s.getAddress(), s.getPort());
+        stream = socket.getOutputStream();
+        String shutdown = s.getShutdown();
+        for (int i = 0; i &lt; shutdown.length(); i++) {
+            stream.write(shutdown.charAt(i));
+        }
+        stream.flush();
+    } catch (ConnectException ce) {
+        log.error(sm.getString("catalina.stopServer.connectException",
+                               s.getAddress(),
+                               String.valueOf(s.getPort())));
+        log.error("Catalina.stop: ", ce);
+        System.exit(1);
+    } catch (IOException e) {
+        log.error("Catalina.stop: ", e);
+        System.exit(1);
+    } finally {
+        if (stream != null) {
+            try {
+                stream.close();
+            } catch (IOException e) {
+                // Ignore
+            }
+        }
+        if (socket != null) {
+            try {
+                socket.close();
+            } catch (IOException e) {
+                // Ignore
+            }
+        }
+    }
+} else {
+    log.error(sm.getString("catalina.stopServer"));
+    System.exit(1);
+}
+</code></pre>
+
+<p>}
+```
+我们来分析一下标注的地方：</p>
+
+<ol>
+<li>标注1的代码，此时因为是新开了一个进程,并且conf/server.xml还没有解析，因此s是NULL，通过Digester解析conf/server.xml，最终生成了未初始化的StandardServer对象。</li>
+<li>标注2的代码，向standardServer.getPort返回的端口（其实这里面返回即是conf/server.xml中Server根节点配置的port和shutdown属性）发送了standardServer.getShutdown()返回的字符串，而默认情况下这个字符串就是SHUTDOWN.</li>
+</ol>
+
+
+<p>分析到这里，我想大家已经清楚了Tomcat的关闭流程，我们再来总结一下：
+Tomcat启动的时候的主线程会在8005端口（默认配置，可以更改）上建立socket监听，当关闭的时候，最终其实就是新起了一个进程然后向Tomcat主线程监听的8005端口发送了一个SHUTDOWN字符串，这样主线程就会结束了，主线程结束了以后，因为其它的线程都是dameon线程，这样依赖Jvm就会退出了。</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Tomcat启动过程（Tomcat源代码阅读系列之三）]]></title>
@@ -733,6 +1064,8 @@ protected final void startAcceptorThreads() {</p>
 <code>``
 通过上面的代码，我们可以看出其实是通过</code>org.apache.tomcat.util.net.AbstractEndpoint.Acceptor<code>这个Runable接口的实现类来启动线程，接下来我们就来看看Acceptor#run方法，通过查看run方法，它里面其实就是调用了</code>java.net.ServerSocket#accept`的方法来接受一个Socket连接。</p>
 
+<p>启动完了Acceptor线程以后，接着就会启动AsyncTimeout线程，而这里面需要注意的时候，无论是Acceptor还是AsyncTimeout线程，它们都是Daemon线程，而设置为Daemon的原因，我们会在下篇<a href="">Tomcat的关闭</a>中进行说明。</p>
+
 <h2>StandardEngine#start</h2>
 
 <p>从本文上面的分析中，我们得知StandardEngine继承了ContainerBase，而StandardEngine的startInternal钩子方法也仅仅是调用了父类ContainerBase的startInternal方法，那接下来我们分析一下ContainerBase的startInternal方法，代码如下：</p>
@@ -787,9 +1120,10 @@ private static class StartChild implements Callable<Void> {</p>
 </code></pre>
 
 <p>}
-<code>
-通过上面的代码，我们可以看到StartChild实现了Callable接口，实现这个接口的类可以将其放到对应的executor中执行（对于executor不熟悉的童鞋可以去看一下相关的文章，本文不做介绍），StartChild在运行的时候就会调用到子容器的start方法，而此时的父容器是StandardEngine，子容器就是StandardHost,接下来我们就来看看StandardHost的启动过程。通过前面对于init流程的分析，我们知道StandardHost不是在StandardEngine#init的时候初始化，因此在执行StandardHost#start的时候，要首先进行init方法的调用，具体的代码如下：
-</code>java org.apache.catalina.util.LifecycleBase#start
+```</p>
+
+<p>通过上面的代码，我们可以看到StartChild实现了Callable接口，实现这个接口的类可以将其放到对应的executor中执行（对于executor不熟悉的童鞋可以去看一下相关的文章，本文不做介绍），StartChild在运行的时候就会调用到子容器的start方法，而此时的父容器是StandardEngine，子容器就是StandardHost,接下来我们就来看看StandardHost的启动过程。通过前面对于init流程的分析，我们知道StandardHost不是在StandardEngine#init的时候初始化，因此在执行StandardHost#start的时候，要首先进行init方法的调用，具体的代码如下：
+```java org.apache.catalina.util.LifecycleBase#start
 public final synchronized void start() throws LifecycleException {</p>
 
 <pre><code>if (state.equals(LifecycleState.NEW)) {
@@ -825,6 +1159,26 @@ try {
 因此分析到这里我们可以得出如下结论：</p>
 
 <blockquote><p>对于StandardEngine，StandardHost的启动，父容器在init的时候创建一个启动和停止子容器的线程池，然后父容器启动的时候首先通过异步的方式将子容器的启动通过<code>org.apache.catalina.core.ContainerBase.StartChild</code>提交到父容器中对应的线程池中进行启动，而子容器启动的时候首先会初始化，然后再启动。</p></blockquote>
+
+<p>另外这里还需要注意一点就是，StandEngine#start的时候，最终调用了ContainerBase#startInternal方法，而ContainerBase#startInternal的最后，调用了threadStart(),我们来看看它的代码如下：
+```java org.apache.catalina.core.ContainerBase#threadStart
+protected void threadStart() {</p>
+
+<pre><code>    if (thread != null)
+        return;
+    if (backgroundProcessorDelay &lt;= 0)
+        return;
+
+    threadDone = false;
+    String threadName = "ContainerBackgroundProcessor[" + toString() + "]";
+    thread = new Thread(new ContainerBackgroundProcessor(), threadName);
+    thread.setDaemon(true);
+    thread.start();
+</code></pre>
+
+<p>}
+```
+上面的代码，首先会判断backgroundProcessorDelay是否小于0，而这个值默认情况下是-1，也就意味这后面的代码不会运行，而对于StandardEngine来说，它将backgroundProcessorDelay的值在构造函数中赋值为了10，这样的话，当StandardEngine启动的时候，就会启动名称为“ContainerBackgroundProcessor[StandardEngine[Catalina]]”的线程。</p>
 
 <p>经过上面的分析，我们已经清楚了StandardEngine启动的过程了，但是我们还有一个地方需要进一步的分析。因为上面的分析我们仅仅只是分析了容器通过conf/server.xml配置文件的配置结构进行的启动，而我们都知道<code>CATALINA-HOME/webapps/</code>中的应用也是需要启动的，那么webapps目录的应用又是如何启动的呢？我们下面来分析一下，通过<a href="/blog/2013/10/16/tomcat-architecture/">Tomcat总体结构</a>的描述，我们已经知道，webapps目录下面的应用其实是属于Context的，而Context对应Tomcat中的StandardContext类，因此我们就知道应该对谁下手了，知道了目标以后，咋们还是采用之前的那种方式，要么debug,要么打印调用栈，这里我们还是通过打印调用栈的方式进行，我们在<code>org.apache.catalina.core.StandardContext#initInternal</code>中增加打印调用栈的方法，具体代码如下：
 ```java org.apache.catalina.core.StandardContext#initInternal
@@ -916,6 +1270,113 @@ public void lifecycleEvent(LifecycleEvent event) {</p>
 <p>通过上面的分析我们清楚了webapps目录中context的启动，总结如下：</p>
 
 <blockquote><p>webapps目录中应用的启动在StandardHost#start的时候，通过<code>Lifecycle.START_EVENT</code>这个事件的监听器HostConfig进行进一步的启动。</p></blockquote>
+
+<p>综合上面的文章所述,最后我们再来一下总结，我们知道Java程序启动以后，最终会以进程的形式存在，而Java进程中又会有很多条线程存在，因此最后我们就来看看Tomcat启动以后，到底启动了哪些线程，通过这些我们可以反过来验证我们对源代码的理解是否正确。接下来我们启动Tomcat，然后运行<code>jstack -l &lt;pid&gt;</code>来看看，在笔者的机器上面，jstack的输入如下所示：
+```java Tomcat threads
+Full thread dump Java HotSpot&trade; 64-Bit Server VM (20.51-b01-457 mixed mode):</p>
+
+<p>&ldquo;ajp-bio-8009-AsyncTimeout&rdquo; daemon prio=5 tid=7f8738afe000 nid=0x115ad6000 waiting on condition [115ad5000]
+   java.lang.Thread.State: TIMED_WAITING (sleeping)</p>
+
+<pre><code>    at java.lang.Thread.sleep(Native Method)
+    at org.apache.tomcat.util.net.JIoEndpoint$AsyncTimeout.run(JIoEndpoint.java:148)
+    at java.lang.Thread.run(Thread.java:680)
+</code></pre>
+
+<p>   Locked ownable synchronizers:</p>
+
+<pre><code>    - None
+</code></pre>
+
+<p>&ldquo;ajp-bio-8009-Acceptor-0&rdquo; daemon prio=5 tid=7f8738b05800 nid=0x1159d3000 runnable [1159d2000]
+   java.lang.Thread.State: RUNNABLE</p>
+
+<pre><code>    at java.net.PlainSocketImpl.socketAccept(Native Method)
+    at java.net.PlainSocketImpl.accept(PlainSocketImpl.java:439)
+    - locked &lt;7f46a8710&gt; (a java.net.SocksSocketImpl)
+    at java.net.ServerSocket.implAccept(ServerSocket.java:468)
+    at java.net.ServerSocket.accept(ServerSocket.java:436)
+    at org.apache.tomcat.util.net.DefaultServerSocketFactory.acceptSocket(DefaultServerSocketFactory.java:60)
+    at org.apache.tomcat.util.net.JIoEndpoint$Acceptor.run(JIoEndpoint.java:216)
+    at java.lang.Thread.run(Thread.java:680)
+</code></pre>
+
+<p>   Locked ownable synchronizers:</p>
+
+<pre><code>    - None
+</code></pre>
+
+<p>&ldquo;http-bio-8080-AsyncTimeout&rdquo; daemon prio=5 tid=7f8735acb800 nid=0x1158d0000 waiting on condition [1158cf000]
+   java.lang.Thread.State: TIMED_WAITING (sleeping)</p>
+
+<pre><code>    at java.lang.Thread.sleep(Native Method)
+    at org.apache.tomcat.util.net.JIoEndpoint$AsyncTimeout.run(JIoEndpoint.java:148)
+    at java.lang.Thread.run(Thread.java:680)
+</code></pre>
+
+<p>   Locked ownable synchronizers:</p>
+
+<pre><code>    - None
+</code></pre>
+
+<p>&ldquo;http-bio-8080-Acceptor-0&rdquo; daemon prio=5 tid=7f8735acd000 nid=0x1157cd000 runnable [1157cc000]
+   java.lang.Thread.State: RUNNABLE</p>
+
+<pre><code>    at java.net.PlainSocketImpl.socketAccept(Native Method)
+    at java.net.PlainSocketImpl.accept(PlainSocketImpl.java:439)
+    - locked &lt;7f46a8690&gt; (a java.net.SocksSocketImpl)
+    at java.net.ServerSocket.implAccept(ServerSocket.java:468)
+    at java.net.ServerSocket.accept(ServerSocket.java:436)
+    at org.apache.tomcat.util.net.DefaultServerSocketFactory.acceptSocket(DefaultServerSocketFactory.java:60)
+    at org.apache.tomcat.util.net.JIoEndpoint$Acceptor.run(JIoEndpoint.java:216)
+    at java.lang.Thread.run(Thread.java:680)
+</code></pre>
+
+<p>   Locked ownable synchronizers:</p>
+
+<pre><code>    - None
+</code></pre>
+
+<p>&ldquo;ContainerBackgroundProcessor[StandardEngine[Catalina]]&rdquo; daemon prio=5 tid=7f8732850800 nid=0x111203000 waiting on condition [111202000]
+   java.lang.Thread.State: TIMED_WAITING (sleeping)</p>
+
+<pre><code>    at java.lang.Thread.sleep(Native Method)
+    at org.apache.catalina.core.ContainerBase$ContainerBackgroundProcessor.run(ContainerBase.java:1508)
+    at java.lang.Thread.run(Thread.java:680)
+</code></pre>
+
+<p>   Locked ownable synchronizers:</p>
+
+<pre><code>    - None
+</code></pre>
+
+<p>&ldquo;main&rdquo; prio=5 tid=7f8735000800 nid=0x10843e000 runnable [10843c000]
+   java.lang.Thread.State: RUNNABLE</p>
+
+<pre><code>    at java.net.PlainSocketImpl.socketAccept(Native Method)
+    at java.net.PlainSocketImpl.accept(PlainSocketImpl.java:439)
+    - locked &lt;7f32ea7c8&gt; (a java.net.SocksSocketImpl)
+    at java.net.ServerSocket.implAccept(ServerSocket.java:468)
+    at java.net.ServerSocket.accept(ServerSocket.java:436)
+    at org.apache.catalina.core.StandardServer.await(StandardServer.java:452)
+    at org.apache.catalina.startup.Catalina.await(Catalina.java:779)
+    at org.apache.catalina.startup.Catalina.start(Catalina.java:725)
+    at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+    at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)
+    at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)
+    at java.lang.reflect.Method.invoke(Method.java:597)
+    at org.apache.catalina.startup.Bootstrap.start(Bootstrap.java:322)
+    at org.apache.catalina.startup.Bootstrap.main(Bootstrap.java:456)
+    at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+    at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)
+    at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)
+    at java.lang.reflect.Method.invoke(Method.java:597)
+    at com.intellij.rt.execution.application.AppMain.main(AppMain.java:120)
+</code></pre>
+
+<p>```</p>
+
+<p>上面的截图我已经取消了JVM自己本生的线程，从上图中我们可以清楚的看到，有6条线程，其中<code>ajp-bio-8009-AsyncTimeout</code>和<code>ajp-bio-8009-Acceptor-0</code>是在Ajp的Connector启动的时候启动的，<code>http-bio-8080-AsyncTimeout</code>和<code>http-bio-8080-Acceptor-0</code>是http的Connector启动的时候启动的，<code>ContainerBackgroundProcessor[StandardEngine[Catalina]]</code>是在StandardEngine启动的时候启动的，而main线程就是我们的主线程。这里还需要注意一点就是除了Main线程以外，其它的线程都是Dameon线程，相关的内容在下篇<a href="">Tomcat的关闭</a>我们再来详细说明。</p>
 ]]></content>
   </entry>
   
@@ -1622,28 +2083,6 @@ private int valueId;
 <p>假如锅这个类目下面有个炒锅一个子类目，如果随着运营的不断深化，我们发现消费者非常关注炒锅是铁的还是不锈钢的，从行业标准类目的角度来说，铁，不锈钢是炒锅类目材质这个类目属性的两个不同的类目属性值，但是消费者认为铁炒锅是一个类，不锈钢炒锅是另外一个类，那么我们其实就可以做一个导航类目叫<code>铁质炒锅</code>，另外一个导航类目叫<code>不锈钢炒锅</code>，这样用户就可以直接通过类目导航到最终的搜索结果，而不用首先选择炒锅，然后在列表页面选择铁或者不锈钢再来检索了。这个时候不锈钢炒锅对于我们的系统来说，其实是<code>炒锅+材质:不锈钢</code>这个搜索条件的组合，假如炒锅类目id为100，材质属性id为200，不锈钢属性值id为300，那么上面的查询请求，我们就可以转化为<code>100+200:300</code>查询条件，说到这里大家可能已经猜到了我们导航类目应该如何和行业标准类目关联了，其实最简单的方式就是在导航类目中用一个属性保存它关联的后台标准类目id，用另外一个属性保存对应的属性和属性值组合就可以了，当然了你也可以指定一个数据结构来对<code>[类目]* + [属性:属性值]*</code>这中结构进行抽象，然后在导航类目中用一个属性来保存以上的数据结构即可。说到这里我们会发现<code>导航类目</code>其实就是一种对<code>行业标准类目</code>，<code>类目属性</code>和<code>类目属性值</code>的组合。</p>
 
 <p>本文通过一个简单的例子来总结了一下电子商务网站类目设计中相关的一些问题，也欢迎有这方面经验的朋友一起讨论一下。</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Tomcat源代码阅读系列开篇]]></title>
-    <link href="http://imtiger.github.io/blog/2013/10/08/tomcat-source-code-study/"/>
-    <updated>2013-10-08T11:18:00+08:00</updated>
-    <id>http://imtiger.github.io/blog/2013/10/08/tomcat-source-code-study</id>
-    <content type="html"><![CDATA[<p><img class="center" src="/images/2013/10/14/apache_tomcat_bag.jpg">
-我想学习Java开发的童鞋，或多或少的都应该接触过Tomcat，Tomcat在Java web开发中占据着非常重要的地位。</p>
-
-<p>之前的时候也林林总总的阅读过Tomcat源代码，但是没有进行过总结。另外我觉得一个技术自己掌握了是一个层次，能将自己掌握的技术，通过文字或者语言跟其他人交流，并让其他人也能快速的理解自己表达意思有是另外一个层次了。因此我决定将自己阅读Tomcat源代码的过程记录一下，并分享到博客中，让有同样兴趣的童鞋可以参考下，也欢迎各位童鞋讨论。</p>
-
-<p>接下来我们就来说说本系列所涉及的主要内容吧。<br/>
-<a href="/blog/2013/10/14/run-tomcat-in-idea-or-eclipse/">在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码（Tomcat源代码阅读系列之一）</a>  <br/>
-<a href="/blog/2013/10/16/tomcat-architecture/">Tomcat总体结构（Tomcat源代码阅读系列之二）</a><br/>
-<a href="/blog/2013/10/17/tomcat-start-process/">Tomcat启动过程（Tomcat源代码阅读系列之三）</a><br/>
-<a href="#">Tomcat关闭过程</a>  (未完成)<br/>
-<a href="#">Tomcat请求处理流程</a> (未完成)    <br/>
-<a href="#">Tomcat类加载器机制</a> (未完成) <br/>
-<a href="#">Tomcat Session管理机制</a>(未完成)  <br/>
-<a href="#">Tomcat 涉及的设计模式总结</a> (未完成)</p>
 ]]></content>
   </entry>
   
