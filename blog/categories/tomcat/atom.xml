@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Tomcat | I'm Tiger,一个有理想爱折腾的程序员!]]></title>
   <link href="http://imtiger.github.io/blog/categories/tomcat/atom.xml" rel="self"/>
   <link href="http://imtiger.github.io/"/>
-  <updated>2013-10-22T14:58:03+08:00</updated>
+  <updated>2013-10-22T17:01:48+08:00</updated>
   <id>http://imtiger.github.io/</id>
   <author>
     <name><![CDATA[imtiger]]></name>
@@ -1875,7 +1875,7 @@ Have fun and Enjoy!
 <a href="/blog/2013/10/14/run-tomcat-in-idea-or-eclipse/">在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码（Tomcat源代码阅读系列之一）</a>  <br/>
 <a href="/blog/2013/10/16/tomcat-architecture/">Tomcat总体结构（Tomcat源代码阅读系列之二）</a><br/>
 <a href="/blog/2013/10/17/tomcat-start-process/">Tomcat启动过程（Tomcat源代码阅读系列之三）</a><br/>
-<a href="#">Tomcat关闭过程</a>  (未完成)<br/>
+<a href="#">Tomcat关闭过程</a>  (已完成)<br/>
 <a href="#">Tomcat请求处理流程</a> (未完成)    <br/>
 <a href="#">Tomcat类加载器机制</a> (未完成) <br/>
 <a href="#">Tomcat Session管理机制</a>(未完成)  <br/>
