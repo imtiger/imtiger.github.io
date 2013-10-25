@@ -76,7 +76,7 @@
     </url>
     <url>
         <loc>http://imtiger.github.io/blog/2013/10/08/tomcat-source-code-study/</loc>
-        <lastmod>2013-10-22T17:01:41+08:00</lastmod>
+        <lastmod>2013-10-25T15:04:52+08:00</lastmod>
     </url>
     <url>
         <loc>http://imtiger.github.io/blog/2013/10/11/category-design-of-e-commerce-website/</loc>
@@ -99,6 +99,10 @@
         <lastmod>2013-10-22T14:36:50+08:00</lastmod>
     </url>
     <url>
+        <loc>http://imtiger.github.io/blog/2013/10/24/tomcat-request-process/</loc>
+        <lastmod>2013-10-25T15:06:04+08:00</lastmod>
+    </url>
+    <url>
         <loc>http://imtiger.github.io/404.html</loc>
         <lastmod>2013-10-08T18:06:51+08:00</lastmod>
     </url>
@@ -108,11 +112,11 @@
     </url>
     <url>
         <loc>http://imtiger.github.io/archives/</loc>
-        <lastmod>2013-10-22T17:01:41+08:00</lastmod>
+        <lastmod>2013-10-25T15:06:04+08:00</lastmod>
     </url>
     <url>
         <loc>http://imtiger.github.io/blog/archives/</loc>
-        <lastmod>2013-10-22T17:01:41+08:00</lastmod>
+        <lastmod>2013-10-25T15:06:04+08:00</lastmod>
     </url>
     <url>
         <loc>http://imtiger.github.io/blog/categories/</loc>
@@ -120,7 +124,7 @@
     </url>
     <url>
         <loc>http://imtiger.github.io/blog/</loc>
-        <lastmod>2013-10-22T17:01:41+08:00</lastmod>
+        <lastmod>2013-10-25T15:06:04+08:00</lastmod>
     </url>
     <url>
         <loc>http://imtiger.github.io/book/</loc>
@@ -128,7 +132,7 @@
     </url>
     <url>
         <loc>http://imtiger.github.io/</loc>
-        <lastmod>2013-10-22T17:01:41+08:00</lastmod>
+        <lastmod>2013-10-25T15:06:04+08:00</lastmod>
     </url>
     <url>
         <loc>http://imtiger.github.io/life/</loc>

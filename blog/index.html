@@ -9,7 +9,7 @@
 	<meta name="author" content="imtiger">
 
 	
-	<meta name="description" content="Oct 21st, 2013 Java, Tomcat, 技术 Tomcat关闭过程（Tomcat源代码阅读系列之四） 本文是Tomcat源代码阅读系列的第四篇文章，在阅读此文之前，建议先读前三篇：
+	<meta name="description" content="Oct 24th, 2013 Java, Tomcat, 技术 Tomcat请求处理流程（Tomcat源代码阅读系列之五） 本文是Tomcat源代码阅读系列的第五篇文章，本系列前四篇文章如下：
 在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码（ &hellip;">
 	<meta name="keywords" content="java,ios,mac,linux,objective-c,软件设计,软件架构,摄影,imtiger.">
 
@@ -89,6 +89,49 @@
 			
 			<div class="mid-col-container">
 				<div id="content" class="inner">
+
+
+    <article class="post">
+	<div class="meta">
+		<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-10-24T09:54:00+08:00" data-updated="true" itemprop="datePublished">Oct 24<span>th</span>, 2013</time></div>
+		<div class="tags">
+
+
+	<a class='category' href='/blog/categories/java/'>Java</a>, <a class='category' href='/blog/categories/tomcat/'>Tomcat</a>, <a class='category' href='/blog/categories/ji-zhu/'>技术</a>
+
+
+</div>
+		
+	</div>
+	<h1 class="title" itemprop="name"><a href="/blog/2013/10/24/tomcat-request-process/" itemprop="url">Tomcat请求处理流程（Tomcat源代码阅读系列之五）</a></h1>
+	<div class="entry-content" itemprop="articleBody">
+		<p><img class="center" src="/images/2013/10/14/apache_tomcat_bag.jpg">
+本文是<a href="/blog/2013/10/08/tomcat-source-code-study/">Tomcat源代码阅读系列</a>的第五篇文章，本系列前四篇文章如下：<br/>
+<a href="/blog/2013/10/14/run-tomcat-in-idea-or-eclipse/">在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码（Tomcat源代码阅读系列之一）</a> <br/>
+<a href="/blog/2013/10/16/tomcat-architecture/">Tomcat总体结构                             （Tomcat源代码阅读系列之二）</a><br/>
+<a href="/blog/2013/10/17/tomcat-start-process/">Tomcat启动过程（Tomcat源代码阅读系列之三）</a>
+<a href="/blog/2013/10/21/tomcat-shutdown/">Tomcat关闭过程（Tomcat源代码阅读系列之四）</a></p>
+
+<p>前面已经分析完了Tomcat的启动和关闭过程，本篇就来接着分析一下Tomcat中请求的处理过程。</p>
+
+
+		
+		<a href="/blog/2013/10/24/tomcat-request-process/" class="more-link">Read on(阅读全文) &rarr;</a>
+	</div>
+
+</article>
 
 
     <article class="post">
@@ -333,8 +376,8 @@
 <a href="/blog/2013/10/14/run-tomcat-in-idea-or-eclipse/">在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码（Tomcat源代码阅读系列之一）</a>  <br/>
 <a href="/blog/2013/10/16/tomcat-architecture/">Tomcat总体结构（Tomcat源代码阅读系列之二）</a><br/>
 <a href="/blog/2013/10/17/tomcat-start-process/">Tomcat启动过程（Tomcat源代码阅读系列之三）</a><br/>
-<a href="#">Tomcat关闭过程</a>  (已完成)<br/>
-<a href="#">Tomcat请求处理流程</a> (未完成)    <br/>
+<a href="/blog/2013/10/21/tomcat-shutdown/">Tomcat关闭过程（Tomcat源代码阅读系列之四）</a> <br/>
+<a href="/blog/2013/10/24/tomcat-request-process/">Tomcat请求处理流程（Tomcat源代码阅读系列之五）</a> <br/>
 <a href="#">Tomcat类加载器机制</a> (未完成) <br/>
 <a href="#">Tomcat Session管理机制</a>(未完成)  <br/>
 <a href="#">Tomcat 涉及的设计模式总结</a> (未完成)</p>
@@ -381,7 +424,7 @@
 月薪:    15k-20k</p>
 
 <p>公司介绍: <br/>
-我们公司<a href="http://www.ejushang.com">易居尚</a>秉承着<code>让品质走进生活的理念</code>，致力于打造一个品质、高效、便捷的居家用品网络销售平台.咋们公司不打卡，弹性工作制，每天下午有公司大厨做的下午茶，攻城狮童鞋每周可以自由支配20%的工作时间做自己想做的事情，我们技术团队内部有很强互助和知识分享意识（包括技术骚们喜欢的爱情动作片，嘘&hellip;，其他人我不告诉他）当然了还有很多美女和帅哥，想置身互联网和电子商务有理想的的技术骚们，请你加入我们 一起high，<strong>我们不求改变世界，但求超越自我</strong>。也请各位朋友帮忙推荐，推荐成功有神秘礼物相送哦，有意者请联系:<a href="&#109;&#x61;&#x69;&#x6c;&#x74;&#111;&#x3a;&#x74;&#x69;&#x67;&#x65;&#x72;&#x2e;&#x7a;&#104;&#111;&#x75;&#x40;&#x6b;&#x61;&#114;&#105;&#x71;&#117;&#x2e;&#99;&#111;&#x6d;">&#x74;&#x69;&#103;&#101;&#114;&#46;&#x7a;&#x68;&#111;&#117;&#x40;&#x6b;&#x61;&#114;&#105;&#113;&#117;&#x2e;&#99;&#x6f;&#109;</a> 或者留言给我，另外也可以通过<a href="http://weibo.com/xmuzyq">@krq_tiger</a>新浪微博与我取的联系.</p>
+我们公司<a href="http://www.ejushang.com">易居尚</a>秉承着<code>让品质走进生活的理念</code>，致力于打造一个品质、高效、便捷的居家用品网络销售平台.咋们公司不打卡，弹性工作制，每天下午有公司大厨做的下午茶，攻城狮童鞋每周可以自由支配20%的工作时间做自己想做的事情，我们技术团队内部有很强互助和知识分享意识（包括技术骚们喜欢的爱情动作片，嘘&hellip;，其他人我不告诉他）当然了还有很多美女和帅哥，想置身互联网和电子商务有理想的的技术骚们，请你加入我们 一起high，<strong>我们不求改变世界，但求超越自我</strong>。也请各位朋友帮忙推荐，推荐成功有神秘礼物相送哦，有意者请联系:<a href="&#109;&#x61;&#x69;&#108;&#x74;&#x6f;&#x3a;&#x74;&#x69;&#x67;&#x65;&#x72;&#x2e;&#x7a;&#x68;&#x6f;&#117;&#x40;&#x6b;&#97;&#114;&#x69;&#113;&#x75;&#46;&#x63;&#x6f;&#109;">&#116;&#x69;&#x67;&#101;&#114;&#46;&#x7a;&#x68;&#x6f;&#117;&#64;&#x6b;&#x61;&#114;&#105;&#x71;&#x75;&#x2e;&#99;&#x6f;&#109;</a> 或者留言给我，另外也可以通过<a href="http://weibo.com/xmuzyq">@krq_tiger</a>新浪微博与我取的联系.</p>
 
 
 		
@@ -465,77 +508,6 @@
 
 		
 		<a href="/blog/2013/09/03/happyenglish-ios-app/" class="more-link">Read on(阅读全文) &rarr;</a>
-	</div>
-
-</article>
-
-
-    <article class="post">
-	<div class="meta">
-		<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-01-30T12:16:00+08:00" data-updated="true" itemprop="datePublished">Jan 30<span>th</span>, 2013</time></div>
-		<div class="tags">
-
-
-	<a class='category' href='/blog/categories/java/'>Java</a>, <a class='category' href='/blog/categories/ji-zhu/'>技术</a>
-
-
-</div>
-		
-	</div>
-	<h1 class="title" itemprop="name"><a href="/blog/2013/01/30/java-class-file-format-demo/" itemprop="url">实例分析Java Class文件的结构-实践篇</a></h1>
-	<div class="entry-content" itemprop="articleBody">
-		<p><img class="center" src="/images/2013/01/30/java-logo.jpg" width="500" height="300"><br/>
-在<a href="/blog/2013/01/30/java-class-file-format/"><code>实例分析Java Class文件的结构-理论篇</code></a>一文中，我们说了Java Class文件结构的理论知识，接下来我们来通过一个具体的例子来理论结合实践的学习一下。
-首先我们有一个TestClass类，代码如下：</p>
-
-<figure class='code'><figcaption><span>TestClass.java </span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'> <span class="kn">package</span> <span class="n">com</span><span class="o">.</span><span class="na">ejushang</span><span class="o">.</span><span class="na">TestClass</span><span class="o">;</span>
-</span><span class='line'> <span class="kd">public</span> <span class="kd">class</span> <span class="nc">TestClass</span> <span class="kd">implements</span> <span class="n">Super</span><span class="o">{</span>
-</span><span class='line'>
-</span><span class='line'>         <span class="kd">private</span> <span class="kd">static</span> <span class="kd">final</span> <span class="kt">int</span> <span class="n">staticVar</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
-</span><span class='line'>
-</span><span class='line'>         <span class="kd">private</span> <span class="kt">int</span> <span class="n">instanceVar</span><span class="o">=</span><span class="mi">0</span><span class="o">;</span>
-</span><span class='line'>
-</span><span class='line'>         <span class="kd">public</span> <span class="kt">int</span> <span class="nf">instanceMethod</span><span class="o">(</span><span class="kt">int</span> <span class="n">param</span><span class="o">){</span>
-</span><span class='line'>             <span class="k">return</span> <span class="n">param</span><span class="o">+</span><span class="mi">1</span><span class="o">;</span>
-</span><span class='line'>         <span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'> <span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'> <span class="kd">interface</span> <span class="nc">Super</span><span class="o">{</span> <span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>通过jdk1.6.0_37的javac 编译后的TestClass.java对应的TestClass.class的二进制结构如下图所示：</p>
-
-
-		
-		<a href="/blog/2013/01/30/java-class-file-format-demo/" class="more-link">Read on(阅读全文) &rarr;</a>
 	</div>
 
 </article>

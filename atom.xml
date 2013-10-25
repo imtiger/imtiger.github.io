@@ -4,7 +4,7 @@
   <title><![CDATA[I'm Tiger,一个有理想爱折腾的程序员!]]></title>
   <link href="http://imtiger.github.io/atom.xml" rel="self"/>
   <link href="http://imtiger.github.io/"/>
-  <updated>2013-10-22T17:01:48+08:00</updated>
+  <updated>2013-10-25T15:06:53+08:00</updated>
   <id>http://imtiger.github.io/</id>
   <author>
     <name><![CDATA[imtiger]]></name>
@@ -12,6 +12,1288 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Tomcat请求处理流程（Tomcat源代码阅读系列之五）]]></title>
+    <link href="http://imtiger.github.io/blog/2013/10/24/tomcat-request-process/"/>
+    <updated>2013-10-24T09:54:00+08:00</updated>
+    <id>http://imtiger.github.io/blog/2013/10/24/tomcat-request-process</id>
+    <content type="html"><![CDATA[<p><img class="center" src="http://imtiger.github.io/images/2013/10/14/apache_tomcat_bag.jpg">
+本文是<a href="http://imtiger.github.io/blog/2013/10/08/tomcat-source-code-study/">Tomcat源代码阅读系列</a>的第五篇文章，本系列前四篇文章如下：<br/>
+<a href="http://imtiger.github.io/blog/2013/10/14/run-tomcat-in-idea-or-eclipse/">在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码（Tomcat源代码阅读系列之一）</a> <br/>
+<a href="http://imtiger.github.io/blog/2013/10/16/tomcat-architecture/">Tomcat总体结构                             （Tomcat源代码阅读系列之二）</a><br/>
+<a href="http://imtiger.github.io/blog/2013/10/17/tomcat-start-process/">Tomcat启动过程（Tomcat源代码阅读系列之三）</a>
+<a href="http://imtiger.github.io/blog/2013/10/21/tomcat-shutdown/">Tomcat关闭过程（Tomcat源代码阅读系列之四）</a></p>
+
+<p>前面已经分析完了Tomcat的启动和关闭过程，本篇就来接着分析一下Tomcat中请求的处理过程。</p>
+
+<!-- more -->
+
+
+<p>在开始本文之前，咋们首先来看看一个Http请求处理的过程，一般情况下是<code>浏览器发送http请求-&gt;建立Socket连接-&gt;通过Socket读取数据-&gt;根据http协议解析数据-&gt;调用后台服务完成响应</code>,而Tomcat既是一个HttpServer也是一个Servlet 容器，那么这里必然也涉及到如上过程，首先根据HTTP协议规范解析请求数据，然后将请求转发给Servlet进行处理，因此顺应这样的思路，本文也将从<strong>Http协议请求解析</strong>，<strong>请求如何转发给Servlet</strong>两个方面来进行分析。首先来看Http协议请求解析。</p>
+
+<h1>Http协议请求解析</h1>
+
+<p>在<a href="http://imtiger.github.io/blog/2013/10/17/tomcat-start-process/">Tomcat启动过程（Tomcat源代码阅读系列之三）</a>一文中，我们已经知道Tomcat启动以后，默认情况下会通过<code>org.apache.tomcat.util.net.JIoEndpoint.Acceptor</code>监听Socket连接，当监听到有Socket连接的时候，就会调用<code>org.apache.tomcat.util.net.JIoEndpoint#processSocket</code>方法进行处理，下面我们就来看看此方法的代码，为了节省版面，只保留与本文相关的代码。</p>
+
+<figure class='code'><figcaption><span>org.apache.tomcat.util.net.JIoEndpoint#processSocket</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">protected</span> <span class="kt">boolean</span> <span class="nf">processSocket</span><span class="o">(</span><span class="n">Socket</span> <span class="n">socket</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="c1">// Process the request from this socket</span>
+</span><span class='line'>        <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">SocketWrapper</span><span class="o">&lt;</span><span class="n">Socket</span><span class="o">&gt;</span> <span class="n">wrapper</span> <span class="o">=</span> <span class="k">new</span> <span class="n">SocketWrapper</span><span class="o">&lt;</span><span class="n">Socket</span><span class="o">&gt;(</span><span class="n">socket</span><span class="o">);</span>
+</span><span class='line'>            <span class="n">wrapper</span><span class="o">.</span><span class="na">setKeepAliveLeft</span><span class="o">(</span><span class="n">getMaxKeepAliveRequests</span><span class="o">());</span>
+</span><span class='line'>            <span class="c1">// During shutdown, executor may be null - avoid NPE</span>
+</span><span class='line'>            <span class="k">if</span> <span class="o">(!</span><span class="n">running</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                <span class="k">return</span> <span class="kc">false</span><span class="o">;</span>
+</span><span class='line'>            <span class="o">}</span>
+</span><span class='line'>            <span class="n">getExecutor</span><span class="o">().</span><span class="na">execute</span><span class="o">(</span><span class="k">new</span> <span class="n">SocketProcessor</span><span class="o">(</span><span class="n">wrapper</span><span class="o">));</span>
+</span><span class='line'>        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">RejectedExecutionException</span> <span class="n">x</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>         <span class="c1">//exception handler ...</span>
+</span><span class='line'>         <span class="k">return</span> <span class="kc">false</span><span class="o">;</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>        <span class="k">return</span> <span class="kc">true</span><span class="o">;</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>通过上面的代码，我们可以看出首先将Socket封装为SocketWrapper，然后通过SocketProcessor来进行处理，因为Tomcat必然面对用户并发请求，因此这里Socket的处理通过新的线程池来处理。接下来我们再来看看SocketProcess的代码，同样省略了一些非核心的代码，代码如下：</p>
+
+<figure class='code'><figcaption><span>org.apache.tomcat.util.net.JIoEndpoint.SocketProcessor#run</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kt">void</span> <span class="nf">run</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>        <span class="kt">boolean</span> <span class="n">launch</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+</span><span class='line'>        <span class="kd">synchronized</span> <span class="o">(</span><span class="n">socket</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">SocketState</span> <span class="n">state</span> <span class="o">=</span> <span class="n">SocketState</span><span class="o">.</span><span class="na">OPEN</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>                <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>                    <span class="c1">// SSL handshake</span>
+</span><span class='line'>                    <span class="n">serverSocketFactory</span><span class="o">.</span><span class="na">handshake</span><span class="o">(</span><span class="n">socket</span><span class="o">.</span><span class="na">getSocket</span><span class="o">());</span>
+</span><span class='line'>                <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">Throwable</span> <span class="n">t</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                    <span class="n">ExceptionUtils</span><span class="o">.</span><span class="na">handleThrowable</span><span class="o">(</span><span class="n">t</span><span class="o">);</span>
+</span><span class='line'>                    <span class="k">if</span> <span class="o">(</span><span class="n">log</span><span class="o">.</span><span class="na">isDebugEnabled</span><span class="o">())</span> <span class="o">{</span>
+</span><span class='line'>                        <span class="n">log</span><span class="o">.</span><span class="na">debug</span><span class="o">(</span><span class="n">sm</span><span class="o">.</span><span class="na">getString</span><span class="o">(</span><span class="s">&quot;endpoint.err.handshake&quot;</span><span class="o">),</span> <span class="n">t</span><span class="o">);</span>
+</span><span class='line'>                    <span class="o">}</span>
+</span><span class='line'>                    <span class="c1">// Tell to close the socket</span>
+</span><span class='line'>                    <span class="n">state</span> <span class="o">=</span> <span class="n">SocketState</span><span class="o">.</span><span class="na">CLOSED</span><span class="o">;</span>
+</span><span class='line'>                <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>                <span class="k">if</span> <span class="o">((</span><span class="n">state</span> <span class="o">!=</span> <span class="n">SocketState</span><span class="o">.</span><span class="na">CLOSED</span><span class="o">))</span> <span class="o">{</span>
+</span><span class='line'>                    <span class="k">if</span> <span class="o">(</span><span class="n">status</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                        <span class="c1">// 1 </span>
+</span><span class='line'>                        <span class="n">state</span> <span class="o">=</span> <span class="n">handler</span><span class="o">.</span><span class="na">process</span><span class="o">(</span><span class="n">socket</span><span class="o">,</span> <span class="n">SocketStatus</span><span class="o">.</span><span class="na">OPEN</span><span class="o">);</span>
+</span><span class='line'>                    <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+</span><span class='line'>                        <span class="n">state</span> <span class="o">=</span> <span class="n">handler</span><span class="o">.</span><span class="na">process</span><span class="o">(</span><span class="n">socket</span><span class="o">,</span><span class="n">status</span><span class="o">);</span>
+</span><span class='line'>                    <span class="o">}</span>
+</span><span class='line'>                <span class="o">}</span>
+</span><span class='line'>                <span class="k">if</span> <span class="o">(</span><span class="n">state</span> <span class="o">==</span> <span class="n">SocketState</span><span class="o">.</span><span class="na">CLOSED</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                    <span class="c1">// Close socket</span>
+</span><span class='line'>                    <span class="k">if</span> <span class="o">(</span><span class="n">log</span><span class="o">.</span><span class="na">isTraceEnabled</span><span class="o">())</span> <span class="o">{</span>
+</span><span class='line'>                        <span class="n">log</span><span class="o">.</span><span class="na">trace</span><span class="o">(</span><span class="s">&quot;Closing socket:&quot;</span><span class="o">+</span><span class="n">socket</span><span class="o">);</span>
+</span><span class='line'>                    <span class="o">}</span>
+</span><span class='line'>                    <span class="n">countDownConnection</span><span class="o">();</span>
+</span><span class='line'>                    <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>                        <span class="n">socket</span><span class="o">.</span><span class="na">getSocket</span><span class="o">().</span><span class="na">close</span><span class="o">();</span>
+</span><span class='line'>                    <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">IOException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                        <span class="c1">// Ignore</span>
+</span><span class='line'>                    <span class="o">}</span>
+</span><span class='line'>                <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">state</span> <span class="o">==</span> <span class="n">SocketState</span><span class="o">.</span><span class="na">OPEN</span> <span class="o">||</span>
+</span><span class='line'>                        <span class="n">state</span> <span class="o">==</span> <span class="n">SocketState</span><span class="o">.</span><span class="na">UPGRADING</span>  <span class="o">||</span>
+</span><span class='line'>                        <span class="n">state</span> <span class="o">==</span> <span class="n">SocketState</span><span class="o">.</span><span class="na">UPGRADED</span><span class="o">){</span>
+</span><span class='line'>                    <span class="n">socket</span><span class="o">.</span><span class="na">setKeptAlive</span><span class="o">(</span><span class="kc">true</span><span class="o">);</span>
+</span><span class='line'>                    <span class="n">socket</span><span class="o">.</span><span class="na">access</span><span class="o">();</span>
+</span><span class='line'>                    <span class="n">launch</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+</span><span class='line'>                <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">state</span> <span class="o">==</span> <span class="n">SocketState</span><span class="o">.</span><span class="na">LONG</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                    <span class="n">socket</span><span class="o">.</span><span class="na">access</span><span class="o">();</span>
+</span><span class='line'>                    <span class="n">waitingRequests</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">socket</span><span class="o">);</span>
+</span><span class='line'>                <span class="o">}</span>
+</span><span class='line'>            <span class="o">}</span> <span class="k">finally</span> <span class="o">{</span>
+</span><span class='line'>               <span class="c1">//other code</span>
+</span><span class='line'>            <span class="o">}</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>        <span class="n">socket</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'>        <span class="c1">// Finish up this request</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>默认情况下，代码会运行到标注1的地方，标注1的地方又通过<code>org.apache.tomcat.util.net.JIoEndpoint.Handler#process</code>的方法进行处理，而通过前面Tomcat启动的文章，我们已经知道handler属性是在<code>org.apache.coyote.http11.Http11Protocol</code>的构造方法中初始化的，构造方法如下：</p>
+
+<figure class='code'><figcaption><span>org.apache.coyote.http11.Http11Protocol#Http11Protocol</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="nf">Http11Protocol</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>    <span class="n">endpoint</span> <span class="o">=</span> <span class="k">new</span> <span class="n">JIoEndpoint</span><span class="o">();</span>
+</span><span class='line'>    <span class="n">cHandler</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Http11ConnectionHandler</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">((</span><span class="n">JIoEndpoint</span><span class="o">)</span> <span class="n">endpoint</span><span class="o">).</span><span class="na">setHandler</span><span class="o">(</span><span class="n">cHandler</span><span class="o">);</span>
+</span><span class='line'>    <span class="n">setSoLinger</span><span class="o">(</span><span class="n">Constants</span><span class="o">.</span><span class="na">DEFAULT_CONNECTION_LINGER</span><span class="o">);</span>
+</span><span class='line'>    <span class="n">setSoTimeout</span><span class="o">(</span><span class="n">Constants</span><span class="o">.</span><span class="na">DEFAULT_CONNECTION_TIMEOUT</span><span class="o">);</span>
+</span><span class='line'>    <span class="n">setTcpNoDelay</span><span class="o">(</span><span class="n">Constants</span><span class="o">.</span><span class="na">DEFAULT_TCP_NO_DELAY</span><span class="o">);</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>
+从构造方法中，我们可以清楚的看到，其实初始化了<code>org.apache.coyote.http11.Http11Protocol.Http11ConnectionHandler</code>的实例，那么接下来我们就来看看它的process方法，因为Http11ConnectionHandler继承了<code>org.apache.coyote.AbstractProtocol.AbstractConnectionHandler</code>，而自己没有实现process方法，因此会调用到父类的process方法，那么接下来我们就来看看AbstractConnectionHandler的process方法，代码如下：</p>
+
+<figure class='code'><figcaption><span>org.apache.coyote.AbstractProtocol.AbstractConnectionHandler#process</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="n">SocketState</span> <span class="nf">process</span><span class="o">(</span><span class="n">SocketWrapper</span><span class="o">&lt;</span><span class="n">S</span><span class="o">&gt;</span> <span class="n">socket</span><span class="o">,</span>
+</span><span class='line'>        <span class="n">SocketStatus</span> <span class="n">status</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>    <span class="n">Processor</span><span class="o">&lt;</span><span class="n">S</span><span class="o">&gt;</span> <span class="n">processor</span> <span class="o">=</span> <span class="n">connections</span><span class="o">.</span><span class="na">remove</span><span class="o">(</span><span class="n">socket</span><span class="o">.</span><span class="na">getSocket</span><span class="o">());</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">status</span> <span class="o">==</span> <span class="n">SocketStatus</span><span class="o">.</span><span class="na">DISCONNECT</span> <span class="o">&amp;&amp;</span> <span class="n">processor</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="c1">//nothing more to be done endpoint requested a close</span>
+</span><span class='line'>        <span class="c1">//and there are no object associated with this connection</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">SocketState</span><span class="o">.</span><span class="na">CLOSED</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">socket</span><span class="o">.</span><span class="na">setAsync</span><span class="o">(</span><span class="kc">false</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">processor</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">processor</span> <span class="o">=</span> <span class="n">recycledProcessors</span><span class="o">.</span><span class="na">poll</span><span class="o">();</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">processor</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">processor</span> <span class="o">=</span> <span class="n">createProcessor</span><span class="o">();</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">initSsl</span><span class="o">(</span><span class="n">socket</span><span class="o">,</span> <span class="n">processor</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">SocketState</span> <span class="n">state</span> <span class="o">=</span> <span class="n">SocketState</span><span class="o">.</span><span class="na">CLOSED</span><span class="o">;</span>
+</span><span class='line'>        <span class="k">do</span> <span class="o">{</span>
+</span><span class='line'>            <span class="k">if</span> <span class="o">(</span><span class="n">status</span> <span class="o">==</span> <span class="n">SocketStatus</span><span class="o">.</span><span class="na">DISCONNECT</span> <span class="o">&amp;&amp;</span>
+</span><span class='line'>                    <span class="o">!</span><span class="n">processor</span><span class="o">.</span><span class="na">isComet</span><span class="o">())</span> <span class="o">{</span>
+</span><span class='line'>                <span class="c1">// Do nothing here, just wait for it to get recycled</span>
+</span><span class='line'>                <span class="c1">// Don&#39;t do this for Comet we need to generate an end</span>
+</span><span class='line'>                <span class="c1">// event (see BZ 54022)</span>
+</span><span class='line'>            <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">processor</span><span class="o">.</span><span class="na">isAsync</span><span class="o">()</span> <span class="o">||</span>
+</span><span class='line'>                    <span class="n">state</span> <span class="o">==</span> <span class="n">SocketState</span><span class="o">.</span><span class="na">ASYNC_END</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">state</span> <span class="o">=</span> <span class="n">processor</span><span class="o">.</span><span class="na">asyncDispatch</span><span class="o">(</span><span class="n">status</span><span class="o">);</span>
+</span><span class='line'>            <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">processor</span><span class="o">.</span><span class="na">isComet</span><span class="o">())</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">state</span> <span class="o">=</span> <span class="n">processor</span><span class="o">.</span><span class="na">event</span><span class="o">(</span><span class="n">status</span><span class="o">);</span>
+</span><span class='line'>            <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">processor</span><span class="o">.</span><span class="na">isUpgrade</span><span class="o">())</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">state</span> <span class="o">=</span> <span class="n">processor</span><span class="o">.</span><span class="na">upgradeDispatch</span><span class="o">();</span>
+</span><span class='line'>            <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">state</span> <span class="o">=</span> <span class="n">processor</span><span class="o">.</span><span class="na">process</span><span class="o">(</span><span class="n">socket</span><span class="o">);</span>
+</span><span class='line'>            <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>            <span class="k">if</span> <span class="o">(</span><span class="n">state</span> <span class="o">!=</span> <span class="n">SocketState</span><span class="o">.</span><span class="na">CLOSED</span> <span class="o">&amp;&amp;</span> <span class="n">processor</span><span class="o">.</span><span class="na">isAsync</span><span class="o">())</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">state</span> <span class="o">=</span> <span class="n">processor</span><span class="o">.</span><span class="na">asyncPostProcess</span><span class="o">();</span>
+</span><span class='line'>            <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>            <span class="k">if</span> <span class="o">(</span><span class="n">state</span> <span class="o">==</span> <span class="n">SocketState</span><span class="o">.</span><span class="na">UPGRADING</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                <span class="c1">// Get the UpgradeInbound handler</span>
+</span><span class='line'>                <span class="n">UpgradeInbound</span> <span class="n">inbound</span> <span class="o">=</span> <span class="n">processor</span><span class="o">.</span><span class="na">getUpgradeInbound</span><span class="o">();</span>
+</span><span class='line'>                <span class="c1">// Release the Http11 processor to be re-used</span>
+</span><span class='line'>                <span class="n">release</span><span class="o">(</span><span class="n">socket</span><span class="o">,</span> <span class="n">processor</span><span class="o">,</span> <span class="kc">false</span><span class="o">,</span> <span class="kc">false</span><span class="o">);</span>
+</span><span class='line'>                <span class="c1">// Create the light-weight upgrade processor</span>
+</span><span class='line'>                <span class="n">processor</span> <span class="o">=</span> <span class="n">createUpgradeProcessor</span><span class="o">(</span><span class="n">socket</span><span class="o">,</span> <span class="n">inbound</span><span class="o">);</span>
+</span><span class='line'>                <span class="n">inbound</span><span class="o">.</span><span class="na">onUpgradeComplete</span><span class="o">();</span>
+</span><span class='line'>            <span class="o">}</span>
+</span><span class='line'>        <span class="o">}</span> <span class="k">while</span> <span class="o">(</span><span class="n">state</span> <span class="o">==</span> <span class="n">SocketState</span><span class="o">.</span><span class="na">ASYNC_END</span> <span class="o">||</span>
+</span><span class='line'>                <span class="n">state</span> <span class="o">==</span> <span class="n">SocketState</span><span class="o">.</span><span class="na">UPGRADING</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">return</span> <span class="n">state</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span> <span class="k">catch</span><span class="o">(</span><span class="n">java</span><span class="o">.</span><span class="na">net</span><span class="o">.</span><span class="na">SocketException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>              <span class="c1">// exception handler   </span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">return</span> <span class="n">SocketState</span><span class="o">.</span><span class="na">CLOSED</span><span class="o">;</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>通过查看上面的代码，默认一个新连接的情况下，会调用<code>org.apache.coyote.Processor#process</code>方法,而Processor的实例实在<code>org.apache.coyote.AbstractProtocol.AbstractConnectionHandler#createProcessor</code>中创建的，通过查看createProcessor代码，我们发现是创建了一个org.apache.coyote.http11.Http11Processor的实例，那么接下来，我们就来看看它的process方法，因为Http11Processor继承了AbstractHttp11Processor，最终其实调用的是AbstractHttp11Processor的process方法，代码如下：</p>
+
+<figure class='code'><figcaption><span>org.apache.coyote.http11.AbstractHttp11Processor#process</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+<span class='line-number'>68</span>
+<span class='line-number'>69</span>
+<span class='line-number'>70</span>
+<span class='line-number'>71</span>
+<span class='line-number'>72</span>
+<span class='line-number'>73</span>
+<span class='line-number'>74</span>
+<span class='line-number'>75</span>
+<span class='line-number'>76</span>
+<span class='line-number'>77</span>
+<span class='line-number'>78</span>
+<span class='line-number'>79</span>
+<span class='line-number'>80</span>
+<span class='line-number'>81</span>
+<span class='line-number'>82</span>
+<span class='line-number'>83</span>
+<span class='line-number'>84</span>
+<span class='line-number'>85</span>
+<span class='line-number'>86</span>
+<span class='line-number'>87</span>
+<span class='line-number'>88</span>
+<span class='line-number'>89</span>
+<span class='line-number'>90</span>
+<span class='line-number'>91</span>
+<span class='line-number'>92</span>
+<span class='line-number'>93</span>
+<span class='line-number'>94</span>
+<span class='line-number'>95</span>
+<span class='line-number'>96</span>
+<span class='line-number'>97</span>
+<span class='line-number'>98</span>
+<span class='line-number'>99</span>
+<span class='line-number'>100</span>
+<span class='line-number'>101</span>
+<span class='line-number'>102</span>
+<span class='line-number'>103</span>
+<span class='line-number'>104</span>
+<span class='line-number'>105</span>
+<span class='line-number'>106</span>
+<span class='line-number'>107</span>
+<span class='line-number'>108</span>
+<span class='line-number'>109</span>
+<span class='line-number'>110</span>
+<span class='line-number'>111</span>
+<span class='line-number'>112</span>
+<span class='line-number'>113</span>
+<span class='line-number'>114</span>
+<span class='line-number'>115</span>
+<span class='line-number'>116</span>
+<span class='line-number'>117</span>
+<span class='line-number'>118</span>
+<span class='line-number'>119</span>
+<span class='line-number'>120</span>
+<span class='line-number'>121</span>
+<span class='line-number'>122</span>
+<span class='line-number'>123</span>
+<span class='line-number'>124</span>
+<span class='line-number'>125</span>
+<span class='line-number'>126</span>
+<span class='line-number'>127</span>
+<span class='line-number'>128</span>
+<span class='line-number'>129</span>
+<span class='line-number'>130</span>
+<span class='line-number'>131</span>
+<span class='line-number'>132</span>
+<span class='line-number'>133</span>
+<span class='line-number'>134</span>
+<span class='line-number'>135</span>
+<span class='line-number'>136</span>
+<span class='line-number'>137</span>
+<span class='line-number'>138</span>
+<span class='line-number'>139</span>
+<span class='line-number'>140</span>
+<span class='line-number'>141</span>
+<span class='line-number'>142</span>
+<span class='line-number'>143</span>
+<span class='line-number'>144</span>
+<span class='line-number'>145</span>
+<span class='line-number'>146</span>
+<span class='line-number'>147</span>
+<span class='line-number'>148</span>
+<span class='line-number'>149</span>
+<span class='line-number'>150</span>
+<span class='line-number'>151</span>
+<span class='line-number'>152</span>
+<span class='line-number'>153</span>
+<span class='line-number'>154</span>
+<span class='line-number'>155</span>
+<span class='line-number'>156</span>
+<span class='line-number'>157</span>
+<span class='line-number'>158</span>
+<span class='line-number'>159</span>
+<span class='line-number'>160</span>
+<span class='line-number'>161</span>
+<span class='line-number'>162</span>
+<span class='line-number'>163</span>
+<span class='line-number'>164</span>
+<span class='line-number'>165</span>
+<span class='line-number'>166</span>
+<span class='line-number'>167</span>
+<span class='line-number'>168</span>
+<span class='line-number'>169</span>
+<span class='line-number'>170</span>
+<span class='line-number'>171</span>
+<span class='line-number'>172</span>
+<span class='line-number'>173</span>
+<span class='line-number'>174</span>
+<span class='line-number'>175</span>
+<span class='line-number'>176</span>
+<span class='line-number'>177</span>
+<span class='line-number'>178</span>
+<span class='line-number'>179</span>
+<span class='line-number'>180</span>
+<span class='line-number'>181</span>
+<span class='line-number'>182</span>
+<span class='line-number'>183</span>
+<span class='line-number'>184</span>
+<span class='line-number'>185</span>
+<span class='line-number'>186</span>
+<span class='line-number'>187</span>
+<span class='line-number'>188</span>
+<span class='line-number'>189</span>
+<span class='line-number'>190</span>
+<span class='line-number'>191</span>
+<span class='line-number'>192</span>
+<span class='line-number'>193</span>
+<span class='line-number'>194</span>
+<span class='line-number'>195</span>
+<span class='line-number'>196</span>
+<span class='line-number'>197</span>
+<span class='line-number'>198</span>
+<span class='line-number'>199</span>
+<span class='line-number'>200</span>
+<span class='line-number'>201</span>
+<span class='line-number'>202</span>
+<span class='line-number'>203</span>
+<span class='line-number'>204</span>
+<span class='line-number'>205</span>
+<span class='line-number'>206</span>
+<span class='line-number'>207</span>
+<span class='line-number'>208</span>
+<span class='line-number'>209</span>
+<span class='line-number'>210</span>
+<span class='line-number'>211</span>
+<span class='line-number'>212</span>
+<span class='line-number'>213</span>
+<span class='line-number'>214</span>
+<span class='line-number'>215</span>
+<span class='line-number'>216</span>
+<span class='line-number'>217</span>
+<span class='line-number'>218</span>
+<span class='line-number'>219</span>
+<span class='line-number'>220</span>
+<span class='line-number'>221</span>
+<span class='line-number'>222</span>
+<span class='line-number'>223</span>
+<span class='line-number'>224</span>
+<span class='line-number'>225</span>
+<span class='line-number'>226</span>
+<span class='line-number'>227</span>
+<span class='line-number'>228</span>
+<span class='line-number'>229</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="n">SocketState</span> <span class="nf">process</span><span class="o">(</span><span class="n">SocketWrapper</span><span class="o">&lt;</span><span class="n">S</span><span class="o">&gt;</span> <span class="n">socketWrapper</span><span class="o">)</span>
+</span><span class='line'>    <span class="kd">throws</span> <span class="n">IOException</span> <span class="o">{</span>
+</span><span class='line'>    <span class="n">RequestInfo</span> <span class="n">rp</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="na">getRequestProcessor</span><span class="o">();</span>
+</span><span class='line'>    <span class="n">rp</span><span class="o">.</span><span class="na">setStage</span><span class="o">(</span><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">coyote</span><span class="o">.</span><span class="na">Constants</span><span class="o">.</span><span class="na">STAGE_PARSE</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// Setting up the I/O</span>
+</span><span class='line'>    <span class="c1">// 1 </span>
+</span><span class='line'>    <span class="n">setSocketWrapper</span><span class="o">(</span><span class="n">socketWrapper</span><span class="o">);</span>
+</span><span class='line'>    <span class="n">getInputBuffer</span><span class="o">().</span><span class="na">init</span><span class="o">(</span><span class="n">socketWrapper</span><span class="o">,</span> <span class="n">endpoint</span><span class="o">);</span>
+</span><span class='line'>    <span class="n">getOutputBuffer</span><span class="o">().</span><span class="na">init</span><span class="o">(</span><span class="n">socketWrapper</span><span class="o">,</span> <span class="n">endpoint</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// Flags</span>
+</span><span class='line'>    <span class="n">error</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+</span><span class='line'>    <span class="n">keepAlive</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+</span><span class='line'>    <span class="n">comet</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+</span><span class='line'>    <span class="n">openSocket</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+</span><span class='line'>    <span class="n">sendfileInProgress</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+</span><span class='line'>    <span class="n">readComplete</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">endpoint</span><span class="o">.</span><span class="na">getUsePolling</span><span class="o">())</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">keptAlive</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">keptAlive</span> <span class="o">=</span> <span class="n">socketWrapper</span><span class="o">.</span><span class="na">isKeptAlive</span><span class="o">();</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">disableKeepAlive</span><span class="o">())</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">socketWrapper</span><span class="o">.</span><span class="na">setKeepAliveLeft</span><span class="o">(</span><span class="mi">0</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">while</span> <span class="o">(!</span><span class="n">error</span> <span class="o">&amp;&amp;</span> <span class="n">keepAlive</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">comet</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">isAsync</span><span class="o">()</span> <span class="o">&amp;&amp;</span>
+</span><span class='line'>            <span class="n">upgradeInbound</span> <span class="o">==</span> <span class="kc">null</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">endpoint</span><span class="o">.</span><span class="na">isPaused</span><span class="o">())</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// Parsing the request header</span>
+</span><span class='line'>        <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">setRequestLineReadTimeout</span><span class="o">();</span>
+</span><span class='line'>            <span class="c1">//2 </span>
+</span><span class='line'>            <span class="k">if</span> <span class="o">(!</span><span class="n">getInputBuffer</span><span class="o">().</span><span class="na">parseRequestLine</span><span class="o">(</span><span class="n">keptAlive</span><span class="o">))</span> <span class="o">{</span>
+</span><span class='line'>                <span class="k">if</span> <span class="o">(</span><span class="n">handleIncompleteRequestLineRead</span><span class="o">())</span> <span class="o">{</span>
+</span><span class='line'>                    <span class="k">break</span><span class="o">;</span>
+</span><span class='line'>                <span class="o">}</span>
+</span><span class='line'>            <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>            <span class="k">if</span> <span class="o">(</span><span class="n">endpoint</span><span class="o">.</span><span class="na">isPaused</span><span class="o">())</span> <span class="o">{</span>
+</span><span class='line'>                <span class="c1">// 503 - Service unavailable</span>
+</span><span class='line'>                <span class="n">response</span><span class="o">.</span><span class="na">setStatus</span><span class="o">(</span><span class="mi">503</span><span class="o">);</span>
+</span><span class='line'>                <span class="n">error</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+</span><span class='line'>            <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+</span><span class='line'>                <span class="c1">// Make sure that connectors that are non-blocking during</span>
+</span><span class='line'>                <span class="c1">// header processing (NIO) only set the start time the first</span>
+</span><span class='line'>                <span class="c1">// time a request is processed.</span>
+</span><span class='line'>                <span class="k">if</span> <span class="o">(</span><span class="n">request</span><span class="o">.</span><span class="na">getStartTime</span><span class="o">()</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                    <span class="n">request</span><span class="o">.</span><span class="na">setStartTime</span><span class="o">(</span><span class="n">System</span><span class="o">.</span><span class="na">currentTimeMillis</span><span class="o">());</span>
+</span><span class='line'>                <span class="o">}</span>
+</span><span class='line'>                <span class="n">keptAlive</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+</span><span class='line'>                <span class="c1">// Set this every time in case limit has been changed via JMX</span>
+</span><span class='line'>                <span class="n">request</span><span class="o">.</span><span class="na">getMimeHeaders</span><span class="o">().</span><span class="na">setLimit</span><span class="o">(</span><span class="n">endpoint</span><span class="o">.</span><span class="na">getMaxHeaderCount</span><span class="o">());</span>
+</span><span class='line'>                <span class="c1">// Currently only NIO will ever return false here</span>
+</span><span class='line'>                <span class="c1">// 3</span>
+</span><span class='line'>                <span class="k">if</span> <span class="o">(!</span><span class="n">getInputBuffer</span><span class="o">().</span><span class="na">parseHeaders</span><span class="o">())</span> <span class="o">{</span>
+</span><span class='line'>                    <span class="c1">// We&#39;ve read part of the request, don&#39;t recycle it</span>
+</span><span class='line'>                    <span class="c1">// instead associate it with the socket</span>
+</span><span class='line'>                    <span class="n">openSocket</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+</span><span class='line'>                    <span class="n">readComplete</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+</span><span class='line'>                    <span class="k">break</span><span class="o">;</span>
+</span><span class='line'>                <span class="o">}</span>
+</span><span class='line'>                <span class="k">if</span> <span class="o">(!</span><span class="n">disableUploadTimeout</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                    <span class="n">setSocketTimeout</span><span class="o">(</span><span class="n">connectionUploadTimeout</span><span class="o">);</span>
+</span><span class='line'>                <span class="o">}</span>
+</span><span class='line'>            <span class="o">}</span>
+</span><span class='line'>        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">IOException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="k">if</span> <span class="o">(</span><span class="n">getLog</span><span class="o">().</span><span class="na">isDebugEnabled</span><span class="o">())</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">getLog</span><span class="o">().</span><span class="na">debug</span><span class="o">(</span>
+</span><span class='line'>                        <span class="n">sm</span><span class="o">.</span><span class="na">getString</span><span class="o">(</span><span class="s">&quot;http11processor.header.parse&quot;</span><span class="o">),</span> <span class="n">e</span><span class="o">);</span>
+</span><span class='line'>            <span class="o">}</span>
+</span><span class='line'>            <span class="n">error</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+</span><span class='line'>            <span class="k">break</span><span class="o">;</span>
+</span><span class='line'>        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">Throwable</span> <span class="n">t</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">ExceptionUtils</span><span class="o">.</span><span class="na">handleThrowable</span><span class="o">(</span><span class="n">t</span><span class="o">);</span>
+</span><span class='line'>            <span class="n">UserDataHelper</span><span class="o">.</span><span class="na">Mode</span> <span class="n">logMode</span> <span class="o">=</span> <span class="n">userDataHelper</span><span class="o">.</span><span class="na">getNextMode</span><span class="o">();</span>
+</span><span class='line'>            <span class="k">if</span> <span class="o">(</span><span class="n">logMode</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">String</span> <span class="n">message</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="na">getString</span><span class="o">(</span>
+</span><span class='line'>                        <span class="s">&quot;http11processor.header.parse&quot;</span><span class="o">);</span>
+</span><span class='line'>                <span class="k">switch</span> <span class="o">(</span><span class="n">logMode</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                    <span class="k">case</span> <span class="nl">INFO_THEN_DEBUG:</span>
+</span><span class='line'>                        <span class="n">message</span> <span class="o">+=</span> <span class="n">sm</span><span class="o">.</span><span class="na">getString</span><span class="o">(</span>
+</span><span class='line'>                                <span class="s">&quot;http11processor.fallToDebug&quot;</span><span class="o">);</span>
+</span><span class='line'>                        <span class="c1">//$FALL-THROUGH$</span>
+</span><span class='line'>                    <span class="k">case</span> <span class="nl">INFO:</span>
+</span><span class='line'>                        <span class="n">getLog</span><span class="o">().</span><span class="na">info</span><span class="o">(</span><span class="n">message</span><span class="o">);</span>
+</span><span class='line'>                        <span class="k">break</span><span class="o">;</span>
+</span><span class='line'>                    <span class="k">case</span> <span class="nl">DEBUG:</span>
+</span><span class='line'>                        <span class="n">getLog</span><span class="o">().</span><span class="na">debug</span><span class="o">(</span><span class="n">message</span><span class="o">);</span>
+</span><span class='line'>                <span class="o">}</span>
+</span><span class='line'>            <span class="o">}</span>
+</span><span class='line'>            <span class="c1">// 400 - Bad Request</span>
+</span><span class='line'>            <span class="n">response</span><span class="o">.</span><span class="na">setStatus</span><span class="o">(</span><span class="mi">400</span><span class="o">);</span>
+</span><span class='line'>            <span class="n">adapter</span><span class="o">.</span><span class="na">log</span><span class="o">(</span><span class="n">request</span><span class="o">,</span> <span class="n">response</span><span class="o">,</span> <span class="mi">0</span><span class="o">);</span>
+</span><span class='line'>            <span class="n">error</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(!</span><span class="n">error</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="c1">// Setting up filters, and parse some request headers</span>
+</span><span class='line'>            <span class="n">rp</span><span class="o">.</span><span class="na">setStage</span><span class="o">(</span><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">coyote</span><span class="o">.</span><span class="na">Constants</span><span class="o">.</span><span class="na">STAGE_PREPARE</span><span class="o">);</span>
+</span><span class='line'>            <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">prepareRequest</span><span class="o">();</span>
+</span><span class='line'>            <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">Throwable</span> <span class="n">t</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">ExceptionUtils</span><span class="o">.</span><span class="na">handleThrowable</span><span class="o">(</span><span class="n">t</span><span class="o">);</span>
+</span><span class='line'>                <span class="k">if</span> <span class="o">(</span><span class="n">getLog</span><span class="o">().</span><span class="na">isDebugEnabled</span><span class="o">())</span> <span class="o">{</span>
+</span><span class='line'>                    <span class="n">getLog</span><span class="o">().</span><span class="na">debug</span><span class="o">(</span><span class="n">sm</span><span class="o">.</span><span class="na">getString</span><span class="o">(</span>
+</span><span class='line'>                            <span class="s">&quot;http11processor.request.prepare&quot;</span><span class="o">),</span> <span class="n">t</span><span class="o">);</span>
+</span><span class='line'>                <span class="o">}</span>
+</span><span class='line'>                <span class="c1">// 400 - Internal Server Error</span>
+</span><span class='line'>                <span class="n">response</span><span class="o">.</span><span class="na">setStatus</span><span class="o">(</span><span class="mi">400</span><span class="o">);</span>
+</span><span class='line'>                <span class="n">adapter</span><span class="o">.</span><span class="na">log</span><span class="o">(</span><span class="n">request</span><span class="o">,</span> <span class="n">response</span><span class="o">,</span> <span class="mi">0</span><span class="o">);</span>
+</span><span class='line'>                <span class="n">error</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+</span><span class='line'>            <span class="o">}</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">maxKeepAliveRequests</span> <span class="o">==</span> <span class="mi">1</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">keepAlive</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+</span><span class='line'>        <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">maxKeepAliveRequests</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span>
+</span><span class='line'>                <span class="n">socketWrapper</span><span class="o">.</span><span class="na">decrementKeepAlive</span><span class="o">()</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">keepAlive</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// Process the request in the adapter</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(!</span><span class="n">error</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>                <span class="c1">// 4</span>
+</span><span class='line'>                <span class="n">rp</span><span class="o">.</span><span class="na">setStage</span><span class="o">(</span><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">coyote</span><span class="o">.</span><span class="na">Constants</span><span class="o">.</span><span class="na">STAGE_SERVICE</span><span class="o">);</span>
+</span><span class='line'>                <span class="n">adapter</span><span class="o">.</span><span class="na">service</span><span class="o">(</span><span class="n">request</span><span class="o">,</span> <span class="n">response</span><span class="o">);</span>
+</span><span class='line'>                <span class="c1">// Handle when the response was committed before a serious</span>
+</span><span class='line'>                <span class="c1">// error occurred.  Throwing a ServletException should both</span>
+</span><span class='line'>                <span class="c1">// set the status to 500 and set the errorException.</span>
+</span><span class='line'>                <span class="c1">// If we fail here, then the response is likely already</span>
+</span><span class='line'>                <span class="c1">// committed, so we can&#39;t try and set headers.</span>
+</span><span class='line'>                <span class="k">if</span><span class="o">(</span><span class="n">keepAlive</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">error</span><span class="o">)</span> <span class="o">{</span> <span class="c1">// Avoid checking twice.</span>
+</span><span class='line'>                    <span class="n">error</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="na">getErrorException</span><span class="o">()</span> <span class="o">!=</span> <span class="kc">null</span> <span class="o">||</span>
+</span><span class='line'>                            <span class="o">(!</span><span class="n">isAsync</span><span class="o">()</span> <span class="o">&amp;&amp;</span>
+</span><span class='line'>                            <span class="n">statusDropsConnection</span><span class="o">(</span><span class="n">response</span><span class="o">.</span><span class="na">getStatus</span><span class="o">()));</span>
+</span><span class='line'>                <span class="o">}</span>
+</span><span class='line'>                <span class="n">setCometTimeouts</span><span class="o">(</span><span class="n">socketWrapper</span><span class="o">);</span>
+</span><span class='line'>            <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">InterruptedIOException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">error</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+</span><span class='line'>            <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">HeadersTooLargeException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">error</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+</span><span class='line'>                <span class="c1">// The response should not have been committed but check it</span>
+</span><span class='line'>                <span class="c1">// anyway to be safe</span>
+</span><span class='line'>                <span class="k">if</span> <span class="o">(!</span><span class="n">response</span><span class="o">.</span><span class="na">isCommitted</span><span class="o">())</span> <span class="o">{</span>
+</span><span class='line'>                    <span class="n">response</span><span class="o">.</span><span class="na">reset</span><span class="o">();</span>
+</span><span class='line'>                    <span class="n">response</span><span class="o">.</span><span class="na">setStatus</span><span class="o">(</span><span class="mi">500</span><span class="o">);</span>
+</span><span class='line'>                    <span class="n">response</span><span class="o">.</span><span class="na">setHeader</span><span class="o">(</span><span class="s">&quot;Connection&quot;</span><span class="o">,</span> <span class="s">&quot;close&quot;</span><span class="o">);</span>
+</span><span class='line'>                <span class="o">}</span>
+</span><span class='line'>            <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">Throwable</span> <span class="n">t</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">ExceptionUtils</span><span class="o">.</span><span class="na">handleThrowable</span><span class="o">(</span><span class="n">t</span><span class="o">);</span>
+</span><span class='line'>                <span class="n">getLog</span><span class="o">().</span><span class="na">error</span><span class="o">(</span><span class="n">sm</span><span class="o">.</span><span class="na">getString</span><span class="o">(</span>
+</span><span class='line'>                        <span class="s">&quot;http11processor.request.process&quot;</span><span class="o">),</span> <span class="n">t</span><span class="o">);</span>
+</span><span class='line'>                <span class="c1">// 500 - Internal Server Error</span>
+</span><span class='line'>                <span class="n">response</span><span class="o">.</span><span class="na">setStatus</span><span class="o">(</span><span class="mi">500</span><span class="o">);</span>
+</span><span class='line'>                <span class="n">adapter</span><span class="o">.</span><span class="na">log</span><span class="o">(</span><span class="n">request</span><span class="o">,</span> <span class="n">response</span><span class="o">,</span> <span class="mi">0</span><span class="o">);</span>
+</span><span class='line'>                <span class="n">error</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+</span><span class='line'>            <span class="o">}</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// Finish the handling of the request</span>
+</span><span class='line'>        <span class="n">rp</span><span class="o">.</span><span class="na">setStage</span><span class="o">(</span><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">coyote</span><span class="o">.</span><span class="na">Constants</span><span class="o">.</span><span class="na">STAGE_ENDINPUT</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(!</span><span class="n">isAsync</span><span class="o">()</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">comet</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="k">if</span> <span class="o">(</span><span class="n">error</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                <span class="c1">// If we know we are closing the connection, don&#39;t drain</span>
+</span><span class='line'>                <span class="c1">// input. This way uploading a 100GB file doesn&#39;t tie up the</span>
+</span><span class='line'>                <span class="c1">// thread if the servlet has rejected it.</span>
+</span><span class='line'>                <span class="n">getInputBuffer</span><span class="o">().</span><span class="na">setSwallowInput</span><span class="o">(</span><span class="kc">false</span><span class="o">);</span>
+</span><span class='line'>            <span class="o">}</span>
+</span><span class='line'>            <span class="n">endRequest</span><span class="o">();</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">rp</span><span class="o">.</span><span class="na">setStage</span><span class="o">(</span><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">coyote</span><span class="o">.</span><span class="na">Constants</span><span class="o">.</span><span class="na">STAGE_ENDOUTPUT</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// If there was an error, make sure the request is counted as</span>
+</span><span class='line'>        <span class="c1">// and error, and update the statistics counter</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">error</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">response</span><span class="o">.</span><span class="na">setStatus</span><span class="o">(</span><span class="mi">500</span><span class="o">);</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>        <span class="n">request</span><span class="o">.</span><span class="na">updateCounters</span><span class="o">();</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(!</span><span class="n">isAsync</span><span class="o">()</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">comet</span> <span class="o">||</span> <span class="n">error</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">getInputBuffer</span><span class="o">().</span><span class="na">nextRequest</span><span class="o">();</span>
+</span><span class='line'>            <span class="n">getOutputBuffer</span><span class="o">().</span><span class="na">nextRequest</span><span class="o">();</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(!</span><span class="n">disableUploadTimeout</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="k">if</span><span class="o">(</span><span class="n">endpoint</span><span class="o">.</span><span class="na">getSoTimeout</span><span class="o">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">setSocketTimeout</span><span class="o">(</span><span class="n">endpoint</span><span class="o">.</span><span class="na">getSoTimeout</span><span class="o">());</span>
+</span><span class='line'>            <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">setSocketTimeout</span><span class="o">(</span><span class="mi">0</span><span class="o">);</span>
+</span><span class='line'>            <span class="o">}</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">rp</span><span class="o">.</span><span class="na">setStage</span><span class="o">(</span><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">coyote</span><span class="o">.</span><span class="na">Constants</span><span class="o">.</span><span class="na">STAGE_KEEPALIVE</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">breakKeepAliveLoop</span><span class="o">(</span><span class="n">socketWrapper</span><span class="o">))</span> <span class="o">{</span>
+</span><span class='line'>            <span class="k">break</span><span class="o">;</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">rp</span><span class="o">.</span><span class="na">setStage</span><span class="o">(</span><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">coyote</span><span class="o">.</span><span class="na">Constants</span><span class="o">.</span><span class="na">STAGE_ENDED</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">error</span> <span class="o">||</span> <span class="n">endpoint</span><span class="o">.</span><span class="na">isPaused</span><span class="o">())</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">SocketState</span><span class="o">.</span><span class="na">CLOSED</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">isAsync</span><span class="o">()</span> <span class="o">||</span> <span class="n">comet</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">SocketState</span><span class="o">.</span><span class="na">LONG</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">isUpgrade</span><span class="o">())</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">SocketState</span><span class="o">.</span><span class="na">UPGRADING</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">sendfileInProgress</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="k">return</span> <span class="n">SocketState</span><span class="o">.</span><span class="na">SENDFILE</span><span class="o">;</span>
+</span><span class='line'>        <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+</span><span class='line'>            <span class="k">if</span> <span class="o">(</span><span class="n">openSocket</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                <span class="k">if</span> <span class="o">(</span><span class="n">readComplete</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                    <span class="k">return</span> <span class="n">SocketState</span><span class="o">.</span><span class="na">OPEN</span><span class="o">;</span>
+</span><span class='line'>                <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+</span><span class='line'>                    <span class="k">return</span> <span class="n">SocketState</span><span class="o">.</span><span class="na">LONG</span><span class="o">;</span>
+</span><span class='line'>                <span class="o">}</span>
+</span><span class='line'>            <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+</span><span class='line'>                <span class="k">return</span> <span class="n">SocketState</span><span class="o">.</span><span class="na">CLOSED</span><span class="o">;</span>
+</span><span class='line'>            <span class="o">}</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>上面的代码有点长，但是经过分析，我们还是可以看出起主干，我已经在代码中将主流程通过数字标注了，我们就来一一看看标注了数字的地方：</p>
+
+<ol>
+<li>标注1的地方（第7行）将Socket的输入流和输出流通过InternalInputBuffer进行了包装，InternalInputBuffer是在Http11Processor的构造函数中初始化的。</li>
+<li>标注2的地方（第35行）调用了InternalInputBuffer的parseRequesLine方法解析http请求的请求行。(关于http请求行和请求头请看下文解释)</li>
+<li>标注3的地方（第57行）调用了InternalInputBuffer的prarseHeaders方法解析http请求的请求头。解析完了以后，会将http header保存在<code>org.apache.tomcat.util.http.MimeHeaders</code></li>
+<li>标注4的地方（第128行）调用了org.apache.coyote.Adapter#service方法，次方法就会最终调用到具体的Servlet.</li>
+</ol>
+
+
+<p>对于Http请求行和请求头，大家可以看下面的例子：</p>
+
+<figure class='code'><figcaption><span>Http get request</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='js'><span class='line'><span class="nx">GET</span> <span class="o">/</span><span class="nx">contextpath</span><span class="o">/</span><span class="nx">querystring</span> <span class="nx">HTTP</span><span class="o">/</span><span class="mf">1.1</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">Host</span><span class="o">:</span> <span class="mf">127.0</span><span class="p">.</span><span class="mf">0.1</span><span class="o">:</span><span class="mi">8080</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">User</span><span class="o">-</span><span class="nx">Agent</span><span class="o">:</span> <span class="nx">Mozilla</span><span class="o">/</span><span class="mf">5.0</span> <span class="p">(</span><span class="nx">Macintosh</span><span class="p">;</span> <span class="nx">Intel</span> <span class="nx">Mac</span> <span class="nx">OS</span> <span class="nx">X</span> <span class="mf">10.9</span><span class="p">;</span> <span class="nx">rv</span><span class="o">:</span><span class="mf">23.0</span><span class="p">)</span> <span class="nx">Gecko</span><span class="o">/</span><span class="mi">20100101</span> <span class="nx">Firefox</span><span class="o">/</span><span class="mf">23.0</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">Accept</span><span class="o">:</span> <span class="nx">text</span><span class="o">/</span><span class="nx">html</span><span class="p">,</span><span class="nx">application</span><span class="o">/</span><span class="nx">xhtml</span><span class="o">+</span><span class="nx">xml</span><span class="p">,</span><span class="nx">application</span><span class="o">/</span><span class="nx">xml</span><span class="p">;</span><span class="nx">q</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span><span class="o">*</span><span class="err">/*;q=0.8</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">Accept</span><span class="o">-</span><span class="nx">Language</span><span class="o">:</span> <span class="nx">en</span><span class="o">-</span><span class="nx">US</span><span class="p">,</span><span class="nx">en</span><span class="p">;</span><span class="nx">q</span><span class="o">=</span><span class="mf">0.5</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">Accept</span><span class="o">-</span><span class="nx">Encoding</span><span class="o">:</span> <span class="nx">gzip</span><span class="p">,</span> <span class="nx">deflate</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">Cookie</span><span class="o">:</span> <span class="nx">JSESSIONID</span><span class="o">=</span><span class="mi">9</span><span class="nx">F5897FEF3CDBCB234C050C132DCAE52</span><span class="p">;</span> <span class="nx">__atuvc</span><span class="o">=</span><span class="mi">384</span><span class="o">%</span><span class="mi">7</span><span class="nx">C39</span><span class="p">;</span> <span class="nx">__utma</span><span class="o">=</span><span class="mf">96992031.358732763</span><span class="p">.</span><span class="mf">1380383869.1381468490</span><span class="p">.</span><span class="mf">1381554710.38</span><span class="p">;</span> <span class="nx">__utmz</span><span class="o">=</span><span class="mf">96992031.1380383869</span><span class="p">.</span><span class="mf">1.1</span><span class="p">.</span><span class="nx">utmcsr</span><span class="o">=</span><span class="p">(</span><span class="nx">direct</span><span class="p">)</span><span class="o">|</span><span class="nx">utmccn</span><span class="o">=</span><span class="p">(</span><span class="nx">direct</span><span class="p">)</span><span class="o">|</span><span class="nx">utmcmd</span><span class="o">=</span><span class="p">(</span><span class="nx">none</span><span class="p">);</span> <span class="nx">Hm_lvt_21e144d0df165d6556d664e2836dadfe</span><span class="o">=</span><span class="mi">1381330561</span><span class="p">,</span><span class="mi">1381368826</span><span class="p">,</span><span class="mi">1381395666</span><span class="p">,</span><span class="mi">1381554711</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">Connection</span><span class="o">:</span> <span class="nx">keep</span><span class="o">-</span><span class="nx">alive</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">Cache</span><span class="o">-</span><span class="nx">Control</span><span class="o">:</span> <span class="nx">max</span><span class="o">-</span><span class="nx">age</span><span class="o">=</span><span class="mi">0</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在上面的Http协议get请求中，其中请求行就是第一行，<code>GET /contextpath/querystring HTTP/1.1</code>,余下的都是请求头。这里面需要注意根据Http协议的要求，请求行末尾必须是CRLF，而请求行与请求头，以及请求头之间必须用空行隔开，而空行也必须只包含CRLF。对于Http协议请求头的规范可以参考<a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html">这里</a>。</p>
+
+<p>通过上面的描述，我们可以整理出如下的一个请求解析流程：</p>
+
+<figure class='code'><figcaption><span>Request http header parse</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">tomcat</span><span class="o">.</span><span class="na">util</span><span class="o">.</span><span class="na">net</span><span class="o">.</span><span class="na">JIoEndpoint</span><span class="o">.</span><span class="na">Acceptor</span><span class="err">#</span><span class="n">run</span>
+</span><span class='line'><span class="o">-&gt;</span><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">tomcat</span><span class="o">.</span><span class="na">util</span><span class="o">.</span><span class="na">net</span><span class="o">.</span><span class="na">JIoEndpoint</span><span class="o">.</span><span class="na">SocketProcessor</span><span class="err">#</span><span class="n">run</span><span class="o">(</span><span class="err">请求处理线程池中运行</span><span class="o">)</span>
+</span><span class='line'><span class="o">--&gt;</span><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">coyote</span><span class="o">.</span><span class="na">AbstractProtocol</span><span class="o">.</span><span class="na">AbstractConnectionHandler</span><span class="err">#</span><span class="n">process</span>
+</span><span class='line'><span class="o">---&gt;</span><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">coyote</span><span class="o">.</span><span class="na">http11</span><span class="o">.</span><span class="na">AbstractHttp11Processor</span><span class="err">#</span><span class="n">process</span>
+</span><span class='line'><span class="o">----&gt;</span><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">coyote</span><span class="o">.</span><span class="na">http11</span><span class="o">.</span><span class="na">InternalInputBuffer</span><span class="err">#</span><span class="n">parseRequestLine</span>
+</span><span class='line'><span class="o">----&gt;</span><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">coyote</span><span class="o">.</span><span class="na">http11</span><span class="o">.</span><span class="na">InternalInputBuffer</span><span class="err">#</span><span class="n">parseHeaders</span>
+</span><span class='line'><span class="o">----&gt;</span><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">catalina</span><span class="o">.</span><span class="na">connector</span><span class="o">.</span><span class="na">CoyoteAdapter</span><span class="err">#</span><span class="n">service</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h1>如何转发到Servlet</h1>
+
+<p>上面我们说了一个请求过来是如何根据http协议解析Socket的数据，最终将生成<code>org.apache.coyote.Request</code>和<code>org.apache.coyote.Response</code>，接下来我们就来看看request,reponse是如何一步步的进入最终的Servlet进行处理的。这一步的入口就是CoyoteAdapter的service方法。
+接下来我们就来看看它的代码：</p>
+
+<figure class='code'><figcaption><span>org.apache.catalina.connector.CoyoteAdapter#service</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+<span class='line-number'>68</span>
+<span class='line-number'>69</span>
+<span class='line-number'>70</span>
+<span class='line-number'>71</span>
+<span class='line-number'>72</span>
+<span class='line-number'>73</span>
+<span class='line-number'>74</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kt">void</span> <span class="nf">service</span><span class="o">(</span><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">coyote</span><span class="o">.</span><span class="na">Request</span> <span class="n">req</span><span class="o">,</span>
+</span><span class='line'>                    <span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">coyote</span><span class="o">.</span><span class="na">Response</span> <span class="n">res</span><span class="o">)</span>
+</span><span class='line'>    <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">Request</span> <span class="n">request</span> <span class="o">=</span> <span class="o">(</span><span class="n">Request</span><span class="o">)</span> <span class="n">req</span><span class="o">.</span><span class="na">getNote</span><span class="o">(</span><span class="n">ADAPTER_NOTES</span><span class="o">);</span>
+</span><span class='line'>    <span class="n">Response</span> <span class="n">response</span> <span class="o">=</span> <span class="o">(</span><span class="n">Response</span><span class="o">)</span> <span class="n">res</span><span class="o">.</span><span class="na">getNote</span><span class="o">(</span><span class="n">ADAPTER_NOTES</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">//1 </span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">request</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// Create objects</span>
+</span><span class='line'>        <span class="n">request</span> <span class="o">=</span> <span class="n">connector</span><span class="o">.</span><span class="na">createRequest</span><span class="o">();</span>
+</span><span class='line'>        <span class="n">request</span><span class="o">.</span><span class="na">setCoyoteRequest</span><span class="o">(</span><span class="n">req</span><span class="o">);</span>
+</span><span class='line'>        <span class="n">response</span> <span class="o">=</span> <span class="n">connector</span><span class="o">.</span><span class="na">createResponse</span><span class="o">();</span>
+</span><span class='line'>        <span class="n">response</span><span class="o">.</span><span class="na">setCoyoteResponse</span><span class="o">(</span><span class="n">res</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// Link objects</span>
+</span><span class='line'>        <span class="n">request</span><span class="o">.</span><span class="na">setResponse</span><span class="o">(</span><span class="n">response</span><span class="o">);</span>
+</span><span class='line'>        <span class="n">response</span><span class="o">.</span><span class="na">setRequest</span><span class="o">(</span><span class="n">request</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// Set as notes</span>
+</span><span class='line'>        <span class="n">req</span><span class="o">.</span><span class="na">setNote</span><span class="o">(</span><span class="n">ADAPTER_NOTES</span><span class="o">,</span> <span class="n">request</span><span class="o">);</span>
+</span><span class='line'>        <span class="n">res</span><span class="o">.</span><span class="na">setNote</span><span class="o">(</span><span class="n">ADAPTER_NOTES</span><span class="o">,</span> <span class="n">response</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// Set query string encoding</span>
+</span><span class='line'>        <span class="n">req</span><span class="o">.</span><span class="na">getParameters</span><span class="o">().</span><span class="na">setQueryStringEncoding</span>
+</span><span class='line'>            <span class="o">(</span><span class="n">connector</span><span class="o">.</span><span class="na">getURIEncoding</span><span class="o">());</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">connector</span><span class="o">.</span><span class="na">getXpoweredBy</span><span class="o">())</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">response</span><span class="o">.</span><span class="na">addHeader</span><span class="o">(</span><span class="s">&quot;X-Powered-By&quot;</span><span class="o">,</span> <span class="n">POWERED_BY</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kt">boolean</span> <span class="n">comet</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+</span><span class='line'>    <span class="kt">boolean</span> <span class="n">async</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// Parse and set Catalina and configuration specific</span>
+</span><span class='line'>        <span class="c1">// request parameters</span>
+</span><span class='line'>        <span class="n">req</span><span class="o">.</span><span class="na">getRequestProcessor</span><span class="o">().</span><span class="na">setWorkerThreadName</span><span class="o">(</span><span class="n">Thread</span><span class="o">.</span><span class="na">currentThread</span><span class="o">().</span><span class="na">getName</span><span class="o">());</span>
+</span><span class='line'>        <span class="c1">//2</span>
+</span><span class='line'>        <span class="kt">boolean</span> <span class="n">postParseSuccess</span> <span class="o">=</span> <span class="n">postParseRequest</span><span class="o">(</span><span class="n">req</span><span class="o">,</span> <span class="n">request</span><span class="o">,</span> <span class="n">res</span><span class="o">,</span> <span class="n">response</span><span class="o">);</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">postParseSuccess</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="c1">//check valves if we support async</span>
+</span><span class='line'>            <span class="n">request</span><span class="o">.</span><span class="na">setAsyncSupported</span><span class="o">(</span><span class="n">connector</span><span class="o">.</span><span class="na">getService</span><span class="o">().</span><span class="na">getContainer</span><span class="o">().</span><span class="na">getPipeline</span><span class="o">().</span><span class="na">isAsyncSupported</span><span class="o">());</span>
+</span><span class='line'>            <span class="c1">// Calling the container</span>
+</span><span class='line'>            <span class="c1">//3</span>
+</span><span class='line'>            <span class="n">connector</span><span class="o">.</span><span class="na">getService</span><span class="o">().</span><span class="na">getContainer</span><span class="o">().</span><span class="na">getPipeline</span><span class="o">().</span><span class="na">getFirst</span><span class="o">().</span><span class="na">invoke</span><span class="o">(</span><span class="n">request</span><span class="o">,</span> <span class="n">response</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>            <span class="c1">// other code</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>        <span class="c1">// other code</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">IOException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="c1">// Ignore</span>
+</span><span class='line'>    <span class="o">}</span> <span class="k">finally</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">req</span><span class="o">.</span><span class="na">getRequestProcessor</span><span class="o">().</span><span class="na">setWorkerThreadName</span><span class="o">(</span><span class="kc">null</span><span class="o">);</span>
+</span><span class='line'>        <span class="c1">// Recycle the wrapper request and response</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(!</span><span class="n">comet</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">async</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">request</span><span class="o">.</span><span class="na">recycle</span><span class="o">();</span>
+</span><span class='line'>            <span class="n">response</span><span class="o">.</span><span class="na">recycle</span><span class="o">();</span>
+</span><span class='line'>        <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+</span><span class='line'>            <span class="c1">// Clear converters so that the minimum amount of memory</span>
+</span><span class='line'>            <span class="c1">// is used by this processor</span>
+</span><span class='line'>            <span class="n">request</span><span class="o">.</span><span class="na">clearEncoders</span><span class="o">();</span>
+</span><span class='line'>            <span class="n">response</span><span class="o">.</span><span class="na">clearEncoders</span><span class="o">();</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>为了可以清楚的看到主流程，上面删除了一部分非主流程的代码，接下来我们逐一分析一下标注了数字的地方：</p>
+
+<ol>
+<li>标注1的代码(第9行)将<code>org.apache.coyote.Request</code>和<code>org.apache.coyote.Response</code>对象转变为<code>org.apache.catalina.connector.Request</code>,<code>org.apache.catalina.connector.Response</code>类型的对象。其中coyote包中的Request仅仅只是包含了解析出来的http协议的数据，而connector包中的Request才是真正Servlet容器中的HttpServletRequest，它里面包含了完成请求需要的host,context和wrapper信息,在这里每一个wrapper其实都对应web.xml配置的一个Servlet。</li>
+<li>标注2（第44行）的代码调用了postParseRequest方法，这个方法里面做的事情非常多，但是最终都是为了根据Request对象找到对应的Host,Conext和Wrapper对象，也就是说最终要清楚这个请求应该由哪个Servlet来处理。</li>
+<li>标注3（第50）的代码将已经设置好了Host,Context,Wrapper对象的Request通过Pipeline机制链式传递给最终的Servlet。</li>
+</ol>
+
+
+<p>上面只是从整体上告诉了读者<code>org.apache.catalina.connector.CoyoteAdapter#service</code>方法做的事情，接下来我们进一步分解每一个步骤都具体做了哪些工作。第一步比较简单，大家可以自己阅读，我们关键来看2，3步。首先我们来看看postParseRequest方法。
+通过分析org.apache.catalina.connector.CoyoteAdapter#postParseRequest的代码，我们会发现它最终是通过<code>org.apache.tomcat.util.http.mapper.Mapper#map</code>方法来达到匹配请求到对应的Context和Wrapper(Servlet包装类)目的。具体代码如下：</p>
+
+<figure class='code'><figcaption><span>org.apache.catalina.connector.CoyoteAdapter#postParseRequest</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">connector</span><span class="o">.</span><span class="na">getMapper</span><span class="o">().</span><span class="na">map</span><span class="o">(</span><span class="n">serverName</span><span class="o">,</span> <span class="n">decodedURI</span><span class="o">,</span> <span class="n">version</span><span class="o">,</span>
+</span><span class='line'>                                      <span class="n">request</span><span class="o">.</span><span class="na">getMappingData</span><span class="o">());</span>
+</span><span class='line'>            <span class="n">request</span><span class="o">.</span><span class="na">setContext</span><span class="o">((</span><span class="n">Context</span><span class="o">)</span> <span class="n">request</span><span class="o">.</span><span class="na">getMappingData</span><span class="o">().</span><span class="na">context</span><span class="o">);</span>
+</span><span class='line'>            <span class="n">request</span><span class="o">.</span><span class="na">setWrapper</span><span class="o">((</span><span class="n">Wrapper</span><span class="o">)</span> <span class="n">request</span><span class="o">.</span><span class="na">getMappingData</span><span class="o">().</span><span class="na">wrapper</span><span class="o">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>那我们再来看看此方法。通过分析它的代码，我们发现最终其实是调用了几个<code>internalMap**</code>方法将找到的Context,Wrapper设置到org.apache.catalina.connector.Request对象的org.apache.tomcat.util.http.mapper.MappingData类型的属性中,map方法执行完以后，然后接下来就从MappingData中获取已经找到的Context和Wrapper，再设置到Request的context和wrapper中。</p>
+
+<p>接下来我们再来分析第3步，第3步通过pipeline链式调用机制最终调用了Servlet对象，而对于pipeline其实是运用了责任链模式，它将各个阀门链接起来，然后一步步的调用，而至于有多少个阀门（Valve）对象，主要来源于两个地方，一个是conf/server.xml中配置的valve，我们知道所有的容器都是支持pipeline机制的，另外一个就是每一个容器的构造其中自己初始化的阀门对象。接下来一一看一下。对已StandardEngine来说有一个与之对应的StandardEngineValve，对于StandardHost有一个StandardHostValve与之对应，StandardContext有一个StandardContextValve与之对应，StandardWrapper与StandardWrapperValve对应,通过分析代码，我们可以得到如下的一个调用链。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="o">-&gt;</span><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">catalina</span><span class="o">.</span><span class="na">core</span><span class="o">.</span><span class="na">StandardEngineValve</span><span class="err">#</span><span class="n">invoke</span>
+</span><span class='line'><span class="o">--&gt;</span><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">catalina</span><span class="o">.</span><span class="na">valves</span><span class="o">.</span><span class="na">AccessLogValve</span><span class="err">#</span><span class="n">invoke</span>
+</span><span class='line'><span class="o">---&gt;</span><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">catalina</span><span class="o">.</span><span class="na">valves</span><span class="o">.</span><span class="na">ErrorReportValve</span><span class="err">#</span><span class="n">invoke</span>
+</span><span class='line'><span class="o">----&gt;</span><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">catalina</span><span class="o">.</span><span class="na">core</span><span class="o">.</span><span class="na">StandardHostValve</span><span class="err">#</span><span class="n">invoke</span>
+</span><span class='line'><span class="o">-----&gt;</span><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">catalina</span><span class="o">.</span><span class="na">authenticator</span><span class="o">.</span><span class="na">AuthenticatorBase</span><span class="err">#</span><span class="n">invoke</span>
+</span><span class='line'><span class="o">------&gt;</span><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">catalina</span><span class="o">.</span><span class="na">core</span><span class="o">.</span><span class="na">StandardContextValve</span><span class="err">#</span><span class="n">invoke</span>
+</span><span class='line'><span class="o">-------&gt;</span><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">catalina</span><span class="o">.</span><span class="na">core</span><span class="o">.</span><span class="na">StandardWrapperValve</span><span class="err">#</span><span class="n">invoke</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>上述的调用栈中，最后会调用到StandardWrapperValve，它其实也是最终调用Servlet的地方，接下来我们就来看看它的代码：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+<span class='line-number'>68</span>
+<span class='line-number'>69</span>
+<span class='line-number'>70</span>
+<span class='line-number'>71</span>
+<span class='line-number'>72</span>
+<span class='line-number'>73</span>
+<span class='line-number'>74</span>
+<span class='line-number'>75</span>
+<span class='line-number'>76</span>
+<span class='line-number'>77</span>
+<span class='line-number'>78</span>
+<span class='line-number'>79</span>
+<span class='line-number'>80</span>
+<span class='line-number'>81</span>
+<span class='line-number'>82</span>
+<span class='line-number'>83</span>
+<span class='line-number'>84</span>
+<span class='line-number'>85</span>
+<span class='line-number'>86</span>
+<span class='line-number'>87</span>
+<span class='line-number'>88</span>
+<span class='line-number'>89</span>
+<span class='line-number'>90</span>
+<span class='line-number'>91</span>
+<span class='line-number'>92</span>
+<span class='line-number'>93</span>
+<span class='line-number'>94</span>
+<span class='line-number'>95</span>
+<span class='line-number'>96</span>
+<span class='line-number'>97</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">final</span> <span class="kt">void</span> <span class="nf">invoke</span><span class="o">(</span><span class="n">Request</span> <span class="n">request</span><span class="o">,</span> <span class="n">Response</span> <span class="n">response</span><span class="o">)</span>
+</span><span class='line'>    <span class="kd">throws</span> <span class="n">IOException</span><span class="o">,</span> <span class="n">ServletException</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// Initialize local variables we may need</span>
+</span><span class='line'>    <span class="kt">boolean</span> <span class="n">unavailable</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+</span><span class='line'>    <span class="n">Throwable</span> <span class="n">throwable</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'>    <span class="c1">// This should be a Request attribute...</span>
+</span><span class='line'>    <span class="kt">long</span> <span class="n">t1</span><span class="o">=</span><span class="n">System</span><span class="o">.</span><span class="na">currentTimeMillis</span><span class="o">();</span>
+</span><span class='line'>    <span class="n">requestCount</span><span class="o">++;</span>
+</span><span class='line'>    <span class="n">StandardWrapper</span> <span class="n">wrapper</span> <span class="o">=</span> <span class="o">(</span><span class="n">StandardWrapper</span><span class="o">)</span> <span class="n">getContainer</span><span class="o">();</span>
+</span><span class='line'>    <span class="n">Servlet</span> <span class="n">servlet</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'>    <span class="n">Context</span> <span class="n">context</span> <span class="o">=</span> <span class="o">(</span><span class="n">Context</span><span class="o">)</span> <span class="n">wrapper</span><span class="o">.</span><span class="na">getParent</span><span class="o">();</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// Allocate a servlet instance to process this request</span>
+</span><span class='line'>    <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>        <span class="c1">//1</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(!</span><span class="n">unavailable</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">servlet</span> <span class="o">=</span> <span class="n">wrapper</span><span class="o">.</span><span class="na">allocate</span><span class="o">();</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>    <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">UnavailableException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">container</span><span class="o">.</span><span class="na">getLogger</span><span class="o">().</span><span class="na">error</span><span class="o">(</span>
+</span><span class='line'>                <span class="n">sm</span><span class="o">.</span><span class="na">getString</span><span class="o">(</span><span class="s">&quot;standardWrapper.allocateException&quot;</span><span class="o">,</span>
+</span><span class='line'>                        <span class="n">wrapper</span><span class="o">.</span><span class="na">getName</span><span class="o">()),</span> <span class="n">e</span><span class="o">);</span>
+</span><span class='line'>        <span class="kt">long</span> <span class="n">available</span> <span class="o">=</span> <span class="n">wrapper</span><span class="o">.</span><span class="na">getAvailable</span><span class="o">();</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">((</span><span class="n">available</span> <span class="o">&gt;</span> <span class="mi">0L</span><span class="o">)</span> <span class="o">&amp;&amp;</span> <span class="o">(</span><span class="n">available</span> <span class="o">&lt;</span> <span class="n">Long</span><span class="o">.</span><span class="na">MAX_VALUE</span><span class="o">))</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">response</span><span class="o">.</span><span class="na">setDateHeader</span><span class="o">(</span><span class="s">&quot;Retry-After&quot;</span><span class="o">,</span> <span class="n">available</span><span class="o">);</span>
+</span><span class='line'>            <span class="n">response</span><span class="o">.</span><span class="na">sendError</span><span class="o">(</span><span class="n">HttpServletResponse</span><span class="o">.</span><span class="na">SC_SERVICE_UNAVAILABLE</span><span class="o">,</span>
+</span><span class='line'>                       <span class="n">sm</span><span class="o">.</span><span class="na">getString</span><span class="o">(</span><span class="s">&quot;standardWrapper.isUnavailable&quot;</span><span class="o">,</span>
+</span><span class='line'>                                    <span class="n">wrapper</span><span class="o">.</span><span class="na">getName</span><span class="o">()));</span>
+</span><span class='line'>        <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">available</span> <span class="o">==</span> <span class="n">Long</span><span class="o">.</span><span class="na">MAX_VALUE</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">response</span><span class="o">.</span><span class="na">sendError</span><span class="o">(</span><span class="n">HttpServletResponse</span><span class="o">.</span><span class="na">SC_NOT_FOUND</span><span class="o">,</span>
+</span><span class='line'>                       <span class="n">sm</span><span class="o">.</span><span class="na">getString</span><span class="o">(</span><span class="s">&quot;standardWrapper.notFound&quot;</span><span class="o">,</span>
+</span><span class='line'>                                    <span class="n">wrapper</span><span class="o">.</span><span class="na">getName</span><span class="o">()));</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>    <span class="o">}</span> <span class="c1">// other code</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">MessageBytes</span> <span class="n">requestPathMB</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="na">getRequestPathMB</span><span class="o">();</span>
+</span><span class='line'>    <span class="n">DispatcherType</span> <span class="n">dispatcherType</span> <span class="o">=</span> <span class="n">DispatcherType</span><span class="o">.</span><span class="na">REQUEST</span><span class="o">;</span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">request</span><span class="o">.</span><span class="na">getDispatcherType</span><span class="o">()==</span><span class="n">DispatcherType</span><span class="o">.</span><span class="na">ASYNC</span><span class="o">)</span> <span class="n">dispatcherType</span> <span class="o">=</span> <span class="n">DispatcherType</span><span class="o">.</span><span class="na">ASYNC</span><span class="o">;</span>
+</span><span class='line'>    <span class="n">request</span><span class="o">.</span><span class="na">setAttribute</span><span class="o">(</span><span class="n">Globals</span><span class="o">.</span><span class="na">DISPATCHER_TYPE_ATTR</span><span class="o">,</span><span class="n">dispatcherType</span><span class="o">);</span>
+</span><span class='line'>    <span class="n">request</span><span class="o">.</span><span class="na">setAttribute</span><span class="o">(</span><span class="n">Globals</span><span class="o">.</span><span class="na">DISPATCHER_REQUEST_PATH_ATTR</span><span class="o">,</span>
+</span><span class='line'>            <span class="n">requestPathMB</span><span class="o">);</span>
+</span><span class='line'>    <span class="c1">// Create the filter chain for this request</span>
+</span><span class='line'>    <span class="n">ApplicationFilterFactory</span> <span class="n">factory</span> <span class="o">=</span>
+</span><span class='line'>        <span class="n">ApplicationFilterFactory</span><span class="o">.</span><span class="na">getInstance</span><span class="o">();</span>
+</span><span class='line'>    <span class="n">ApplicationFilterChain</span> <span class="n">filterChain</span> <span class="o">=</span>
+</span><span class='line'>        <span class="n">factory</span><span class="o">.</span><span class="na">createFilterChain</span><span class="o">(</span><span class="n">request</span><span class="o">,</span> <span class="n">wrapper</span><span class="o">,</span> <span class="n">servlet</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// Reset comet flag value after creating the filter chain</span>
+</span><span class='line'>    <span class="n">request</span><span class="o">.</span><span class="na">setComet</span><span class="o">(</span><span class="kc">false</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// Call the filter chain for this request</span>
+</span><span class='line'>    <span class="c1">// NOTE: This also calls the servlet&#39;s service() method</span>
+</span><span class='line'>    <span class="c1">// 2 </span>
+</span><span class='line'>    <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">((</span><span class="n">servlet</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">&amp;&amp;</span> <span class="o">(</span><span class="n">filterChain</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">))</span> <span class="o">{</span>
+</span><span class='line'>            <span class="c1">// Swallow output if needed</span>
+</span><span class='line'>            <span class="k">if</span> <span class="o">(</span><span class="n">context</span><span class="o">.</span><span class="na">getSwallowOutput</span><span class="o">())</span> <span class="o">{</span>
+</span><span class='line'>                <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>                    <span class="n">SystemLogHandler</span><span class="o">.</span><span class="na">startCapture</span><span class="o">();</span>
+</span><span class='line'>                    <span class="k">if</span> <span class="o">(</span><span class="n">request</span><span class="o">.</span><span class="na">isAsyncDispatching</span><span class="o">())</span> <span class="o">{</span>
+</span><span class='line'>                        <span class="c1">//TODO SERVLET3 - async</span>
+</span><span class='line'>                        <span class="o">((</span><span class="n">AsyncContextImpl</span><span class="o">)</span><span class="n">request</span><span class="o">.</span><span class="na">getAsyncContext</span><span class="o">()).</span><span class="na">doInternalDispatch</span><span class="o">();</span>
+</span><span class='line'>                    <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">comet</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                        <span class="n">filterChain</span><span class="o">.</span><span class="na">doFilterEvent</span><span class="o">(</span><span class="n">request</span><span class="o">.</span><span class="na">getEvent</span><span class="o">());</span>
+</span><span class='line'>                        <span class="n">request</span><span class="o">.</span><span class="na">setComet</span><span class="o">(</span><span class="kc">true</span><span class="o">);</span>
+</span><span class='line'>                    <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+</span><span class='line'>                        <span class="n">filterChain</span><span class="o">.</span><span class="na">doFilter</span><span class="o">(</span><span class="n">request</span><span class="o">.</span><span class="na">getRequest</span><span class="o">(),</span>
+</span><span class='line'>                                <span class="n">response</span><span class="o">.</span><span class="na">getResponse</span><span class="o">());</span>
+</span><span class='line'>                    <span class="o">}</span>
+</span><span class='line'>                <span class="o">}</span> <span class="k">finally</span> <span class="o">{</span>
+</span><span class='line'>                    <span class="n">String</span> <span class="n">log</span> <span class="o">=</span> <span class="n">SystemLogHandler</span><span class="o">.</span><span class="na">stopCapture</span><span class="o">();</span>
+</span><span class='line'>                    <span class="k">if</span> <span class="o">(</span><span class="n">log</span> <span class="o">!=</span> <span class="kc">null</span> <span class="o">&amp;&amp;</span> <span class="n">log</span><span class="o">.</span><span class="na">length</span><span class="o">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                        <span class="n">context</span><span class="o">.</span><span class="na">getLogger</span><span class="o">().</span><span class="na">info</span><span class="o">(</span><span class="n">log</span><span class="o">);</span>
+</span><span class='line'>                    <span class="o">}</span>
+</span><span class='line'>                <span class="o">}</span>
+</span><span class='line'>            <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+</span><span class='line'>                <span class="k">if</span> <span class="o">(</span><span class="n">request</span><span class="o">.</span><span class="na">isAsyncDispatching</span><span class="o">())</span> <span class="o">{</span>
+</span><span class='line'>                    <span class="c1">//TODO SERVLET3 - async</span>
+</span><span class='line'>                    <span class="o">((</span><span class="n">AsyncContextImpl</span><span class="o">)</span><span class="n">request</span><span class="o">.</span><span class="na">getAsyncContext</span><span class="o">()).</span><span class="na">doInternalDispatch</span><span class="o">();</span>
+</span><span class='line'>                <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">comet</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                    <span class="n">request</span><span class="o">.</span><span class="na">setComet</span><span class="o">(</span><span class="kc">true</span><span class="o">);</span>
+</span><span class='line'>                    <span class="n">filterChain</span><span class="o">.</span><span class="na">doFilterEvent</span><span class="o">(</span><span class="n">request</span><span class="o">.</span><span class="na">getEvent</span><span class="o">());</span>
+</span><span class='line'>                <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+</span><span class='line'>                    <span class="n">filterChain</span><span class="o">.</span><span class="na">doFilter</span>
+</span><span class='line'>                        <span class="o">(</span><span class="n">request</span><span class="o">.</span><span class="na">getRequest</span><span class="o">(),</span> <span class="n">response</span><span class="o">.</span><span class="na">getResponse</span><span class="o">());</span>
+</span><span class='line'>                <span class="o">}</span>
+</span><span class='line'>            <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>    <span class="o">}</span> <span class="k">catch</span><span class="o">(</span><span class="n">Exception</span> <span class="n">e</span><span class="o">){</span>
+</span><span class='line'>    <span class="c1">// other code</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>为了节省版面，上面的代码已经删除非主流程的代码。接下来我们逐一分析一下标注了数字的地方：</p>
+
+<ol>
+<li>标注1（第17行）的代码实例化了Servlet对象，在实例化的过程中使用了Java双检查锁的机制来实例化Servlet，有兴趣的童鞋可以去看看org.apache.catalina.core.StandardWrapper#allocate的代码。这里需要注意的是在Servlet2.4规范之前，有一个singleThreadMode模型，这个机制类似与之前EJB的无状态会话Bean机制，每个线程过来会通过实例池中取出一个实例来完成响应。在Servlet规范2.4之后，单线程模型已经被废除了。具体细节可以参考<a href="http://docs.oracle.com/javaee/5/api/javax/servlet/SingleThreadModel.html">这里</a> .</li>
+<li>标注2（第55行）的代码其实调用了大家熟悉的Servlet的过滤器链，过滤器链最终就会调用到Servlet.</li>
+</ol>
+
+
+<p>最后，咋们再来看看过滤器滤链的处理，来看看<code>org.apache.catalina.core.ApplicationFilterChain#doFilter</code>，doFilter方法中会根据filterConfig中取的web.xml配置的过滤器，然后一个个调用，等每个过滤器执行完了以后，最终就会调用到Servlet的Service方法。</p>
+
+<p>通过上面的分析，其实我们已经清楚了一个请求过来以后，Tomcat是如何一步步处理的。我们再来做一个总体的总结：</p>
+
+<ol>
+<li>用户浏览器发送请求，请求会发送到对应的Connector监听的Socket端口。</li>
+<li>Connector从Socket流中获取数据，然后根据Http协议将其解析为Request和Reponse对象</li>
+<li>找到Request对象对应的Host,Context,Wrapper</li>
+<li>调用最终的Servelt的service进行处理。</li>
+</ol>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Tomcat关闭过程（Tomcat源代码阅读系列之四）]]></title>
@@ -3422,8 +4704,8 @@ Host对应源代码中的<code>org.apache.catalina.core.StandardHost</code>,它�
 <a href="http://imtiger.github.io/blog/2013/10/14/run-tomcat-in-idea-or-eclipse/">在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码（Tomcat源代码阅读系列之一）</a>  <br/>
 <a href="http://imtiger.github.io/blog/2013/10/16/tomcat-architecture/">Tomcat总体结构（Tomcat源代码阅读系列之二）</a><br/>
 <a href="http://imtiger.github.io/blog/2013/10/17/tomcat-start-process/">Tomcat启动过程（Tomcat源代码阅读系列之三）</a><br/>
-<a href="#">Tomcat关闭过程</a>  (已完成)<br/>
-<a href="#">Tomcat请求处理流程</a> (未完成)    <br/>
+<a href="http://imtiger.github.io/blog/2013/10/21/tomcat-shutdown/">Tomcat关闭过程（Tomcat源代码阅读系列之四）</a> <br/>
+<a href="http://imtiger.github.io/blog/2013/10/24/tomcat-request-process/">Tomcat请求处理流程（Tomcat源代码阅读系列之五）</a> <br/>
 <a href="#">Tomcat类加载器机制</a> (未完成) <br/>
 <a href="#">Tomcat Session管理机制</a>(未完成)  <br/>
 <a href="#">Tomcat 涉及的设计模式总结</a> (未完成)</p>
@@ -3444,7 +4726,7 @@ Host对应源代码中的<code>org.apache.catalina.core.StandardHost</code>,它�
 月薪:    15k-20k</p>
 
 <p>公司介绍: <br/>
-我们公司<a href="http://www.ejushang.com">易居尚</a>秉承着<code>让品质走进生活的理念</code>，致力于打造一个品质、高效、便捷的居家用品网络销售平台.咋们公司不打卡，弹性工作制，每天下午有公司大厨做的下午茶，攻城狮童鞋每周可以自由支配20%的工作时间做自己想做的事情，我们技术团队内部有很强互助和知识分享意识（包括技术骚们喜欢的爱情动作片，嘘&hellip;，其他人我不告诉他）当然了还有很多美女和帅哥，想置身互联网和电子商务有理想的的技术骚们，请你加入我们 一起high，<strong>我们不求改变世界，但求超越自我</strong>。也请各位朋友帮忙推荐，推荐成功有神秘礼物相送哦，有意者请联系:<a href="&#109;&#x61;&#x69;&#x6c;&#x74;&#111;&#x3a;&#x74;&#x69;&#x67;&#x65;&#x72;&#x2e;&#x7a;&#104;&#111;&#x75;&#x40;&#x6b;&#x61;&#114;&#105;&#x71;&#117;&#x2e;&#99;&#111;&#x6d;">&#x74;&#x69;&#103;&#101;&#114;&#46;&#x7a;&#x68;&#111;&#117;&#x40;&#x6b;&#x61;&#114;&#105;&#113;&#117;&#x2e;&#99;&#x6f;&#109;</a> 或者留言给我，另外也可以通过<a href="http://weibo.com/xmuzyq">@krq_tiger</a>新浪微博与我取的联系.</p>
+我们公司<a href="http://www.ejushang.com">易居尚</a>秉承着<code>让品质走进生活的理念</code>，致力于打造一个品质、高效、便捷的居家用品网络销售平台.咋们公司不打卡，弹性工作制，每天下午有公司大厨做的下午茶，攻城狮童鞋每周可以自由支配20%的工作时间做自己想做的事情，我们技术团队内部有很强互助和知识分享意识（包括技术骚们喜欢的爱情动作片，嘘&hellip;，其他人我不告诉他）当然了还有很多美女和帅哥，想置身互联网和电子商务有理想的的技术骚们，请你加入我们 一起high，<strong>我们不求改变世界，但求超越自我</strong>。也请各位朋友帮忙推荐，推荐成功有神秘礼物相送哦，有意者请联系:<a href="&#109;&#x61;&#x69;&#108;&#x74;&#x6f;&#x3a;&#x74;&#x69;&#x67;&#x65;&#x72;&#x2e;&#x7a;&#x68;&#x6f;&#117;&#x40;&#x6b;&#97;&#114;&#x69;&#113;&#x75;&#46;&#x63;&#x6f;&#109;">&#116;&#x69;&#x67;&#101;&#114;&#46;&#x7a;&#x68;&#x6f;&#117;&#64;&#x6b;&#x61;&#114;&#105;&#x71;&#x75;&#x2e;&#99;&#x6f;&#109;</a> 或者留言给我，另外也可以通过<a href="http://weibo.com/xmuzyq">@krq_tiger</a>新浪微博与我取的联系.</p>
 
 <!-- more -->
 
@@ -4881,174 +6163,6 @@ Parallel Collector又可以分为以下三种：</p>
 <a href="https://blogs.oracle.com/poonam/entry/understanding_cms_gc_logs"> Understanding CMS GC Logs </a> <br/>
 <a href="http://www.oracle.com/technetwork/java/javase/tech/vmoptions-jsp-140102.html">Java HotSpot VM Options</a>
 <a href="http://docs.oracle.com/javase/6/docs/technotes/guides/vm/server-class.html">Server-Class Machine Detection</a></p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Jvm内存模型以及垃圾收集策略解析系列（一）]]></title>
-    <link href="http://imtiger.github.io/blog/2010/02/21/jvm-memory-and-gc/"/>
-    <updated>2010-02-21T09:33:00+08:00</updated>
-    <id>http://imtiger.github.io/blog/2010/02/21/jvm-memory-and-gc</id>
-    <content type="html"><![CDATA[<p><img class="center" src="http://imtiger.github.io/images/2010/02/21/jvm-original-logo.jpg">
-本文之前发布在本人Iteye的<a href="http://xmuzyq.iteye.com">博客</a>上，换了新博客后，重新整理一下，发布在此，希望对Jvm 内存以及垃圾收集策略感兴趣的朋友有点帮助。</p>
-
-<p>本文主要内容分为如下几部分：</p>
-
-<ol>
-<li><code>Java虚拟机规范规定的Jvm 内存概念模型</code></li>
-<li><code>HotSpot Jvm 内存的模型</code></li>
-<li><code>常见的垃圾收集策略</code></li>
-<li>HotSpot Jvm 垃圾收集策略</li>
-<li>HotSpot Jvm 垃圾收集器的配置策略<br/>
-本篇文章只涉及1，2，3部分，第4和5部分<a href="http://imtiger.github.io/blog/2010/02/21/jvm-memory-and-gc-2/">Jvm内存模型以及垃圾收集策略解析系列(二)</a>文章我们再来说。</li>
-</ol>
-
-
-<!-- more -->
-
-
-<h1>1.Java虚拟机内存概念模型</h1>
-
-<p>在本文开始之前，首先我们这里要明确一点，Jvm的内存模型分为<code>Java 虚拟机规范规定的概念模型</code>以及具体厂商的<code>实现模型</code>。不同的厂商的Jvm在实现方式上可能会存在差别，本文中如果没有特别指出，Jvm 默认都指HotSpot Jvm。</p>
-
-<p>OK，明确了上面一点以后，咋们首先来看一下<code>Java 虚拟机规范</code>对Jvm 内存模型的要求，咋们具体可以参考下图：<br/>
-<img class="center" src="http://imtiger.github.io/images/2010/02/21/jvm-memory-mode.png"></p>
-
-<p>由上图可以看出Jvm 运行时的内存主要分为两部分：</p>
-
-<ol>
-<li><p>所有线程共享的区域<br/>
- 线程共享的区域分为又分为下面两部分：</p>
-
-<ol>
-<li>方法区<br/>
-方法区主要存放虚拟机中已经加载的类的信息，静态变量，常量等。方法区中有一块非常重要的区域<code>运行时常量池</code>,我们知道Java Class的文件结构中有一个叫<code>常量池</code>的结构，它主要存放了编译器生成的各种字面常量和符号引用，这部分的内容也将放到运行时常量池。</li>
-<li>堆<br/>
-堆中存放了Java 对象，现代虚拟机，对于堆又进行了进一步的划分，具体细节到下面的HotSpot jvm 的实现中再来说说。</li>
-</ol>
-</li>
-<li><p>线程独享的区域</p>
-
-<ol>
-<li>Java虚拟机栈<br/>
-Java 方法在运行的时候，虚拟机会分配给每次方法调用一个<code>栈帧</code>,栈帧中包含了局部变量表，操作数栈，方法出口等信息。</li>
-<li>本地方法栈<br/>
-本地方法栈是为Java 中执行Native 方法服务的，作用和Java 虚拟机栈是一样的。</li>
-<li>程序计数器 <br/>
-每个线程都会有自己的程序计数器方面在执行Java 方法的时候，能顺利的找到下面要执行的指令。</li>
-</ol>
-</li>
-</ol>
-
-
-<h1>2.HotSpot jvm内存实现模型</h1>
-
-<p>Ok,上面说了Java 虚拟机规范规定的虚拟机概念模型中的内存布局，接下来我们以Sun公司的HopSpot jvm为例（现以及被Oracle 收购），来具体的看看JVM的内存模型和垃圾收集方面的知识。</p>
-
-<p>Java HotSopt jvm 将JVM的堆内存分为了几个区域，我们可以通过下图来形象的描述：
-<img class="center" src="http://imtiger.github.io/images/2010/02/21/hotsopt-jvm-memory.jpg"></p>
-
-<p>从上图我们可以清晰的看到HotSpot jvm 将堆分为如下三部分：</p>
-
-<ol>
-<li><p>新生代（Young）<br/>
-新生代被划分为三部分，Eden区和两个大小严格相同的Survivor区，其中Survivor区间，某一时刻只有其中一个是被使用的，另外一个留做垃圾收集时复制对象用，在Young区间变满的时候，minor GC就会将存活的对象移到空闲的Survivor区间中，根据JVM的策略，在经过几次垃圾收集后，仍然存活于Survivor的对象将被移动到Tenured区间。</p></li>
-<li><p>老年代（Tenured）<br/>
-Tenured区主要保存生命周期长的对象，一般是一些老的对象，当一些对象在Young复制转移一定的次数以后，对象就会被转移到Tenured区，一般如果系统中用了application级别的缓存，缓存中的对象往往会被转移到这一区间。</p></li>
-<li><p>持久代（Perm）<br/>
-Perm代主要保存class,method,filed对象，这部分的空间一般不会溢出，除非一次性加载了很多的类，不过在涉及到热部署的应用服务器的时候，有时候会遇到java.lang.OutOfMemoryError : PermGen space 的错误，造成这个错误的很大原因就有可能是每次都重新部署，但是重新部署后，类的class没有被卸载掉，这样就造成了大量的class对象保存在了perm中，这种情况下，一般重新启动应用服务器可以解决问题。</p>
-
-<blockquote><p>说到持久代，我们有必要来说一下虚拟机概念模型和实现模型方面的差异，在HotSpot虚拟机的实现中利用持久代实现了概念模型的方法区。</p></blockquote></li>
-</ol>
-
-
-<p>OK,接下来我们再来看看 HotSpot jvm都给我们提供了哪些参数来对内存进行配置：</p>
-
-<ul>
-<li>配置总内存<br/>
-<code>-Xms</code> ：指定了JVM初始启动以后初始化内存<br/>
-<code>-Xmx</code>：指定JVM堆得最大内存，在JVM启动以后，会分配-Xmx参数指定大小的内存给JVM，但是不一定全部使用，JVM会根据-Xms参数来调节真正用于JVM的内存<br/>
--Xmx-Xms之差就是三个Virtual空间的大小</li>
-<li>配置新生代 <br/>
-<code>-Xmn</code>: 参数设置了年轻代的大小 <br/>
-<code>-XX:SurvivorRatio</code>: 表示eden和一个surivivor的比例，缺省值为8.假如<code>-XX:SurvivorRatio=32</code>意味着eden和一个survivor的比值是32：1，这样一个Survivor就占Young区的1/34.</li>
-<li>配置老年代  <br/>
-<code>-XX:NewRatio</code>: 表示年老年代和新生代内存的比例，缺省值为2.假如<code>-XX:NewRatio=8</code>意味着tenured 和 young的比值8：1</li>
-<li>配置持久代<br/>
-<code>-XX:MaxPermSize</code>：表示持久代的最大值</li>
-</ul>
-
-
-<p>有了上面虚拟机的内存模型的相关介绍做为铺垫，我们接着来看一下有关垃圾收集方面的知识。</p>
-
-<h1>3.常见的垃圾收集策略</h1>
-
-<p>垃圾收集提供了内存管理的机制，使得应用程序不需要在关注内存如何释放，内存用完后，垃圾收集会进行收集，这样就减轻了因为人为的管理内存而造成的错误，比如在C++语言里，出现内存泄露时很常见的。Java语言是目前使用最多的依赖于垃圾收集器的语言，但是垃圾收集器策略从20世纪60年代就已经流行起来了，比如Smalltalk,Eiffel等编程语言也集成了垃圾收集器的机制。</p>
-
-<p>所有的垃圾收集算法都面临同一个问题，那就是找出应用程序不可到达的内存块，将其释放，这里面得不可到达主要是指应用程序已经没有内存块的引用了，而在JAVA中，某个对象对应用程序是可到达的是指：这个对象被根（根主要是指类的静态变量，常量或者活跃在所有线程栈的对象的引用）引用或者对象被另一个可到达的对象引用，可以通过下图来形象的描述：
-<img class="center" src="http://imtiger.github.io/images/2010/02/21/root-avaliable.jpg"></p>
-
-<p>下面我们介绍一下几种常见的垃圾收集策略：</p>
-
-<h2>1. Reference Counting(引用计数）</h2>
-
-<p>引用计数是最简单直接的一种方式，这种方式在每一个对象中增加一个引用的计数，这个计数代表当前程序有多少个引用引用了此对象，如果此对象的引用计数变为0，那么此对象就可以作为垃圾收集器的目标对象来收集。<br/>
-优点：<br/>
-简单，直接，不需要暂停整个应用<br/>
-缺点：<br/>
-需要编译器的配合，编译器要生成特殊的指令来进行引用计数的操作，比如每次将对象赋值给新的引用，或者者对象的引用超出了作用域等。<br/>
-不能处理循环引用的问题</p>
-
-<h2>2. 跟踪收集器</h2>
-
-<p>跟踪收集器首先要暂停整个应用程序，然后开始从根对象扫描整个堆，判断扫描的对象是否有对象引用。
-如果每次扫描整个堆，那么势必让GC的时间变长，从而影响了应用本身的执行。因此在JVM里面采用了分代收集，在新生代收集的时候minor gc只需要扫描新生代，而不需要扫描老生代。<br/>
-JVM采用了分代收集以后，minor gc只扫描新生代，但是minor gc怎么判断是否有老生代的对象引用了新生代的对象，JVM采用了卡片标记的策略，卡片标记将老生代分成了一块一块的，划分以后的每一个块就叫做一个卡片，JVM采用卡表维护了每一个块的状态，当JAVA程序运行的时候，如果发现老生代对象引用或者释放了新生代对象的引用，那么就JVM就将卡表的状态设置为脏状态，这样每次minor gc的时候就会只扫描被标记为脏状态的卡片，而不需要扫描整个堆。具体如下图：<br/>
-<img class="center" src="http://imtiger.github.io/images/2010/02/21/jvm-memory-table-card.jpg">
-上面说了Jvm 需要判断对象是否有引用存在，而Java 中的引用又分为了如下几种，不同种类的引用对垃圾收集有不同的影响，下面我们分开描述一下：<br/>
-<code>1.Strong Reference(强引用)</code><br/>
-强引用是JAVA中默认采用的一种方式，我们平时创建的引用都属于强引用。如果一个对象没有强引用，那么对象就会被回收。<br/>
-<code>2.Soft Reference(软引用)</code>
-软引用的对象在GC的时候不会被回收，只有当内存不够用的时候才会真正的回收，因此软引用适合缓存的场合，这样使得缓存中的对象可以尽量的再内存中待长久一点。 <br/>
-<code>3.Weak Reference(弱引用)</code><br/>
-弱引用有利于对象更快的被回收，假如一个对象没有强引用只有弱引用，那么在GC后，这个对象肯定会被回收。<br/>
-<code>4.Phantom reference(幽灵引用)</code> <br/>
-幽灵引用说是引用，但是你不能通过幽灵引用来获取对象实例，它主要目的是为了当设置了幽灵引用的对象在被回收的时候可以收到通知。 <br/>
-跟踪收集器常见的有如下几种：</p>
-
-<h3>2.1 Mark-Sweep Collector(标记-清除收集器）</h3>
-
-<p>标记清除收集器最早由Lisp的发明人于1960年提出，标记清除收集器停止所有的工作，从根扫描每个活跃的对象，然后标记扫描过的对象，标记完成以后，清除那些没有被标记的对象。<br/>
-优点：<br/>
-解决循环引用的问题<br/>
-不需要编译器的配合，从而就不执行额外的指令<br/>
-缺点：  <br/>
-每个活跃的对象都要进行扫描，收集暂停的时间比较长。</p>
-
-<h3>2.2 Copying Collector(复制收集器）</h3>
-
-<p>复制收集器将内存分为两块一样大小空间，某一个时刻，只有一个空间处于活跃的状态，当活跃的空间满的时候，GC就会将活跃的对象复制到未使用的空间中去，原来不活跃的空间就变为了活跃的空间。复制收集器具体过程可以参考下图：
-<img class="center" src="http://imtiger.github.io/images/2010/02/21/copy-gc.jpg">
-优点： <br/>
-只扫描可以到达的对象，不需要扫描所有的对象，从而减少了应用暂停的时间<br/>
-缺点：<br/>
-需要额外的空间消耗，某一个时刻，总是有一块内存处于未使用状态<br/>
-复制对象需要一定的开销</p>
-
-<h3>2.3 Mark-Compact Collector(标记-整理收集器）</h3>
-
-<p>标记整理收集器汲取了标记清除和复制收集器的优点，它分两个阶段执行，在第一个阶段，首先扫描所有活跃的对象，并标记所有活跃的对象，第二个阶段首先清除未标记的对象，然后将活跃的的对象复制到堆得底部。标记整理收集器的过程示意图请参考下图：
-<img class="center" src="http://imtiger.github.io/images/2010/02/21/mark-compact-collector.jpg">
-Mark-compact策略极大的减少了内存碎片，并且不需要像Copy Collector一样需要两倍的空间。</p>
-
-<p>本篇文章介绍了Jvm内存的概念模型，HotSpot jvm内存实现模型，以及常见的垃圾收集策略，本系列的下篇文章将介绍，HotSpot jvm中的内存模型以及HotSpot Jvm 垃圾收集器的配置策略。下篇请参加如下文章：<br/>
-<a href="http://imtiger.github.io/blog/2010/02/21/jvm-memory-and-gc-2/">Jvm内存模型以及垃圾收集策略解析系列（二)</a></p>
-
-<p>最后附上一些JVM 垃圾收集方面的文章供大家参考：<br/>
-<a href="http://www.ibm.com/developerworks/library/j-jtp10283/index.html?S_TACT=105AGX52&amp;S_CMP=cn-a-j">Java theory and practice: A brief history of garbage collection</a> <br/>
-<a href="http://www.ibm.com/developerworks/library/j-jtp11253/index.html?S_TACT=105AGX52&amp;S_CMP=cn-a-j">Java theory and practice: Garbage collection in the HotSpot JVM</a><br/>
-<a href="https://blogs.oracle.com/poonam/entry/understanding_cms_gc_logs"> Understanding CMS GC Logs </a> <br/>
-<a href="http://www.oracle.com/technetwork/java/javase/tech/vmoptions-jsp-140102.html">Java HotSpot VM Options</a></p>
 ]]></content>
   </entry>
   

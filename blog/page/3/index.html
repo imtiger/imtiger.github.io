@@ -9,7 +9,7 @@
 	<meta name="author" content="imtiger">
 
 	
-	<meta name="description" content="Nov 9th, 2009 Java, 技术 Java Classloader机制解析 做Java开发，对于ClassLoader的机制是必须要熟悉的基础知识，本文针对Java ClassLoader的机制做一个简要的总结。因为不同的JVM的实现不同，本文所描述的内容均只限于Hotspot &hellip;">
+	<meta name="description" content="Feb 21st, 2010 Java, 技术 Jvm内存模型以及垃圾收集策略解析系列（一） 本文之前发布在本人Iteye的博客上，换了新博客后，重新整理一下，发布在此，希望对Jvm 内存以及垃圾收集策略感兴趣的朋友有点帮助。 本文主要内容分为如下几部分： Java虚拟机规范规定的Jvm &hellip;">
 	<meta name="keywords" content="java,ios,mac,linux,objective-c,软件设计,软件架构,摄影,imtiger.">
 
   <!-- http://t.co/dKP3o1e -->
@@ -89,6 +89,55 @@
 			<div class="mid-col-container">
 				<div id="content" class="inner">
 <div itemscope itemtype="http://schema.org/Blog">
+
+
+    <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
+	<div class="meta">
+		<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2010-02-21T09:33:00+08:00" data-updated="true" itemprop="datePublished">Feb 21<span>st</span>, 2010</time></div>
+		<div class="tags">
+
+
+	<a class='category' href='/blog/categories/java/'>Java</a>, <a class='category' href='/blog/categories/ji-zhu/'>技术</a>
+
+
+</div>
+		
+	</div>
+	<h1 class="title" itemprop="name"><a href="/blog/2010/02/21/jvm-memory-and-gc/" itemprop="url">Jvm内存模型以及垃圾收集策略解析系列（一）</a></h1>
+	<div class="entry-content" itemprop="articleBody">
+		<p><img class="center" src="/images/2010/02/21/jvm-original-logo.jpg">
+本文之前发布在本人Iteye的<a href="http://xmuzyq.iteye.com">博客</a>上，换了新博客后，重新整理一下，发布在此，希望对Jvm 内存以及垃圾收集策略感兴趣的朋友有点帮助。</p>
+
+<p>本文主要内容分为如下几部分：</p>
+
+<ol>
+<li><code>Java虚拟机规范规定的Jvm 内存概念模型</code></li>
+<li><code>HotSpot Jvm 内存的模型</code></li>
+<li><code>常见的垃圾收集策略</code></li>
+<li>HotSpot Jvm 垃圾收集策略</li>
+<li>HotSpot Jvm 垃圾收集器的配置策略<br/>
+本篇文章只涉及1，2，3部分，第4和5部分<a href="/blog/2010/02/21/jvm-memory-and-gc-2/">Jvm内存模型以及垃圾收集策略解析系列(二)</a>文章我们再来说。</li>
+</ol>
+
+
+
+		
+		<a href="/blog/2010/02/21/jvm-memory-and-gc/" class="more-link">Read on(阅读全文) &rarr;</a>
+	</div>
+
+</article>
 
 
     <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
