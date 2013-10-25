@@ -10,7 +10,7 @@ categories:
 - 技术
 ---
 {% img center /images/2013/10/14/apache_tomcat_bag.jpg%}
-本文是[Tomcat源代码阅读系列](/blog/2013/10/08/tomcat-source-code-study/)的第三篇文章，在阅读此文之前，建议先读前面的两篇：
+本文是[Tomcat源代码阅读系列](/blog/2013/10/08/tomcat-source-code-study/)的第三篇文章，在阅读此文之前，建议先读前面的两篇：  
 [在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码（Tomcat源代码阅读系列之一）](/blog/2013/10/14/run-tomcat-in-idea-or-eclipse/)   
 [Tomcat总体结构                             （Tomcat源代码阅读系列之二）](/blog/2013/10/16/tomcat-architecture/)
 
@@ -666,6 +666,8 @@ protected final void startAcceptorThreads() {
 ```
 通过上面的代码，我们可以看出其实是通过`org.apache.tomcat.util.net.AbstractEndpoint.Acceptor`这个Runable接口的实现类来启动线程，接下来我们就来看看Acceptor#run方法，通过查看run方法，它里面其实就是调用了`java.net.ServerSocket#accept`的方法来接受一个Socket连接。
 
+启动完了Acceptor线程以后，接着就会启动AsyncTimeout线程，而这里面需要注意的时候，无论是Acceptor还是AsyncTimeout线程，它们都是Daemon线程，而设置为Daemon的原因，我们会在下篇[Tomcat的关闭]()中进行说明。
+
 ##StandardEngine#start
 从本文上面的分析中，我们得知StandardEngine继承了ContainerBase，而StandardEngine的startInternal钩子方法也仅仅是调用了父类ContainerBase的startInternal方法，那接下来我们分析一下ContainerBase的startInternal方法，代码如下：
 
@@ -717,6 +719,7 @@ private static class StartChild implements Callable<Void> {
         }
 }
 ```
+
 通过上面的代码，我们可以看到StartChild实现了Callable接口，实现这个接口的类可以将其放到对应的executor中执行（对于executor不熟悉的童鞋可以去看一下相关的文章，本文不做介绍），StartChild在运行的时候就会调用到子容器的start方法，而此时的父容器是StandardEngine，子容器就是StandardHost,接下来我们就来看看StandardHost的启动过程。通过前面对于init流程的分析，我们知道StandardHost不是在StandardEngine#init的时候初始化，因此在执行StandardHost#start的时候，要首先进行init方法的调用，具体的代码如下：
 ```java org.apache.catalina.util.LifecycleBase#start
 public final synchronized void start() throws LifecycleException {
@@ -753,6 +756,25 @@ public final synchronized void start() throws LifecycleException {
 StandardHost#start调用init方法初始化完StandardHost以后，会调用钩子的startInternal方法，而startInternal方法又是调用了ContainerBased#startInternal方法，而ContainerBase#startInternal方法最终又会去启动子容器的，对于StandardHost来说，子容器就是StandardContext。
 因此分析到这里我们可以得出如下结论：
 > 对于StandardEngine，StandardHost的启动，父容器在init的时候创建一个启动和停止子容器的线程池，然后父容器启动的时候首先通过异步的方式将子容器的启动通过`org.apache.catalina.core.ContainerBase.StartChild`提交到父容器中对应的线程池中进行启动，而子容器启动的时候首先会初始化，然后再启动。
+
+另外这里还需要注意一点就是，StandEngine#start的时候，最终调用了ContainerBase#startInternal方法，而ContainerBase#startInternal的最后，调用了threadStart(),我们来看看它的代码如下：
+```java org.apache.catalina.core.ContainerBase#threadStart
+protected void threadStart() {
+
+        if (thread != null)
+            return;
+        if (backgroundProcessorDelay <= 0)
+            return;
+
+        threadDone = false;
+        String threadName = "ContainerBackgroundProcessor[" + toString() + "]";
+        thread = new Thread(new ContainerBackgroundProcessor(), threadName);
+        thread.setDaemon(true);
+        thread.start();
+
+}
+```
+上面的代码，首先会判断backgroundProcessorDelay是否小于0，而这个值默认情况下是-1，也就意味这后面的代码不会运行，而对于StandardEngine来说，它将backgroundProcessorDelay的值在构造函数中赋值为了10，这样的话，当StandardEngine启动的时候，就会启动名称为“ContainerBackgroundProcessor[StandardEngine[Catalina]]”的线程。
 
 经过上面的分析，我们已经清楚了StandardEngine启动的过程了，但是我们还有一个地方需要进一步的分析。因为上面的分析我们仅仅只是分析了容器通过conf/server.xml配置文件的配置结构进行的启动，而我们都知道`CATALINA-HOME/webapps/`中的应用也是需要启动的，那么webapps目录的应用又是如何启动的呢？我们下面来分析一下，通过[Tomcat总体结构](/blog/2013/10/16/tomcat-architecture/)的描述，我们已经知道，webapps目录下面的应用其实是属于Context的，而Context对应Tomcat中的StandardContext类，因此我们就知道应该对谁下手了，知道了目标以后，咋们还是采用之前的那种方式，要么debug,要么打印调用栈，这里我们还是通过打印调用栈的方式进行，我们在`org.apache.catalina.core.StandardContext#initInternal`中增加打印调用栈的方法，具体代码如下：
 ```java org.apache.catalina.core.StandardContext#initInternal 
@@ -838,3 +860,88 @@ public void lifecycleEvent(LifecycleEvent event) {
 
 通过上面的分析我们清楚了webapps目录中context的启动，总结如下：
 >webapps目录中应用的启动在StandardHost#start的时候，通过`Lifecycle.START_EVENT`这个事件的监听器HostConfig进行进一步的启动。
+
+综合上面的文章所述,最后我们再来一下总结，我们知道Java程序启动以后，最终会以进程的形式存在，而Java进程中又会有很多条线程存在，因此最后我们就来看看Tomcat启动以后，到底启动了哪些线程，通过这些我们可以反过来验证我们对源代码的理解是否正确。接下来我们启动Tomcat，然后运行`jstack -l <pid>`来看看，在笔者的机器上面，jstack的输入如下所示：
+```java Tomcat threads
+Full thread dump Java HotSpot(TM) 64-Bit Server VM (20.51-b01-457 mixed mode):
+
+"ajp-bio-8009-AsyncTimeout" daemon prio=5 tid=7f8738afe000 nid=0x115ad6000 waiting on condition [115ad5000]
+   java.lang.Thread.State: TIMED_WAITING (sleeping)
+        at java.lang.Thread.sleep(Native Method)
+        at org.apache.tomcat.util.net.JIoEndpoint$AsyncTimeout.run(JIoEndpoint.java:148)
+        at java.lang.Thread.run(Thread.java:680)
+
+   Locked ownable synchronizers:
+        - None
+
+"ajp-bio-8009-Acceptor-0" daemon prio=5 tid=7f8738b05800 nid=0x1159d3000 runnable [1159d2000]
+   java.lang.Thread.State: RUNNABLE
+        at java.net.PlainSocketImpl.socketAccept(Native Method)
+        at java.net.PlainSocketImpl.accept(PlainSocketImpl.java:439)
+        - locked <7f46a8710> (a java.net.SocksSocketImpl)
+        at java.net.ServerSocket.implAccept(ServerSocket.java:468)
+        at java.net.ServerSocket.accept(ServerSocket.java:436)
+        at org.apache.tomcat.util.net.DefaultServerSocketFactory.acceptSocket(DefaultServerSocketFactory.java:60)
+        at org.apache.tomcat.util.net.JIoEndpoint$Acceptor.run(JIoEndpoint.java:216)
+        at java.lang.Thread.run(Thread.java:680)
+
+   Locked ownable synchronizers:
+        - None
+
+"http-bio-8080-AsyncTimeout" daemon prio=5 tid=7f8735acb800 nid=0x1158d0000 waiting on condition [1158cf000]
+   java.lang.Thread.State: TIMED_WAITING (sleeping)
+        at java.lang.Thread.sleep(Native Method)
+        at org.apache.tomcat.util.net.JIoEndpoint$AsyncTimeout.run(JIoEndpoint.java:148)
+        at java.lang.Thread.run(Thread.java:680)
+
+   Locked ownable synchronizers:
+        - None
+
+"http-bio-8080-Acceptor-0" daemon prio=5 tid=7f8735acd000 nid=0x1157cd000 runnable [1157cc000]
+   java.lang.Thread.State: RUNNABLE
+        at java.net.PlainSocketImpl.socketAccept(Native Method)
+        at java.net.PlainSocketImpl.accept(PlainSocketImpl.java:439)
+        - locked <7f46a8690> (a java.net.SocksSocketImpl)
+        at java.net.ServerSocket.implAccept(ServerSocket.java:468)
+        at java.net.ServerSocket.accept(ServerSocket.java:436)
+        at org.apache.tomcat.util.net.DefaultServerSocketFactory.acceptSocket(DefaultServerSocketFactory.java:60)
+        at org.apache.tomcat.util.net.JIoEndpoint$Acceptor.run(JIoEndpoint.java:216)
+        at java.lang.Thread.run(Thread.java:680)
+
+   Locked ownable synchronizers:
+        - None
+
+"ContainerBackgroundProcessor[StandardEngine[Catalina]]" daemon prio=5 tid=7f8732850800 nid=0x111203000 waiting on condition [111202000]
+   java.lang.Thread.State: TIMED_WAITING (sleeping)
+        at java.lang.Thread.sleep(Native Method)
+        at org.apache.catalina.core.ContainerBase$ContainerBackgroundProcessor.run(ContainerBase.java:1508)
+        at java.lang.Thread.run(Thread.java:680)
+
+   Locked ownable synchronizers:
+        - None
+
+
+"main" prio=5 tid=7f8735000800 nid=0x10843e000 runnable [10843c000]
+   java.lang.Thread.State: RUNNABLE
+        at java.net.PlainSocketImpl.socketAccept(Native Method)
+        at java.net.PlainSocketImpl.accept(PlainSocketImpl.java:439)
+        - locked <7f32ea7c8> (a java.net.SocksSocketImpl)
+        at java.net.ServerSocket.implAccept(ServerSocket.java:468)
+        at java.net.ServerSocket.accept(ServerSocket.java:436)
+        at org.apache.catalina.core.StandardServer.await(StandardServer.java:452)
+        at org.apache.catalina.startup.Catalina.await(Catalina.java:779)
+        at org.apache.catalina.startup.Catalina.start(Catalina.java:725)
+        at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+        at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)
+        at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)
+        at java.lang.reflect.Method.invoke(Method.java:597)
+        at org.apache.catalina.startup.Bootstrap.start(Bootstrap.java:322)
+        at org.apache.catalina.startup.Bootstrap.main(Bootstrap.java:456)
+        at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+        at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)
+        at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)
+        at java.lang.reflect.Method.invoke(Method.java:597)
+        at com.intellij.rt.execution.application.AppMain.main(AppMain.java:120)
+```
+
+上面的截图我已经取消了JVM自己本生的线程，从上图中我们可以清楚的看到，有6条线程，其中`ajp-bio-8009-AsyncTimeout`和`ajp-bio-8009-Acceptor-0`是在Ajp的Connector启动的时候启动的，`http-bio-8080-AsyncTimeout`和`http-bio-8080-Acceptor-0`是http的Connector启动的时候启动的，`ContainerBackgroundProcessor[StandardEngine[Catalina]]`是在StandardEngine启动的时候启动的，而main线程就是我们的主线程。这里还需要注意一点就是除了Main线程以外，其它的线程都是Dameon线程，相关的内容在下篇[Tomcat的关闭]()我们再来详细说明。
