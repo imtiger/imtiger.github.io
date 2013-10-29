@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
-
+<link href="/images/favicon.png" rel="shortcut icon">
 <title>I’m Tiger,一个有理想爱折腾的程序员！</title>
 
 <!-- Meta tags -->
@@ -14,6 +14,8 @@
     /*common*/
 body {
     background: #fff;
+    padding: 0;
+    margin: 0;
 }
 
 ul, ol, dt, dd {
@@ -38,8 +40,15 @@ ul, ol, dt, dd {
 .aboutMe .bigCircle {
     width: 40px;
     height: 40px;
-    background: #00aeef;
+    background: #fff;
     margin-right: 15px;
+    padding: 2px;
+}
+
+.aboutMe .bigCircle i {
+    width: 40px;
+    height: 40px;
+    background: #00aeef;
 }
 
 .aboutMe .middleCircle {
@@ -59,13 +68,12 @@ ul, ol, dt, dd {
 .aboutMe .smallCircle i {
     width: 15px;
     height: 15px;
-    background: #fff;
     background: #8dd8f8;
 }
 
     /*head*/
 .aboutMe .head {
-    margin-bottom: 50px;
+    margin-bottom: 40px;
     position: relative;
 }
 
@@ -114,7 +122,7 @@ ul, ol, dt, dd {
     text-decoration: none;
 }
 
-.aboutMe .social .socialList .smallCircle{
+.aboutMe .social .socialList .smallCircle {
     margin-right: 10px;
 }
 
@@ -231,6 +239,7 @@ ul, ol, dt, dd {
 
 .aboutMe .timeline .bigCircle {
     margin-right: 15px;
+    margin-left: -2px;
     float: left;
 }
 
@@ -244,8 +253,37 @@ ul, ol, dt, dd {
     margin-right: 20px;
 }
 
-.aboutMe .head p{
+.aboutMe .head p {
     width: 620px;
+}
+
+.clearfix {
+    *zoom: 1
+}
+
+.clearfix:after {
+    content: "";
+    display: table;
+    clear: both
+}
+
+.to-top {
+    width: 32px;
+    height: 32px;
+    background: url(/images/custom/up.png) 0 32px;
+    cursor: pointer;
+    border-radius: 50%;
+    bottom: 30px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    position: fixed;
+    right: -60px;
+    z-index: 200
+}
+
+.to-top:hover {
+    box-shadow: 0 0 5px rgba(243, 156, 18, 0.9);
+    background-position: 0 0
 }
 
 
@@ -269,9 +307,12 @@ ul, ol, dt, dd {
     <p>热爱Java,Objective-C,IOS,Mac,linux,Software Design and Architecture，非典型果粉！</p>
 
     <div class="social">
-        <div class="title clearfix"><i class="bigCircle circle fl"></i>About Me</div>
+        <div class="title clearfix"><span class="bigCircle  circle fl"><i class="circle"></i></span>About Me</div>
         <ul class="socialList">
-            <li><span class="smallCircle circle fl"><i class="circle"></i></span> Email:<a href="mailto:tiger.xmuzyq@gmail.com">xmuzyq@gmail.com</a></li>
+            <li><span class="smallCircle circle fl"><i class="circle"></i></span> Blog:<a href="http://imtiger.net">http://imtiger.net</a>
+            </li>
+            <li><span class="smallCircle circle fl"><i class="circle"></i></span> Email:<a
+                    href="mailto:tiger.xmuzyq@gmail.com">xmuzyq@gmail.com</a></li>
             <li><span class="smallCircle circle fl"><i class="circle"></i></span>Phone: 18626866511</li>
             <li><span class="smallCircle circle fl"><i class="circle"></i></span>Age: 28</li>
         </ul>
@@ -286,7 +327,7 @@ ul, ol, dt, dd {
     <li class="timenode">
 
         <!--1 level:begin-->
-        <h2 class="clearfix"><i class="bigCircle  circle"></i>工作经历</h2>
+        <h2 class="clearfix"><span class="bigCircle  circle"><i class="circle"></i></span>工作经历</h2>
         <!--1 level:end-->
 
         <!--2 level:begin-->
@@ -302,7 +343,8 @@ ul, ol, dt, dd {
             <dd>
                 <h4>项目描述</h4>
 
-                <p>本项目主要完成整个易居尚各个渠道（官网，天猫，京东）商品，订单，发货管理，入驻易居尚的品牌商无需关注各种渠道，通过统一的发货系统进行发货，而易居尚的运营人员通过统一的运营支持系统进行各个渠道的库存同步操作。</p>
+                <p>
+                    本项目主要完成整个易居尚各个渠道（官网，天猫，京东）商品，订单，发货管理，入驻易居尚的品牌商无需关注各种渠道，通过统一的发货系统进行发货，而易居尚的运营人员通过统一的运营支持系统进行各个渠道的库存同步操作。</p>
                 <h4>项目职责</h4>
 
                 <p>
@@ -364,6 +406,7 @@ ul, ol, dt, dd {
                     </li>
                 </ol>
                 <h4>收获</h4>
+
                 <p>对于构建电子商务系统中，类目，商品，搜索有了更加深刻的认识，明白了类目，类目属性，商品之间的关系，以及它们对与电子商务搜索引擎的影响。 </p>
             </dd>
             <span class="time time2">2011.09~2012.04</span>
@@ -398,16 +441,20 @@ ul, ol, dt, dd {
                 <ol>
                     <li>
                         <h5>超级旺铺SDK的设计与编码</h5>
+
                         <p>SDK采用B/S架构，采用Jetty作为服务器，内置了一个MVC的简易实现。
                             通过在设计师本地模拟一个类似线上页面渲染环境，设计师在本地通过SDK进行模板的设计，设计完成以后SDK会自动将模板打包上传到线上，并进行一系列的解压入库操作。在SDK的设计中，主要涉及模拟线上渲染环境，SDK自动升级，模板的自动打包以及上传。</p>
                     </li>
                     <li>
                         <h5>页面模块的设计与编码</h5>
+
                         <p> 淘宝店铺的页面是模块化的，模块化了以后可以更加方便的响应卖家对于店铺页面个性化的需求，另外一方面模块化了以后某个模块渲染失败不会影响到整体页面，这也增加了系统的可用性和容错性。</p>
+
                         <p>为了能实现快速满足需求变更，模块的开发采用了静态+动态的方式进行设计。静态方面通过Java语言固化渲染的过程，动态方面通过Groovy来进行模块真正的渲染逻辑。</p>
                     </li>
                 </ol>
                 <h4>收获</h4>
+
                 <p>对于构建一个大型分布式系统有了比较深入的理解和认识，对于其中涉及到的系统的切分，存储的切分，缓存，异步，监控预警，配置统一化管理，服务降级都有了进一步的认识。</p>
             </dd>
             <span class="time time2">2010.05~2011.04</span>
@@ -417,7 +464,7 @@ ul, ol, dt, dd {
     <li class="timenode">
 
         <!--1 level:begin-->
-        <h2 class="clearfix"><i class="bigCircle  circle"></i>技能专长</h2>
+        <h2 class="clearfix"><span class="bigCircle  circle"><i class="circle"></i></span>技能专长</h2>
         <dl>
             <dd>
                 <ol>
@@ -435,7 +482,7 @@ ul, ol, dt, dd {
     <li class="timenode">
 
         <!--1 level:begin-->
-        <h2 class="clearfix"><i class="bigCircle  circle"></i>教育背景</h2>
+        <h2 class="clearfix"><span class="bigCircle  circle"><i class="circle"></i></span>教育背景</h2>
         <!--1 level:end-->
 
         <!--2 level:begin-->
@@ -455,5 +502,50 @@ ul, ol, dt, dd {
     <li class="timeend"><span class="smallCircle  circle"><i class="circle"></i></span></li>
 </ul>
 </div>
+<script src="http://codeorigin.jquery.com/jquery-1.7.2.min.js" type="text/javascript"></script>
+<script type="text/javascript">
+
+    (function ($) {
+        //到顶部
+        (function () {
+            var domHeight = $(document).height(),
+                    scrollTop = $(document).scrollTop(),
+                    winWidth = $(window).width(),
+                    winHeight = $(window).height();
+
+            if (domHeight > winHeight + 500) {
+                var toTop = document.createElement("div"),
+                        pot_t = 0,
+                        pot_b = 1;
+
+                toTop.id = "to-top";
+                toTop.className = "to-top";
+                var toright = 15;
+
+                $(window).bind("scroll.toTop", function () {
+                    var scrollTop = $(document).scrollTop();
+                    if (scrollTop > 290 && pot_t == 0) {
+                        $(toTop).stop().animate({"right":toright, "opacity":"1"}, 200);
+                        pot_t = 1;
+                        pot_b = 0;
+                    } else if (scrollTop < 290 && pot_b == 0) {
+                        $(toTop).stop().animate({"right":"-60px", "opacity":"0"}, 200);
+                        pot_t = 0;
+                        pot_b = 1;
+                    }
+                });
+
+                document.body.appendChild(toTop);
+                toTop.onclick = function () {
+                    $("html" + ( !$.browser.opera ? ",body" : "")).animate({scrollTop:0}, 500);
+                };
+            }
+
+        })();
+
+    })(jQuery);
+
+</script>
+
 </body>
 </html>
