@@ -362,6 +362,13 @@ $header-height: 30px;
 					opacity: 1;
 				}
 			}
+			&.jdon{
+				background: image-url('social/jdon.png') center no-repeat rgb(175,182,202);
+				border: 1px solid rgb(175,182,202);
+				&:hover{
+					opacity: 1;
+				}
+			}
 			&.coderwall{
 				background: image-url('social/coderwall.png') center no-repeat #3E8DCC;
 				border: 1px solid #3E8DCC;

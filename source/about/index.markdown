@@ -8,7 +8,7 @@ footer: true
 ---
 
 I'm Tiger,一个有理想爱折腾的程序员！  
-职业Java玩家，业余IOS/MAC玩家，业余摄影爱好者!   
+职业Java开发者，业余IOS开发者，摄影爱好者!   
 热爱Java,Objective-C,IOS,Mac,linux,Software Design and Architecture，非典型果粉！
 
 <br/>
