@@ -9,8 +9,7 @@
 	<meta name="author" content="imtiger">
 
 	
-	<meta name="description" content="Oct 24th, 2013 Java, Tomcat, 技术 Tomcat请求处理流程（Tomcat源代码阅读系列之五） 本文是Tomcat源代码阅读系列的第五篇文章，本系列前四篇文章如下：
-在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码（ &hellip;">
+	<meta name="description" content="Oct 28th, 2013 Java, Tomcat, 技术 Tomcat类加载器机制（Tomcat源代码阅读系列之六） 本文是Tomcat源代码阅读系列的第六篇文章，本系列前五篇文章如下： 在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码（ &hellip;">
 	<meta name="keywords" content="java,ios,mac,linux,objective-c,软件设计,软件架构,摄影,imtiger.">
 
   <!-- http://t.co/dKP3o1e -->
@@ -92,6 +91,50 @@
 			
 			<div class="mid-col-container">
 				<div id="content" class="inner">
+
+
+    <article class="post">
+	<div class="meta">
+		<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-10-28T14:06:00+08:00" data-updated="true" itemprop="datePublished">Oct 28<span>th</span>, 2013</time></div>
+		<div class="tags">
+
+
+	<a class='category' href='/blog/categories/java/'>Java</a>, <a class='category' href='/blog/categories/tomcat/'>Tomcat</a>, <a class='category' href='/blog/categories/ji-zhu/'>技术</a>
+
+
+</div>
+		
+	</div>
+	<h1 class="title" itemprop="name"><a href="/blog/2013/10/28/tomcat-class-loader/" itemprop="url">Tomcat类加载器机制（Tomcat源代码阅读系列之六）</a></h1>
+	<div class="entry-content" itemprop="articleBody">
+		<p><img class="center" src="/images/2013/10/14/apache_tomcat_bag.jpg">
+本文是<a href="/blog/2013/10/08/tomcat-source-code-study/">Tomcat源代码阅读系列</a>的第六篇文章，本系列前五篇文章如下：  <br/>
+<a href="/blog/2013/10/14/run-tomcat-in-idea-or-eclipse/">在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码（Tomcat源代码阅读系列之一）</a>   <br/>
+<a href="/blog/2013/10/16/tomcat-architecture/">Tomcat总体结构                             （Tomcat源代码阅读系列之二）</a>  <br/>
+<a href="/blog/2013/10/17/tomcat-start-process/">Tomcat启动过程（Tomcat源代码阅读系列之三）</a> <br/>
+<a href="/blog/2013/10/21/tomcat-shutdown/">Tomcat关闭过程（Tomcat源代码阅读系列之四）</a><br/>
+<a href="/blog/2013/10/24/tomcat-request-process/">Tomcat请求处理流程（Tomcat源代码阅读系列之五）</a></p>
+
+<p>前面几篇我们分析了Tomcat的启动，关闭以及请求处理的流程，本篇将接着分析Tomcat的类加载器机制，如果大家对Java的类加载器机制不熟悉的话，建议首先熟悉一下Java的类加载器机制后再来查看本篇文章，对于Java的类加载器机制，大家可以参考自行Google或者参考笔者的另外一篇文章：<a href="/blog/2009/11/09/java-classloader/">Java Classloader机制解析</a>.</p>
+
+
+		
+		<a href="/blog/2013/10/28/tomcat-class-loader/" class="more-link">Read on(阅读全文) &rarr;</a>
+	</div>
+
+</article>
 
 
     <article class="post">
@@ -427,7 +470,7 @@
 月薪:    15k-20k</p>
 
 <p>公司介绍: <br/>
-我们公司<a href="http://www.ejushang.com">易居尚</a>秉承着<code>让品质走进生活的理念</code>，致力于打造一个品质、高效、便捷的居家用品网络销售平台.咋们公司不打卡，弹性工作制，每天下午有公司大厨做的下午茶，攻城狮童鞋每周可以自由支配20%的工作时间做自己想做的事情，我们技术团队内部有很强互助和知识分享意识（包括技术骚们喜欢的爱情动作片，嘘&hellip;，其他人我不告诉他）当然了还有很多美女和帅哥，想置身互联网和电子商务有理想的的技术骚们，请你加入我们 一起high，<strong>我们不求改变世界，但求超越自我</strong>。也请各位朋友帮忙推荐，推荐成功有神秘礼物相送哦，有意者请联系:<a href="&#x6d;&#x61;&#105;&#x6c;&#x74;&#x6f;&#58;&#x74;&#x69;&#x67;&#x65;&#x72;&#x2e;&#122;&#104;&#x6f;&#x75;&#64;&#x6b;&#x61;&#114;&#105;&#113;&#x75;&#46;&#x63;&#x6f;&#x6d;">&#116;&#105;&#103;&#x65;&#x72;&#46;&#122;&#104;&#x6f;&#117;&#x40;&#107;&#x61;&#114;&#105;&#113;&#117;&#46;&#99;&#x6f;&#109;</a> 或者留言给我，另外也可以通过<a href="http://weibo.com/xmuzyq">@krq_tiger</a>新浪微博与我取的联系.</p>
+我们公司<a href="http://www.ejushang.com">易居尚</a>秉承着<code>让品质走进生活的理念</code>，致力于打造一个品质、高效、便捷的居家用品网络销售平台.咋们公司不打卡，弹性工作制，每天下午有公司大厨做的下午茶，攻城狮童鞋每周可以自由支配20%的工作时间做自己想做的事情，我们技术团队内部有很强互助和知识分享意识（包括技术骚们喜欢的爱情动作片，嘘&hellip;，其他人我不告诉他）当然了还有很多美女和帅哥，想置身互联网和电子商务有理想的的技术骚们，请你加入我们 一起high，<strong>我们不求改变世界，但求超越自我</strong>。也请各位朋友帮忙推荐，推荐成功有神秘礼物相送哦，有意者请联系:<a href="&#x6d;&#x61;&#x69;&#x6c;&#x74;&#111;&#x3a;&#116;&#105;&#103;&#101;&#x72;&#46;&#x7a;&#104;&#111;&#x75;&#64;&#107;&#97;&#x72;&#x69;&#x71;&#x75;&#46;&#99;&#111;&#109;">&#x74;&#x69;&#x67;&#x65;&#114;&#x2e;&#122;&#x68;&#x6f;&#x75;&#x40;&#x6b;&#x61;&#114;&#x69;&#113;&#x75;&#x2e;&#99;&#111;&#x6d;</a> 或者留言给我，另外也可以通过<a href="http://weibo.com/xmuzyq">@krq_tiger</a>新浪微博与我取的联系.</p>
 
 
 		
@@ -473,44 +516,6 @@
 
 		
 		<a href="/blog/2013/09/26/find-files-with-a-keyword-in-a-dir/" class="more-link">Read on(阅读全文) &rarr;</a>
-	</div>
-
-</article>
-
-
-    <article class="post">
-	<div class="meta">
-		<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-09-03T15:28:00+08:00" data-updated="true" itemprop="datePublished">Sep 3<span>rd</span>, 2013</time></div>
-		<div class="tags">
-
-
-	<a class='category' href='/blog/categories/ios/'>iOS</a>, <a class='category' href='/blog/categories/ji-zhu/'>技术</a>
-
-
-</div>
-		
-	</div>
-	<h1 class="title" itemprop="name"><a href="/blog/2013/09/03/happyenglish-ios-app/" itemprop="url">&#8216;美剧英语每日一句&#8217; iOS App（已开源）</a></h1>
-	<div class="entry-content" itemprop="articleBody">
-		<p><img class="center" src="/images/2013/09/03/happyenglish.png"><br/>
-学习ios开发，自己做了个学习英语的iOS app，app里面的英文资料全部来自微信公共账号&#8221;美剧英语每日一句(id:<code>followmeapp</code>)&ldquo;，微信公共账号每天由托福雅思名师<a href="http://weibo.com/myajia"><code>@吴彧Allen</code></a>更新一句常用地道的美剧英语，作为一枚软件攻城狮，学习英语是必须的嘛,只要每天坚持学一句，积累下来，还愁英语口语水平不提高吗？<br/>
-<a href="https://itunes.apple.com/us/app/happyenglish/id669934718?ls=1&amp;amp;mt=8"><code>点我下载app</code></a></p>
-
-
-		
-		<a href="/blog/2013/09/03/happyenglish-ios-app/" class="more-link">Read on(阅读全文) &rarr;</a>
 	</div>
 
 </article>

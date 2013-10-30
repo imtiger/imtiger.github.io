@@ -4,7 +4,7 @@
   <title><![CDATA[I'm Tiger,一个有理想爱折腾的程序员!]]></title>
   <link href="http://imtiger.github.io/atom.xml" rel="self"/>
   <link href="http://imtiger.github.io/"/>
-  <updated>2013-10-30T14:38:07+08:00</updated>
+  <updated>2013-10-30T18:12:44+08:00</updated>
   <id>http://imtiger.github.io/</id>
   <author>
     <name><![CDATA[imtiger]]></name>
@@ -12,6 +12,685 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Tomcat类加载器机制（Tomcat源代码阅读系列之六）]]></title>
+    <link href="http://imtiger.github.io/blog/2013/10/28/tomcat-class-loader/"/>
+    <updated>2013-10-28T14:06:00+08:00</updated>
+    <id>http://imtiger.github.io/blog/2013/10/28/tomcat-class-loader</id>
+    <content type="html"><![CDATA[<p><img class="center" src="http://imtiger.github.io/images/2013/10/14/apache_tomcat_bag.jpg">
+本文是<a href="http://imtiger.github.io/blog/2013/10/08/tomcat-source-code-study/">Tomcat源代码阅读系列</a>的第六篇文章，本系列前五篇文章如下：  <br/>
+<a href="http://imtiger.github.io/blog/2013/10/14/run-tomcat-in-idea-or-eclipse/">在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码（Tomcat源代码阅读系列之一）</a>   <br/>
+<a href="http://imtiger.github.io/blog/2013/10/16/tomcat-architecture/">Tomcat总体结构                             （Tomcat源代码阅读系列之二）</a>  <br/>
+<a href="http://imtiger.github.io/blog/2013/10/17/tomcat-start-process/">Tomcat启动过程（Tomcat源代码阅读系列之三）</a> <br/>
+<a href="http://imtiger.github.io/blog/2013/10/21/tomcat-shutdown/">Tomcat关闭过程（Tomcat源代码阅读系列之四）</a><br/>
+<a href="http://imtiger.github.io/blog/2013/10/24/tomcat-request-process/">Tomcat请求处理流程（Tomcat源代码阅读系列之五）</a></p>
+
+<p>前面几篇我们分析了Tomcat的启动，关闭以及请求处理的流程，本篇将接着分析Tomcat的类加载器机制，如果大家对Java的类加载器机制不熟悉的话，建议首先熟悉一下Java的类加载器机制后再来查看本篇文章，对于Java的类加载器机制，大家可以参考自行Google或者参考笔者的另外一篇文章：<a href="http://imtiger.github.io/blog/2009/11/09/java-classloader/">Java Classloader机制解析</a>.</p>
+
+<!-- more -->
+
+
+<p>要说Tomcat的Classloader机制，我们还得从Bootstrap开始。在BootStrap初始化的时候，调用了<code>org.apache.catalina.startup.Bootstrap#initClassLoaders</code>方法，这个方法里面创建了3个ClassLoader,它们分别是commonLoader,catalinaLoader,sharedLoader，其中catalinaLoader,sharedLoader的父亲加载器是commonLoader，initClassLoaders执行的过程中会执行createClassLoader，而createClassLoader是根据conf/catalina.properties文件中common.loader，server.loader，shared.loader的值来初始化，它的代码如下：</p>
+
+<figure class='code'><figcaption><span>org.apache.catalina.startup.Bootstrap#createClassLoader</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">private</span> <span class="n">ClassLoader</span> <span class="nf">createClassLoader</span><span class="o">(</span><span class="n">String</span> <span class="n">name</span><span class="o">,</span> <span class="n">ClassLoader</span> <span class="n">parent</span><span class="o">)</span>
+</span><span class='line'>    <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">String</span> <span class="n">value</span> <span class="o">=</span> <span class="n">CatalinaProperties</span><span class="o">.</span><span class="na">getProperty</span><span class="o">(</span><span class="n">name</span> <span class="o">+</span> <span class="s">&quot;.loader&quot;</span><span class="o">);</span>
+</span><span class='line'>    <span class="c1">// 1 </span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">((</span><span class="n">value</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">||</span> <span class="o">(</span><span class="n">value</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="s">&quot;&quot;</span><span class="o">)))</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">parent</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// 2</span>
+</span><span class='line'>    <span class="n">value</span> <span class="o">=</span> <span class="n">replace</span><span class="o">(</span><span class="n">value</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">List</span><span class="o">&lt;</span><span class="n">Repository</span><span class="o">&gt;</span> <span class="n">repositories</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ArrayList</span><span class="o">&lt;</span><span class="n">Repository</span><span class="o">&gt;();</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">StringTokenizer</span> <span class="n">tokenizer</span> <span class="o">=</span> <span class="k">new</span> <span class="n">StringTokenizer</span><span class="o">(</span><span class="n">value</span><span class="o">,</span> <span class="s">&quot;,&quot;</span><span class="o">);</span>
+</span><span class='line'>    <span class="k">while</span> <span class="o">(</span><span class="n">tokenizer</span><span class="o">.</span><span class="na">hasMoreElements</span><span class="o">())</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">String</span> <span class="n">repository</span> <span class="o">=</span> <span class="n">tokenizer</span><span class="o">.</span><span class="na">nextToken</span><span class="o">().</span><span class="na">trim</span><span class="o">();</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">repository</span><span class="o">.</span><span class="na">length</span><span class="o">()</span> <span class="o">==</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="k">continue</span><span class="o">;</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// Check for a JAR URL repository</span>
+</span><span class='line'>        <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>            <span class="nd">@SuppressWarnings</span><span class="o">(</span><span class="s">&quot;unused&quot;</span><span class="o">)</span>
+</span><span class='line'>            <span class="n">URL</span> <span class="n">url</span> <span class="o">=</span> <span class="k">new</span> <span class="n">URL</span><span class="o">(</span><span class="n">repository</span><span class="o">);</span>
+</span><span class='line'>            <span class="n">repositories</span><span class="o">.</span><span class="na">add</span><span class="o">(</span>
+</span><span class='line'>                    <span class="k">new</span> <span class="nf">Repository</span><span class="o">(</span><span class="n">repository</span><span class="o">,</span> <span class="n">RepositoryType</span><span class="o">.</span><span class="na">URL</span><span class="o">));</span>
+</span><span class='line'>            <span class="k">continue</span><span class="o">;</span>
+</span><span class='line'>        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">MalformedURLException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="c1">// Ignore</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// Local repository</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">repository</span><span class="o">.</span><span class="na">endsWith</span><span class="o">(</span><span class="s">&quot;*.jar&quot;</span><span class="o">))</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">repository</span> <span class="o">=</span> <span class="n">repository</span><span class="o">.</span><span class="na">substring</span>
+</span><span class='line'>                <span class="o">(</span><span class="mi">0</span><span class="o">,</span> <span class="n">repository</span><span class="o">.</span><span class="na">length</span><span class="o">()</span> <span class="o">-</span> <span class="s">&quot;*.jar&quot;</span><span class="o">.</span><span class="na">length</span><span class="o">());</span>
+</span><span class='line'>            <span class="n">repositories</span><span class="o">.</span><span class="na">add</span><span class="o">(</span>
+</span><span class='line'>                    <span class="k">new</span> <span class="nf">Repository</span><span class="o">(</span><span class="n">repository</span><span class="o">,</span> <span class="n">RepositoryType</span><span class="o">.</span><span class="na">GLOB</span><span class="o">));</span>
+</span><span class='line'>        <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">repository</span><span class="o">.</span><span class="na">endsWith</span><span class="o">(</span><span class="s">&quot;.jar&quot;</span><span class="o">))</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">repositories</span><span class="o">.</span><span class="na">add</span><span class="o">(</span>
+</span><span class='line'>                    <span class="k">new</span> <span class="nf">Repository</span><span class="o">(</span><span class="n">repository</span><span class="o">,</span> <span class="n">RepositoryType</span><span class="o">.</span><span class="na">JAR</span><span class="o">));</span>
+</span><span class='line'>        <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">repositories</span><span class="o">.</span><span class="na">add</span><span class="o">(</span>
+</span><span class='line'>                    <span class="k">new</span> <span class="nf">Repository</span><span class="o">(</span><span class="n">repository</span><span class="o">,</span> <span class="n">RepositoryType</span><span class="o">.</span><span class="na">DIR</span><span class="o">));</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>    <span class="c1">// 3</span>
+</span><span class='line'>    <span class="n">ClassLoader</span> <span class="n">classLoader</span> <span class="o">=</span> <span class="n">ClassLoaderFactory</span><span class="o">.</span><span class="na">createClassLoader</span>
+</span><span class='line'>        <span class="o">(</span><span class="n">repositories</span><span class="o">,</span> <span class="n">parent</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">return</span> <span class="n">classLoader</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>以上代码删除了与本篇无关的代码，下面我们分别来分析一下标注的地方：</p>
+
+<ol>
+<li>标注1的代码（第5行）判断如果catalina.properties中没有配置对应的loader属性的话，直接返回父加载器，而默认情况下，server.loader,shared.loader为空，那么此时的catalinaLoader,sharedLoader其实是同一个ClassLoader.</li>
+<li>标注2（第9行）的地方根据环境变量的配置替换字符串中的值.默认情况下，common.loader的值为common.loader=${catalina.base}/lib,${catalina.base}/lib/<em>.jar,${catalina.home}/lib,${catalina.home}/lib/</em>.jar,这里会将catalina.base和catalina.home用环境变量的值替换。</li>
+<li>标注3（第46行）的代码最终调用<code>org.apache.catalina.startup.ClassLoaderFactory#createClassLoader</code>静态工厂方法创建了URLClassloader的实例，而具体的URL其实就是*.loader属性配置的内容，此外如果parent为null的话，则直接用系统类加载器。</li>
+</ol>
+
+
+<p>上面分析了Tomcat在启动的时候，初始化的几个ClassLoader，接下来我们再来继续看看，这些ClassLoader具体都用在什么地方。</p>
+
+<p>我们接着来看org.apache.catalina.startup.Bootstrap#init方法，在初始化完3个classLoader以后，接下来首先通过catalinaLoader加载了<code>org.apache.catalina.startup.Catalina</code>l类，然后通过放射调用了org.apache.catalina.startup.Catalina#setParentClassLoader,具体代码片段如下：</p>
+
+<figure class='code'><figcaption><span>org.apache.catalina.startup.Bootstrap#init</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">Class</span><span class="o">&lt;?&gt;</span> <span class="n">startupClass</span> <span class="o">=</span>
+</span><span class='line'>    <span class="n">catalinaLoader</span><span class="o">.</span><span class="na">loadClass</span>
+</span><span class='line'>    <span class="o">(</span><span class="s">&quot;org.apache.catalina.startup.Catalina&quot;</span><span class="o">);</span>
+</span><span class='line'><span class="n">Object</span> <span class="n">startupInstance</span> <span class="o">=</span> <span class="n">startupClass</span><span class="o">.</span><span class="na">newInstance</span><span class="o">();</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">String</span> <span class="n">methodName</span> <span class="o">=</span> <span class="s">&quot;setParentClassLoader&quot;</span><span class="o">;</span>
+</span><span class='line'><span class="n">Class</span><span class="o">&lt;?&gt;</span> <span class="n">paramTypes</span><span class="o">[]</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Class</span><span class="o">[</span><span class="mi">1</span><span class="o">];</span>
+</span><span class='line'><span class="n">paramTypes</span><span class="o">[</span><span class="mi">0</span><span class="o">]</span> <span class="o">=</span> <span class="n">Class</span><span class="o">.</span><span class="na">forName</span><span class="o">(</span><span class="s">&quot;java.lang.ClassLoader&quot;</span><span class="o">);</span>
+</span><span class='line'><span class="n">Object</span> <span class="n">paramValues</span><span class="o">[]</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Object</span><span class="o">[</span><span class="mi">1</span><span class="o">];</span>
+</span><span class='line'><span class="n">paramValues</span><span class="o">[</span><span class="mi">0</span><span class="o">]</span> <span class="o">=</span> <span class="n">sharedLoader</span><span class="o">;</span>
+</span><span class='line'><span class="n">Method</span> <span class="n">method</span> <span class="o">=</span>
+</span><span class='line'>    <span class="n">startupInstance</span><span class="o">.</span><span class="na">getClass</span><span class="o">().</span><span class="na">getMethod</span><span class="o">(</span><span class="n">methodName</span><span class="o">,</span> <span class="n">paramTypes</span><span class="o">);</span>
+</span><span class='line'><span class="n">method</span><span class="o">.</span><span class="na">invoke</span><span class="o">(</span><span class="n">startupInstance</span><span class="o">,</span> <span class="n">paramValues</span><span class="o">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>通过上面的代码，我们可以清楚的看到调用了Catalina的setParentClassLoader放，那么到这里我们可能又要想知道，设置了parentClassLoader以后，sharedLoader又是在哪里使用的呢？这就需要我们接着来分析容器启动的代码。我们通过查看<code>org.apache.catalina.startup.Catalina#getParentClassLoader</code>调用栈，我们看到在StandardContext的startInternal方法中调用了它，那么我们查看一下它的代码，包含了如下代码片段：</p>
+
+<figure class='code'><figcaption><span>org.apache.catalina.core.StandardContext#startInternal </span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="k">if</span> <span class="o">(</span><span class="n">getLoader</span><span class="o">()</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">WebappLoader</span> <span class="n">webappLoader</span> <span class="o">=</span> <span class="k">new</span> <span class="n">WebappLoader</span><span class="o">(</span><span class="n">getParentClassLoader</span><span class="o">());</span>
+</span><span class='line'>            <span class="n">webappLoader</span><span class="o">.</span><span class="na">setDelegate</span><span class="o">(</span><span class="n">getDelegate</span><span class="o">());</span>
+</span><span class='line'>            <span class="n">setLoader</span><span class="o">(</span><span class="n">webappLoader</span><span class="o">);</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'><span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">ok</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// Start our subordinate components, if any</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">((</span><span class="n">loader</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">&amp;&amp;</span> <span class="o">(</span><span class="n">loader</span> <span class="k">instanceof</span> <span class="n">Lifecycle</span><span class="o">))</span>
+</span><span class='line'>            <span class="o">((</span><span class="n">Lifecycle</span><span class="o">)</span> <span class="n">loader</span><span class="o">).</span><span class="na">start</span><span class="o">();</span>
+</span><span class='line'>        <span class="c1">//other code    </span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'><span class="k">catch</span><span class="o">(</span><span class="n">Exception</span> <span class="n">e</span><span class="o">){</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>通过查看上面的代码，我们看到在StandardContext启动的时候，会创建webapploader，创建webapploader的时候会将getParentClassLoader方法返回的结果（这里返回的其实就是sharedLoader）赋值给自己的parentClassLoader变量,接着又会调用到Webapploader的start方法，因为WebappLoader符合Tomcat组件生命周期管理的模板方法模式，因此会调用到它的startInternal方法。我们接下来就来看看WebappLoader的startInternal，我们摘取一部分与本篇相关的代码片段如下：</p>
+
+<figure class='code'><figcaption><span>org.apache.catalina.loader.WebappLoader#startInternal</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">classLoader</span> <span class="o">=</span> <span class="n">createClassLoader</span><span class="o">();</span>
+</span><span class='line'><span class="n">classLoader</span><span class="o">.</span><span class="na">setResources</span><span class="o">(</span><span class="n">container</span><span class="o">.</span><span class="na">getResources</span><span class="o">());</span>
+</span><span class='line'><span class="n">classLoader</span><span class="o">.</span><span class="na">setDelegate</span><span class="o">(</span><span class="k">this</span><span class="o">.</span><span class="na">delegate</span><span class="o">);</span>
+</span><span class='line'><span class="n">classLoader</span><span class="o">.</span><span class="na">setSearchExternalFirst</span><span class="o">(</span><span class="n">searchExternalFirst</span><span class="o">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>从上的代码可以看到调用了createClassLoader方法创建一个classLoader，那么我们再看来看看createClassLoader的代码：</p>
+
+<figure class='code'><figcaption><span>org.apache.catalina.loader.WebappLoader#createClassLoader </span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">private</span> <span class="n">WebappClassLoader</span> <span class="nf">createClassLoader</span><span class="o">()</span>
+</span><span class='line'>    <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">Class</span><span class="o">&lt;?&gt;</span> <span class="n">clazz</span> <span class="o">=</span> <span class="n">Class</span><span class="o">.</span><span class="na">forName</span><span class="o">(</span><span class="n">loaderClass</span><span class="o">);</span>
+</span><span class='line'>    <span class="n">WebappClassLoader</span> <span class="n">classLoader</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">parentClassLoader</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">parentClassLoader</span> <span class="o">=</span> <span class="n">container</span><span class="o">.</span><span class="na">getParentClassLoader</span><span class="o">();</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>    <span class="n">Class</span><span class="o">&lt;?&gt;[]</span> <span class="n">argTypes</span> <span class="o">=</span> <span class="o">{</span> <span class="n">ClassLoader</span><span class="o">.</span><span class="na">class</span> <span class="o">};</span>
+</span><span class='line'>    <span class="n">Object</span><span class="o">[]</span> <span class="n">args</span> <span class="o">=</span> <span class="o">{</span> <span class="n">parentClassLoader</span> <span class="o">};</span>
+</span><span class='line'>    <span class="n">Constructor</span><span class="o">&lt;?&gt;</span> <span class="n">constr</span> <span class="o">=</span> <span class="n">clazz</span><span class="o">.</span><span class="na">getConstructor</span><span class="o">(</span><span class="n">argTypes</span><span class="o">);</span>
+</span><span class='line'>    <span class="n">classLoader</span> <span class="o">=</span> <span class="o">(</span><span class="n">WebappClassLoader</span><span class="o">)</span> <span class="n">constr</span><span class="o">.</span><span class="na">newInstance</span><span class="o">(</span><span class="n">args</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">return</span> <span class="n">classLoader</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在上面的代码里面，loaderClass是WebappLoader的实例变量，其值为<code>org.apache.catalina.loader.WebappClassLoader</code>，那么上面的代码其实就是通过反射调用了WebappClassLoader的构造函数，然后传递了sharedLoader作为其父亲加载器。</p>
+
+<p>代码阅读到这里，我们已经基本清楚了Tomcat中ClassLoader的总体结构，总结如下：
+在Tomcat存在common,cataina,shared三个公共的classloader,默认情况下，这三个classloader其实是同一个，都是common classloader,而针对每个webapp，也就是context（对应代码中的StandardContext类），都有自己的WebappClassLoader来加载每个应用自己的类。上面的描述，我们可以通过下图形象化的描述：
+<img class="center" src="http://imtiger.github.io/images/2013/10/30/tomcat-classloader.png"></p>
+
+<p>清楚了Tomcat总体的ClassLoader结构以后，咋们就来进一步来分析一下WebAppClassLoader的代码，我们知道Java的ClassLoader机制有parent-first的机制，而这种机制是在loadClass方法保证的，一般情况下，我们只需要重写findClass方法就好了，而对于WebAppClassLoader，通过查看源代码，我们发现loadClass和findClass方法都进行了重写，那么我们首先就来看看它的loadClass方法,它的代码如下：</p>
+
+<figure class='code'><figcaption><span>org.apache.catalina.loader.WebappClassLoader#loadClass</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+<span class='line-number'>68</span>
+<span class='line-number'>69</span>
+<span class='line-number'>70</span>
+<span class='line-number'>71</span>
+<span class='line-number'>72</span>
+<span class='line-number'>73</span>
+<span class='line-number'>74</span>
+<span class='line-number'>75</span>
+<span class='line-number'>76</span>
+<span class='line-number'>77</span>
+<span class='line-number'>78</span>
+<span class='line-number'>79</span>
+<span class='line-number'>80</span>
+<span class='line-number'>81</span>
+<span class='line-number'>82</span>
+<span class='line-number'>83</span>
+<span class='line-number'>84</span>
+<span class='line-number'>85</span>
+<span class='line-number'>86</span>
+<span class='line-number'>87</span>
+<span class='line-number'>88</span>
+<span class='line-number'>89</span>
+<span class='line-number'>90</span>
+<span class='line-number'>91</span>
+<span class='line-number'>92</span>
+<span class='line-number'>93</span>
+<span class='line-number'>94</span>
+<span class='line-number'>95</span>
+<span class='line-number'>96</span>
+<span class='line-number'>97</span>
+<span class='line-number'>98</span>
+<span class='line-number'>99</span>
+<span class='line-number'>100</span>
+<span class='line-number'>101</span>
+<span class='line-number'>102</span>
+<span class='line-number'>103</span>
+<span class='line-number'>104</span>
+<span class='line-number'>105</span>
+<span class='line-number'>106</span>
+<span class='line-number'>107</span>
+<span class='line-number'>108</span>
+<span class='line-number'>109</span>
+<span class='line-number'>110</span>
+<span class='line-number'>111</span>
+<span class='line-number'>112</span>
+<span class='line-number'>113</span>
+<span class='line-number'>114</span>
+<span class='line-number'>115</span>
+<span class='line-number'>116</span>
+<span class='line-number'>117</span>
+<span class='line-number'>118</span>
+<span class='line-number'>119</span>
+<span class='line-number'>120</span>
+<span class='line-number'>121</span>
+<span class='line-number'>122</span>
+<span class='line-number'>123</span>
+<span class='line-number'>124</span>
+<span class='line-number'>125</span>
+<span class='line-number'>126</span>
+<span class='line-number'>127</span>
+<span class='line-number'>128</span>
+<span class='line-number'>129</span>
+<span class='line-number'>130</span>
+<span class='line-number'>131</span>
+<span class='line-number'>132</span>
+<span class='line-number'>133</span>
+<span class='line-number'>134</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">synchronized</span> <span class="n">Class</span><span class="o">&lt;?&gt;</span> <span class="n">loadClass</span><span class="o">(</span><span class="n">String</span> <span class="n">name</span><span class="o">,</span> <span class="kt">boolean</span> <span class="n">resolve</span><span class="o">)</span>
+</span><span class='line'>    <span class="kd">throws</span> <span class="n">ClassNotFoundException</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">log</span><span class="o">.</span><span class="na">isDebugEnabled</span><span class="o">())</span>
+</span><span class='line'>        <span class="n">log</span><span class="o">.</span><span class="na">debug</span><span class="o">(</span><span class="s">&quot;loadClass(&quot;</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s">&quot;, &quot;</span> <span class="o">+</span> <span class="n">resolve</span> <span class="o">+</span> <span class="s">&quot;)&quot;</span><span class="o">);</span>
+</span><span class='line'>    <span class="n">Class</span><span class="o">&lt;?&gt;</span> <span class="n">clazz</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// Log access to stopped classloader</span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(!</span><span class="n">started</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>            <span class="k">throw</span> <span class="k">new</span> <span class="nf">IllegalStateException</span><span class="o">();</span>
+</span><span class='line'>        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">IllegalStateException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">log</span><span class="o">.</span><span class="na">info</span><span class="o">(</span><span class="n">sm</span><span class="o">.</span><span class="na">getString</span><span class="o">(</span><span class="s">&quot;webappClassLoader.stopped&quot;</span><span class="o">,</span> <span class="n">name</span><span class="o">),</span> <span class="n">e</span><span class="o">);</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// (0) Check our previously loaded local class cache</span>
+</span><span class='line'>    <span class="c1">// 1 </span>
+</span><span class='line'>    <span class="n">clazz</span> <span class="o">=</span> <span class="n">findLoadedClass0</span><span class="o">(</span><span class="n">name</span><span class="o">);</span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">clazz</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">log</span><span class="o">.</span><span class="na">isDebugEnabled</span><span class="o">())</span>
+</span><span class='line'>            <span class="n">log</span><span class="o">.</span><span class="na">debug</span><span class="o">(</span><span class="s">&quot;  Returning class from cache&quot;</span><span class="o">);</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">resolve</span><span class="o">)</span>
+</span><span class='line'>            <span class="n">resolveClass</span><span class="o">(</span><span class="n">clazz</span><span class="o">);</span>
+</span><span class='line'>        <span class="k">return</span> <span class="o">(</span><span class="n">clazz</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// (0.1) Check our previously loaded class cache</span>
+</span><span class='line'>    <span class="c1">// 2</span>
+</span><span class='line'>    <span class="n">clazz</span> <span class="o">=</span> <span class="n">findLoadedClass</span><span class="o">(</span><span class="n">name</span><span class="o">);</span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">clazz</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">log</span><span class="o">.</span><span class="na">isDebugEnabled</span><span class="o">())</span>
+</span><span class='line'>            <span class="n">log</span><span class="o">.</span><span class="na">debug</span><span class="o">(</span><span class="s">&quot;  Returning class from cache&quot;</span><span class="o">);</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">resolve</span><span class="o">)</span>
+</span><span class='line'>            <span class="n">resolveClass</span><span class="o">(</span><span class="n">clazz</span><span class="o">);</span>
+</span><span class='line'>        <span class="k">return</span> <span class="o">(</span><span class="n">clazz</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// (0.2) Try loading the class with the system class loader, to prevent</span>
+</span><span class='line'>    <span class="c1">//       the webapp from overriding J2SE classes</span>
+</span><span class='line'>    <span class="c1">// 3 </span>
+</span><span class='line'>    <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">clazz</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="na">loadClass</span><span class="o">(</span><span class="n">name</span><span class="o">);</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">clazz</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="k">if</span> <span class="o">(</span><span class="n">resolve</span><span class="o">)</span>
+</span><span class='line'>                <span class="n">resolveClass</span><span class="o">(</span><span class="n">clazz</span><span class="o">);</span>
+</span><span class='line'>            <span class="k">return</span> <span class="o">(</span><span class="n">clazz</span><span class="o">);</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>    <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">ClassNotFoundException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="c1">// Ignore</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// (0.5) Permission to access this class when using a SecurityManager</span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">securityManager</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="na">lastIndexOf</span><span class="o">(</span><span class="sc">&#39;.&#39;</span><span class="o">);</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">i</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">securityManager</span><span class="o">.</span><span class="na">checkPackageAccess</span><span class="o">(</span><span class="n">name</span><span class="o">.</span><span class="na">substring</span><span class="o">(</span><span class="mi">0</span><span class="o">,</span><span class="n">i</span><span class="o">));</span>
+</span><span class='line'>            <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">SecurityException</span> <span class="n">se</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">String</span> <span class="n">error</span> <span class="o">=</span> <span class="s">&quot;Security Violation, attempt to use &quot;</span> <span class="o">+</span>
+</span><span class='line'>                    <span class="s">&quot;Restricted Class: &quot;</span> <span class="o">+</span> <span class="n">name</span><span class="o">;</span>
+</span><span class='line'>                <span class="n">log</span><span class="o">.</span><span class="na">info</span><span class="o">(</span><span class="n">error</span><span class="o">,</span> <span class="n">se</span><span class="o">);</span>
+</span><span class='line'>                <span class="k">throw</span> <span class="k">new</span> <span class="nf">ClassNotFoundException</span><span class="o">(</span><span class="n">error</span><span class="o">,</span> <span class="n">se</span><span class="o">);</span>
+</span><span class='line'>            <span class="o">}</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">//4 </span>
+</span><span class='line'>    <span class="kt">boolean</span> <span class="n">delegateLoad</span> <span class="o">=</span> <span class="n">delegate</span> <span class="o">||</span> <span class="n">filter</span><span class="o">(</span><span class="n">name</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// (1) Delegate to our parent if requested</span>
+</span><span class='line'>    <span class="c1">// 5 </span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">delegateLoad</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">log</span><span class="o">.</span><span class="na">isDebugEnabled</span><span class="o">())</span>
+</span><span class='line'>            <span class="n">log</span><span class="o">.</span><span class="na">debug</span><span class="o">(</span><span class="s">&quot;  Delegating to parent classloader1 &quot;</span> <span class="o">+</span> <span class="n">parent</span><span class="o">);</span>
+</span><span class='line'>        <span class="n">ClassLoader</span> <span class="n">loader</span> <span class="o">=</span> <span class="n">parent</span><span class="o">;</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">loader</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span>
+</span><span class='line'>            <span class="n">loader</span> <span class="o">=</span> <span class="n">system</span><span class="o">;</span>
+</span><span class='line'>        <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">clazz</span> <span class="o">=</span> <span class="n">Class</span><span class="o">.</span><span class="na">forName</span><span class="o">(</span><span class="n">name</span><span class="o">,</span> <span class="kc">false</span><span class="o">,</span> <span class="n">loader</span><span class="o">);</span>
+</span><span class='line'>            <span class="k">if</span> <span class="o">(</span><span class="n">clazz</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                <span class="k">if</span> <span class="o">(</span><span class="n">log</span><span class="o">.</span><span class="na">isDebugEnabled</span><span class="o">())</span>
+</span><span class='line'>                    <span class="n">log</span><span class="o">.</span><span class="na">debug</span><span class="o">(</span><span class="s">&quot;  Loading class from parent&quot;</span><span class="o">);</span>
+</span><span class='line'>                <span class="k">if</span> <span class="o">(</span><span class="n">resolve</span><span class="o">)</span>
+</span><span class='line'>                    <span class="n">resolveClass</span><span class="o">(</span><span class="n">clazz</span><span class="o">);</span>
+</span><span class='line'>                <span class="k">return</span> <span class="o">(</span><span class="n">clazz</span><span class="o">);</span>
+</span><span class='line'>            <span class="o">}</span>
+</span><span class='line'>        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">ClassNotFoundException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="c1">// Ignore</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// (2) Search local repositories</span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">log</span><span class="o">.</span><span class="na">isDebugEnabled</span><span class="o">())</span>
+</span><span class='line'>        <span class="n">log</span><span class="o">.</span><span class="na">debug</span><span class="o">(</span><span class="s">&quot;  Searching local repositories&quot;</span><span class="o">);</span>
+</span><span class='line'>    <span class="c1">// 6 </span>
+</span><span class='line'>    <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">clazz</span> <span class="o">=</span> <span class="n">findClass</span><span class="o">(</span><span class="n">name</span><span class="o">);</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">clazz</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="k">if</span> <span class="o">(</span><span class="n">log</span><span class="o">.</span><span class="na">isDebugEnabled</span><span class="o">())</span>
+</span><span class='line'>                <span class="n">log</span><span class="o">.</span><span class="na">debug</span><span class="o">(</span><span class="s">&quot;  Loading class from local repository&quot;</span><span class="o">);</span>
+</span><span class='line'>            <span class="k">if</span> <span class="o">(</span><span class="n">resolve</span><span class="o">)</span>
+</span><span class='line'>                <span class="n">resolveClass</span><span class="o">(</span><span class="n">clazz</span><span class="o">);</span>
+</span><span class='line'>            <span class="k">return</span> <span class="o">(</span><span class="n">clazz</span><span class="o">);</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>    <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">ClassNotFoundException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="c1">// Ignore</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// (3) Delegate to parent unconditionally</span>
+</span><span class='line'>    <span class="c1">// 7</span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(!</span><span class="n">delegateLoad</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">log</span><span class="o">.</span><span class="na">isDebugEnabled</span><span class="o">())</span>
+</span><span class='line'>            <span class="n">log</span><span class="o">.</span><span class="na">debug</span><span class="o">(</span><span class="s">&quot;  Delegating to parent classloader at end: &quot;</span> <span class="o">+</span> <span class="n">parent</span><span class="o">);</span>
+</span><span class='line'>        <span class="n">ClassLoader</span> <span class="n">loader</span> <span class="o">=</span> <span class="n">parent</span><span class="o">;</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">loader</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span>
+</span><span class='line'>            <span class="n">loader</span> <span class="o">=</span> <span class="n">system</span><span class="o">;</span>
+</span><span class='line'>        <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">clazz</span> <span class="o">=</span> <span class="n">Class</span><span class="o">.</span><span class="na">forName</span><span class="o">(</span><span class="n">name</span><span class="o">,</span> <span class="kc">false</span><span class="o">,</span> <span class="n">loader</span><span class="o">);</span>
+</span><span class='line'>            <span class="k">if</span> <span class="o">(</span><span class="n">clazz</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                <span class="k">if</span> <span class="o">(</span><span class="n">log</span><span class="o">.</span><span class="na">isDebugEnabled</span><span class="o">())</span>
+</span><span class='line'>                    <span class="n">log</span><span class="o">.</span><span class="na">debug</span><span class="o">(</span><span class="s">&quot;  Loading class from parent&quot;</span><span class="o">);</span>
+</span><span class='line'>                <span class="k">if</span> <span class="o">(</span><span class="n">resolve</span><span class="o">)</span>
+</span><span class='line'>                    <span class="n">resolveClass</span><span class="o">(</span><span class="n">clazz</span><span class="o">);</span>
+</span><span class='line'>                <span class="k">return</span> <span class="o">(</span><span class="n">clazz</span><span class="o">);</span>
+</span><span class='line'>            <span class="o">}</span>
+</span><span class='line'>        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">ClassNotFoundException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="c1">// Ignore</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">throw</span> <span class="k">new</span> <span class="nf">ClassNotFoundException</span><span class="o">(</span><span class="n">name</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>我们一步步的来分析一下上面的代码做了什么事情。</p>
+
+<ol>
+<li>标注1(第18行)代码，首先从当前ClassLoader的本地缓存中加载类，如果找到则返回。</li>
+<li>标注2(第29行)代码，在本地缓存没有的情况下，调用ClassLoader的findLoadedClass方法查看jvm是否已经加载过此类，如果已经加载则直接返回。</li>
+<li>标注3(第41行)代码，通过系统的来加载器加载此类，这里防止应用写的类覆盖了J2SE的类,这句代码非常关键，如果不写的话，就会造成你自己写的类有可能会把J2SE的类给替换调，另外假如你写了一个javax.servlet.Servlet类，放在当前应用的WEB-INF/class中，如果没有此句代码的保证，那么你自己写的类就会替换到Tomcat容器Lib中包含的类。</li>
+<li>标注4(第68行)代码，判断是否需要委托给父类加载器进行加载，delegate属性默认为false，那么delegatedLoad的值就取决于filter的返回值了，filter方法中根据包名来判断是否需要进行委托加载，默认情况下会返回false.因此delegatedLoad为false</li>
+<li>标注5(第72行)代码，因为delegatedLoad为false,那么此时不会委托父加载器去加载，这里其实是没有遵循parent-first的加载机制。</li>
+<li>标注6(第96行)调用findClass方法在webapp级别进行加载</li>
+<li>标注7(第111行)如果还是没有加载到类，并且不采用委托机制的话，则通过父类加载器去加载。</li>
+</ol>
+
+
+<p>通过上面的描述，我们可以知道Tomcat在加载webapp级别的类的时候，默认是不遵守parent-first的，这样做的好处是更好的实现了应用的隔离，但是坏处就是加大了内存浪费，同样的类库要在不同的app中都要加载一份。</p>
+
+<p>上面分析完了loadClass，我们接着在来分析一下findClass，通过分析findClass的代码，最终会调用<code>org.apache.catalina.loader.WebappClassLoader#findClassInternal</code>方法，那我们就来分析一下它的代码：</p>
+
+<figure class='code'><figcaption><span>org.apache.catalina.loader.WebappClassLoader#findClassInternal</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">protected</span> <span class="n">Class</span><span class="o">&lt;?&gt;</span> <span class="n">findClassInternal</span><span class="o">(</span><span class="n">String</span> <span class="n">name</span><span class="o">)</span>
+</span><span class='line'>    <span class="kd">throws</span> <span class="n">ClassNotFoundException</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">//</span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(!</span><span class="n">validate</span><span class="o">(</span><span class="n">name</span><span class="o">))</span>
+</span><span class='line'>        <span class="k">throw</span> <span class="k">new</span> <span class="nf">ClassNotFoundException</span><span class="o">(</span><span class="n">name</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">String</span> <span class="n">tempPath</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="na">replace</span><span class="o">(</span><span class="sc">&#39;.&#39;</span><span class="o">,</span> <span class="sc">&#39;/&#39;</span><span class="o">);</span>
+</span><span class='line'>    <span class="n">String</span> <span class="n">classPath</span> <span class="o">=</span> <span class="n">tempPath</span> <span class="o">+</span> <span class="s">&quot;.class&quot;</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">ResourceEntry</span> <span class="n">entry</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">securityManager</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">PrivilegedAction</span><span class="o">&lt;</span><span class="n">ResourceEntry</span><span class="o">&gt;</span> <span class="n">dp</span> <span class="o">=</span>
+</span><span class='line'>            <span class="k">new</span> <span class="nf">PrivilegedFindResourceByName</span><span class="o">(</span><span class="n">name</span><span class="o">,</span> <span class="n">classPath</span><span class="o">);</span>
+</span><span class='line'>        <span class="n">entry</span> <span class="o">=</span> <span class="n">AccessController</span><span class="o">.</span><span class="na">doPrivileged</span><span class="o">(</span><span class="n">dp</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+</span><span class='line'>        <span class="c1">// 1 </span>
+</span><span class='line'>        <span class="n">entry</span> <span class="o">=</span> <span class="n">findResourceInternal</span><span class="o">(</span><span class="n">name</span><span class="o">,</span> <span class="n">classPath</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">entry</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span>
+</span><span class='line'>        <span class="k">throw</span> <span class="k">new</span> <span class="nf">ClassNotFoundException</span><span class="o">(</span><span class="n">name</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">Class</span><span class="o">&lt;?&gt;</span> <span class="n">clazz</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="na">loadedClass</span><span class="o">;</span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">clazz</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">clazz</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kd">synchronized</span> <span class="o">(</span><span class="k">this</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">clazz</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="na">loadedClass</span><span class="o">;</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">clazz</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span>
+</span><span class='line'>            <span class="k">return</span> <span class="n">clazz</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">entry</span><span class="o">.</span><span class="na">binaryContent</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span>
+</span><span class='line'>            <span class="k">throw</span> <span class="k">new</span> <span class="nf">ClassNotFoundException</span><span class="o">(</span><span class="n">name</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>            <span class="c1">// 2</span>
+</span><span class='line'>            <span class="n">clazz</span> <span class="o">=</span> <span class="n">defineClass</span><span class="o">(</span><span class="n">name</span><span class="o">,</span> <span class="n">entry</span><span class="o">.</span><span class="na">binaryContent</span><span class="o">,</span> <span class="mi">0</span><span class="o">,</span>
+</span><span class='line'>                    <span class="n">entry</span><span class="o">.</span><span class="na">binaryContent</span><span class="o">.</span><span class="na">length</span><span class="o">,</span>
+</span><span class='line'>                    <span class="k">new</span> <span class="nf">CodeSource</span><span class="o">(</span><span class="n">entry</span><span class="o">.</span><span class="na">codeBase</span><span class="o">,</span> <span class="n">entry</span><span class="o">.</span><span class="na">certificates</span><span class="o">));</span>
+</span><span class='line'>        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">UnsupportedClassVersionError</span> <span class="n">ucve</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="k">throw</span> <span class="k">new</span> <span class="nf">UnsupportedClassVersionError</span><span class="o">(</span>
+</span><span class='line'>                    <span class="n">ucve</span><span class="o">.</span><span class="na">getLocalizedMessage</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot; &quot;</span> <span class="o">+</span>
+</span><span class='line'>                    <span class="n">sm</span><span class="o">.</span><span class="na">getString</span><span class="o">(</span><span class="s">&quot;webappClassLoader.wrongVersion&quot;</span><span class="o">,</span>
+</span><span class='line'>                            <span class="n">name</span><span class="o">));</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>        <span class="n">entry</span><span class="o">.</span><span class="na">loadedClass</span> <span class="o">=</span> <span class="n">clazz</span><span class="o">;</span>
+</span><span class='line'>        <span class="n">entry</span><span class="o">.</span><span class="na">binaryContent</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'>        <span class="n">entry</span><span class="o">.</span><span class="na">source</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'>        <span class="n">entry</span><span class="o">.</span><span class="na">codeBase</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'>        <span class="n">entry</span><span class="o">.</span><span class="na">manifest</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'>        <span class="n">entry</span><span class="o">.</span><span class="na">certificates</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">return</span> <span class="n">clazz</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>上面的代码标注1（第19行）的地方通过名称去当前webappClassLoader的仓库中查找对应的类文件，标注2的代码，将找到的类文件通过defineClass转变为Jvm可以识别的Class对象返回。</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Tomcat请求处理流程（Tomcat源代码阅读系列之五）]]></title>
@@ -4726,7 +5405,7 @@ Host对应源代码中的<code>org.apache.catalina.core.StandardHost</code>,它�
 月薪:    15k-20k</p>
 
 <p>公司介绍: <br/>
-我们公司<a href="http://www.ejushang.com">易居尚</a>秉承着<code>让品质走进生活的理念</code>，致力于打造一个品质、高效、便捷的居家用品网络销售平台.咋们公司不打卡，弹性工作制，每天下午有公司大厨做的下午茶，攻城狮童鞋每周可以自由支配20%的工作时间做自己想做的事情，我们技术团队内部有很强互助和知识分享意识（包括技术骚们喜欢的爱情动作片，嘘&hellip;，其他人我不告诉他）当然了还有很多美女和帅哥，想置身互联网和电子商务有理想的的技术骚们，请你加入我们 一起high，<strong>我们不求改变世界，但求超越自我</strong>。也请各位朋友帮忙推荐，推荐成功有神秘礼物相送哦，有意者请联系:<a href="&#x6d;&#x61;&#105;&#x6c;&#x74;&#x6f;&#58;&#x74;&#x69;&#x67;&#x65;&#x72;&#x2e;&#122;&#104;&#x6f;&#x75;&#64;&#x6b;&#x61;&#114;&#105;&#113;&#x75;&#46;&#x63;&#x6f;&#x6d;">&#116;&#105;&#103;&#x65;&#x72;&#46;&#122;&#104;&#x6f;&#117;&#x40;&#107;&#x61;&#114;&#105;&#113;&#117;&#46;&#99;&#x6f;&#109;</a> 或者留言给我，另外也可以通过<a href="http://weibo.com/xmuzyq">@krq_tiger</a>新浪微博与我取的联系.</p>
+我们公司<a href="http://www.ejushang.com">易居尚</a>秉承着<code>让品质走进生活的理念</code>，致力于打造一个品质、高效、便捷的居家用品网络销售平台.咋们公司不打卡，弹性工作制，每天下午有公司大厨做的下午茶，攻城狮童鞋每周可以自由支配20%的工作时间做自己想做的事情，我们技术团队内部有很强互助和知识分享意识（包括技术骚们喜欢的爱情动作片，嘘&hellip;，其他人我不告诉他）当然了还有很多美女和帅哥，想置身互联网和电子商务有理想的的技术骚们，请你加入我们 一起high，<strong>我们不求改变世界，但求超越自我</strong>。也请各位朋友帮忙推荐，推荐成功有神秘礼物相送哦，有意者请联系:<a href="&#x6d;&#x61;&#x69;&#x6c;&#x74;&#111;&#x3a;&#116;&#105;&#103;&#101;&#x72;&#46;&#x7a;&#104;&#111;&#x75;&#64;&#107;&#97;&#x72;&#x69;&#x71;&#x75;&#46;&#99;&#111;&#109;">&#x74;&#x69;&#x67;&#x65;&#114;&#x2e;&#122;&#x68;&#x6f;&#x75;&#x40;&#x6b;&#x61;&#114;&#x69;&#113;&#x75;&#x2e;&#99;&#111;&#x6d;</a> 或者留言给我，另外也可以通过<a href="http://weibo.com/xmuzyq">@krq_tiger</a>新浪微博与我取的联系.</p>
 
 <!-- more -->
 
@@ -5986,183 +6665,6 @@ SessionFilter的核心代码如下：</p>
 <p>一个大型的分布式应用，一般都是有很多节点构成的，如果每次一个新的节点加入都要更改其它节点的配置，或者每次删除一个节点也要更改配置的话，这样不仅不利于系统的维护和管理，同时也更加容易引入错误。另外很多时候集群中的很多系统的配置都是一样的，如果不进行统一的配置管理，就需要再所有的系统上维护一份配置，这样会造成配置的管理维护很麻烦，而通过一个统一的配置管理可以使得这些问题得到很好的解决，当有新的节点加入或者删除的时候，配置管理系统可以通知各个节点更新配置，从而达到所有节点的配置一致性，这样既方便也不会出错。</p>
 
 <p>上面结合了自己的工作经验说了下构建互联网应用的时候的一些关注点。也欢迎各位感兴趣的同学一起讨论。</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Jvm内存模型以及垃圾收集策略解析系列（二）]]></title>
-    <link href="http://imtiger.github.io/blog/2010/02/21/jvm-memory-and-gc-2/"/>
-    <updated>2010-02-21T13:40:00+08:00</updated>
-    <id>http://imtiger.github.io/blog/2010/02/21/jvm-memory-and-gc-2</id>
-    <content type="html"><![CDATA[<p><img class="center" src="http://imtiger.github.io/images/2010/02/21/jvm-original-logo.jpg"></p>
-
-<p>本文是<code>Jvm内存模型以及垃圾收集策略解析系列</code>第二篇，第一篇为<a href="http://imtiger.github.io/blog/2010/02/21/jvm-memory-and-gc/">Jvm内存模型以及垃圾收集策略解析系列(一)</a>。<br/>
-本文之前发布在本人Iteye的<a href="http://xmuzyq.iteye.com">博客</a>上，换了新博客后，重新整理一下，发布在此，希望对Jvm 内存以及垃圾收集策略感兴趣的朋友有点帮助。</p>
-
-<p><a href="http://imtiger.github.io/blog/2010/02/21/jvm-memory-and-gc/">Jvm内存模型以及垃圾收集策略解析系列(一)</a>介绍了下面的前3部分，本篇文章将介绍第4和第5部分</p>
-
-<ol>
-<li>Java虚拟机规范规定的Jvm 内存概念模型</li>
-<li>HotSpot Jvm 内存的模型</li>
-<li>常见的垃圾收集策略</li>
-<li><code>HotSpot Jvm 垃圾收集策略</code></li>
-<li><code>HotSpot Jvm 垃圾收集器的配置策略</code></li>
-</ol>
-
-
-<!-- more -->
-
-
-<h1>4.HotSpot Jvm 垃圾收集策略</h1>
-
-<p>GC的执行时要耗费一定的CPU资源和时间的，因此在JDK1.2以后，JVM引入了分代收集的策略，其中对新生代采用&#8221;Mark-Compact&#8221;策略，而对老生代采用了“Mark-Sweep&#8221;的策略。其中新生代的垃圾收集器命名为“minor gc”，老生代的GC命名为&#8221;Full Gc 或者Major GC&#8221;.其中用System.gc()强制执行的是Full Gc.
-HotSpot Jvm的垃圾收集器按照并发性可以分为如下三种类型：</p>
-
-<h2>4.1 串行收集器（Serial Collector）</h2>
-
-<p>Serial Collector是指任何时刻都只有一个线程进行垃圾收集，这种策略有一个名字“stop the whole world&#8221;,它需要停止整个应用的执行。这种类型的收集器适合于单CPU的机器。
-Serial Collector 有如下两个：</p>
-
-<ol>
-<li><p>Serial Copying Collector:<br/>
-此种GC用-XX:UseSerialGC选项配置，它只用于<code>新生代</code>对象的收集。1.5.0以后.<br/>
-<code>-XX:MaxTenuringThreshold</code>来设置对象复制的次数。当eden空间不够的时候，GC会将eden的活跃对象和一个名叫From survivor空间中尚不够资格放入Old代的对象复制到另外一个名字叫To Survivor的空间。而此参数就是用来说明到底From survivor中的哪些对象不够资格，假如这个参数设置为31，那么也就是说只有对象复制31次以后才算是有资格的对象。</p>
-
-<blockquote><p>这里需要注意几个个问题：<br/>
-From Survivor和To survivor的角色是不断的变化的，同一时间只有一块空间处于使用状态，这个空间就叫做From Survivor区，当复制一次后角色就发生了变化。<br/>
-如果复制的过程中发现To survivor空间已经满了，那么就直接复制到old generation.<br/>
-比较大的对象也会直接复制到Old generation,在开发中，我们应该尽量避免这种情况的发生。</p></blockquote></li>
-<li><p>Serial  Mark-Compact Collector： <br/>
-串行的标记-整理收集器是JDK5 update6之前默认的<code>老生代</code>的垃圾收集器，此收集使得内存碎片最少化，但是它需要暂停的时间比较长</p></li>
-</ol>
-
-
-<h2>4.2 并行收集器（Parallel Collector）</h2>
-
-<p>Parallel Collector主要是为了应对多CPU，大数据量的环境。<br/>
-Parallel Collector又可以分为以下三种：</p>
-
-<ol>
-<li>Parallel Copying Collector<br/>
-此种GC用-XX:UseParNewGC参数配置,它主要用于<code>新生代</code>的收集,此GC可以配合CMS一起使用，适用于1.4.1以后。</li>
-<li>Parallel Mark-Compact Collector<br/>
-此种GC用-XX:UseParallelOldGC参数配置，此GC主要用于<code>老生代</code>对象的收集。适用于1.6.0以后。</li>
-<li>Parallel scavenging Collector<br/>
-此种GC用-XX:UseParallelGC参数配置，它是对<code>新生代</code>对象的垃圾收集器，但是它不能和CMS配合使用，它适合于比较大新生代的情况，此收集器起始于jdk 1.4.0。它比较适合于对吞吐量高于暂停时间的场合。</li>
-</ol>
-
-
-<p>串行收集器和并行收集器可以通过如下的图来表示：</p>
-
-<p><img class="center" src="http://imtiger.github.io/images/2010/02/21/serial-and-parallel-gc.jpg"></p>
-
-<h2>4.3 并发收集器 (Concurrent Collector)</h2>
-
-<p>Concurrent Collector通过并行的方式进行垃圾收集，这样就减少了垃圾收集器收集一次的时间，在HotSpot Jvm中，我们称之为CMS GC,这种GC在实时性要求高于吞吐量的时候比较有用。此种GC可以用参数-XX:UseConcMarkSweepGC配置，此GC主要用于老生代和Perm代的收集。
-并发收集器可以通过下图形象的描述：
-<img class="center" src="http://imtiger.github.io/images/2010/02/21/concurrent-gc.jpg"></p>
-
-<p>CMS GC有可能出现并发模型失败：</p>
-
-<blockquote><p>并发模型失败：我们CMS GC在运行的时候，用户线程也在运行，当gc的速度比新增对象的速度慢的时候，或者说当正在GC的时候，老年代的空间不能满足用户线程内存分配的需求的时候，就会出现并发模型失败，出现并发模型失败的时候，JVM会触发一次stop-the-world的Full GC这将导致暂停时间过长。不过CMS GC提供了一个参数<code>-XX:CMSInitiatingOccupancyFraction</code>来指定当老年代的空间超过某个值的时候即触发GC。因此如果此参数设置的过高，可能会导致更多的并发模型失败。</p></blockquote>
-
-<p>并发和并行收集器区别：</p>
-
-<blockquote><p>对于并发和并行收集器，我们需要注意一点：并发收集器是指垃圾收集器线程和应用线程可以并发的执行，也就是清除的时候不需要stop the world，但是并行收集器指的的是可以多个线程并行的进行垃圾收集，并行收集器还是要暂停应用的（即所谓的stop the world）</p></blockquote>
-
-<h1>5.HotSpot Jvm 垃圾收集器的配置策略</h1>
-
-<p>通过上面的描述，我们知道HotSpot Jvm中都有哪些垃圾收集器供我们使用，接下来我们总结一下如何配置垃圾收集器。在继续之前我们需要明白，上面所讲的垃圾收集器有些用于新生代，有些用于老年代，并且不是任何两个都可以配对使用的，下面我们通过下图来形象的描述一下哪些收集器可以配对使用：
-<img class="center" src="http://imtiger.github.io/images/2010/02/21/hotspot-gc-collectors.png"></p>
-
-<p>Ok,知道新生代和老年代垃圾收集器都有哪些收集器以后，咋们接下来看看具体如何来选择垃圾收集器。这需要根据我们的应用特点来进行选择。下面我们分两种情况来分别描述一下不同情况下的垃圾收集配置策略。</p>
-
-<h2>5.1 吞吐量优先</h2>
-
-<p>吞吐量是指GC的时间与运行总时间的比值，比如系统运行了100分钟，而GC占用了一分钟，那么吞吐量就是99%，吞吐量优先一般运用于对响应性要求不高的场合，比如web应用，因为网络传输本来就有延迟的问题，GC造成的短暂的暂停使得用户以为是网络阻塞所致。<br/>
-吞吐量优先可以通过-XX:GCTimeRatio来指定。当通过-XX:GCTimeRatio不能满足系统的要求以后，我们可以更加细致的来对JVM进行调优。<br/>
-首先因为要求高吞吐量，这样就需要一个较大的Young generation，此时就需要引入“<code>Parallel scavenging Collector</code>”,可以通过参数：<code>-XX:UseParallelGC</code>来配置。</p>
-
-<figure class='code'><figcaption><span>Jvm config</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">java</span> <span class="o">-</span><span class="n">server</span> <span class="o">-</span><span class="n">Xms3072m</span> <span class="o">-</span><span class="n">Xmx3072m</span> <span class="o">-</span><span class="nl">XX:</span><span class="n">NewSize</span><span class="o">=</span><span class="mi">2560</span><span class="n">m</span> <span class="o">-</span><span class="nl">XX:</span><span class="n">MaxNewSize</span><span class="o">=</span><span class="mi">2560</span> <span class="nl">XX:</span><span class="n">SurvivorRatio</span><span class="o">=</span><span class="mi">2</span> <span class="o">-</span> <span class="nl">XX:</span><span class="o">+</span><span class="n">UseParallelGC</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>
-当年轻代使用了&#8221;<code>Parallel scavenge collector</code>&ldquo;后，老生代就不能使用&#8221;CMS&#8221;GC了，在JDK1.6之前，此时老生代只能采用串行收集，而JDK1.6引入了并行版本的老生代收集器，可以用参数<code>-XX:UseParallelOldGC</code>来配置。</p>
-
-<p>1.控制并行的线程数  <br/>
-缺省情况下，Parallel scavenging Collector 会开启与cpu数量相同的线程进行并行的收集，但是也可以调节并行的线程数。假如你想用4个并行的线程去收集Young generation的话，那么就可以配置-XX:ParallelGCThreads=4,此时JVM的配置参数如下：</p>
-
-<figure class='code'><figcaption><span>Jvm config</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">java</span> <span class="o">-</span><span class="n">server</span> <span class="o">-</span><span class="n">Xms3072m</span> <span class="o">-</span><span class="n">Xmx3072m</span> <span class="o">-</span><span class="nl">XX:</span><span class="n">NewSize</span><span class="o">=</span><span class="mi">2560</span><span class="n">m</span> <span class="o">-</span><span class="nl">XX:</span><span class="n">MaxNewSize</span><span class="o">=</span><span class="mi">2560</span> <span class="nl">XX:</span><span class="n">SurvivorRatio</span><span class="o">=</span><span class="mi">2</span> <span class="o">-</span><span class="nl">XX:</span><span class="o">+</span><span class="n">UseParallelGC</span> <span class="o">-</span><span class="nl">XX:</span><span class="n">ParallelGCThreads</span><span class="o">=</span><span class="mi">4</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>2.自动调节新生代    <br/>
-在采用了&#8221;Parallel scavenge collector&#8221;后，此GC会根据运行时的情况自动调节survivor ratio来使得性能最优，因此&#8221;Parallel scavenge collector&#8221;应该总是开启此参数。此时JVM的参数配置如下：</p>
-
-<figure class='code'><figcaption><span>Jvm config</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">java</span> <span class="o">-</span><span class="n">server</span> <span class="o">-</span><span class="n">Xms3072m</span> <span class="o">-</span><span class="n">Xmx3072m</span> <span class="o">-</span><span class="nl">XX:</span><span class="o">+</span><span class="n">UseParallelGC</span> <span class="o">-</span><span class="nl">XX:</span><span class="n">ParallelGCThreads</span><span class="o">=</span><span class="mi">4</span> <span class="o">-</span><span class="nl">XX:</span><span class="o">+</span><span class="n">UseAdaptiveSizePolicy</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>5.2 响应时间优先</h2>
-
-<p>响应时间优先是指GC每次运行的时间不能太久，这种情况一般使用与对及时性要求很高的系统，比如股票系统等。</p>
-
-<p>响应时间优先可以通过参数-XX:MaxGCPauseMillis来配置，配置以后JVM将会自动调节年轻代，老生代的内存分配来满足参数设置。</p>
-
-<p>在一般情况下，JVM的默认配置就可以满足要求，只有默认配置不能满足系统的要求时候，才会根据具体的情况来对JVM进行性能调优。如果采用默认的配置不能满足系统的要求，那么此时就可以自己动手来调节。此时&#8221;Young generation&#8221;可以采用&#8221;Parallel copying collector&#8221;，而&#8221;Old generation&#8221;则可以采用&#8221;Concurrent Collector&#8221;.<br/>
-举个例子来说，以下参数设置了新生代用Parallel Copying Collector，老生代采用CMS收集器。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">java</span> <span class="o">-</span><span class="n">server</span> <span class="o">-</span><span class="n">Xms512m</span> <span class="o">-</span><span class="n">Xmx512m</span>  <span class="o">-</span><span class="nl">XX:</span><span class="n">NewSize</span><span class="o">=</span><span class="mi">64</span><span class="n">m</span> <span class="o">-</span><span class="nl">XX:</span><span class="n">MaxNewSize</span><span class="o">=</span><span class="mi">64</span><span class="n">m</span> <span class="o">-</span><span class="nl">XX:</span><span class="n">SurvivorRatio</span><span class="o">=</span><span class="mi">2</span>  <span class="o">-</span><span class="nl">XX:</span><span class="o">+</span><span class="n">UseConcMarkSweepGC</span> <span class="o">-</span><span class="nl">XX:</span><span class="o">+</span><span class="n">UseParNewGC</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<blockquote><p>此时需要注意两个问题：<br/>
-1.如果没有指定-XX:+UseParNewGC，则采用默认的非并行版本的copy collector.<br/>
-2.如果在一个单CPU的系统上设置了-XX:+UseParNewGC ,则默认还是采用缺省的copy collector.</p></blockquote>
-
-<p>1.控制并行的线程数<br/>
-默认情况下，Parallel copy collector启动和CPU数量一样的线程，也可以通过参数-XX:ParallelGCThreads来指定，比如你想用3个线程去进行并发的复制收集，那么可以改变上述参数如下：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">java</span> <span class="o">-</span><span class="n">server</span> <span class="o">-</span><span class="n">Xms512m</span> <span class="o">-</span><span class="n">Xmx512m</span> <span class="o">-</span><span class="nl">XX:</span><span class="n">NewSize</span><span class="o">=</span><span class="mi">64</span><span class="n">m</span>  <span class="o">-</span><span class="nl">XX:</span><span class="n">MaxNewSize</span><span class="o">=</span><span class="mi">64</span><span class="n">m</span> <span class="o">-</span><span class="nl">XX:</span><span class="n">SurvivorRatio</span><span class="o">=</span><span class="mi">2</span>        <span class="o">-</span><span class="nl">XX:</span><span class="n">ParallelGCThreads</span><span class="o">=</span><span class="mi">4</span> <span class="o">-</span><span class="nl">XX:</span><span class="o">+</span><span class="n">UseConcMarkSweepGC</span> <span class="o">-</span><span class="nl">XX:</span><span class="o">+</span><span class="n">UseParNewGC</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>2.控制并发收集的临界值 <br/>
-默认情况下，CMS gc在&#8221;old generation&#8221;空间占用率高于68%的时候，就会进行垃圾收集，而如果想控制收集的临界值，可以通过参数：-XX:CMSInitiatingOccupancyFraction来控制，比如改变上述的JVM配置如下：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">java</span> <span class="o">-</span><span class="n">server</span> <span class="o">-</span><span class="n">Xms512m</span> <span class="o">-</span><span class="n">Xmx512m</span> <span class="o">-</span><span class="nl">XX:</span><span class="n">NewSize</span><span class="o">=</span><span class="mi">64</span><span class="n">m</span> <span class="o">-</span><span class="nl">XX:</span><span class="n">MaxNewSize</span><span class="o">=</span><span class="mi">64</span><span class="n">m</span> <span class="o">-</span><span class="nl">XX:</span><span class="n">SurvivorRatio</span><span class="o">=</span><span class="mi">2</span>  <span class="o">-</span><span class="nl">XX:</span><span class="n">ParallelGCThreads</span><span class="o">=</span><span class="mi">4</span> <span class="o">-</span><span class="nl">XX:</span><span class="o">+</span><span class="n">UseConcMarkSweepGC</span> <span class="o">-</span><span class="nl">XX:</span><span class="o">+</span><span class="n">UseParNewGC</span> <span class="o">-</span><span class="nl">XX:</span><span class="n">CMSInitiatingOccupancyFraction</span><span class="o">=</span><span class="mi">35</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>此外顺便说一个参数：<code>-XX:+PrintCommandLineFlags</code> 通过此参数可以知道在没有显示指定内存配置和垃圾收集算法的情况下，JVM采用的默认配置。<br/>
-比如我在自己的机器上面通过如下命令<code>java -XX:+PrintCommandLineFlags -version</code>得到的结果如下所示：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="o">-</span><span class="nl">XX:</span><span class="n">InitialHeapSize</span><span class="o">=</span><span class="mi">524747648</span> <span class="o">-</span><span class="nl">XX:</span><span class="n">MaxHeapSize</span><span class="o">=</span><span class="mi">8395962368</span> <span class="o">-</span><span class="nl">XX:</span><span class="n">ParallelGCThreads</span><span class="o">=</span><span class="mi">23</span> <span class="o">-</span><span class="nl">XX:</span><span class="o">+</span><span class="n">PrintCommandLineFlags</span> <span class="o">-</span><span class="nl">XX:</span><span class="o">+</span><span class="n">UseCompressedOops</span> <span class="o">-</span><span class="nl">XX:</span><span class="o">+</span><span class="n">UseParallelGC</span>
-</span><span class='line'><span class="n">java</span> <span class="n">version</span> <span class="s">&quot;1.6.0_25&quot;</span>
-</span><span class='line'><span class="n">Java</span><span class="o">(</span><span class="n">TM</span><span class="o">)</span> <span class="n">SE</span> <span class="n">Runtime</span> <span class="n">Environment</span> <span class="o">(</span><span class="n">build</span> <span class="mf">1.6</span><span class="o">.</span><span class="mi">0</span><span class="n">_25</span><span class="o">-</span><span class="n">b06</span><span class="o">)</span>
-</span><span class='line'><span class="n">Java</span> <span class="nf">HotSpot</span><span class="o">(</span><span class="n">TM</span><span class="o">)</span> <span class="mi">64</span><span class="o">-</span><span class="n">Bit</span> <span class="n">Server</span> <span class="n">VM</span> <span class="o">(</span><span class="n">build</span> <span class="mf">20.0</span><span class="o">-</span><span class="n">b11</span><span class="o">,</span> <span class="n">mixed</span> <span class="n">mode</span><span class="o">)</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>从输出可以清楚的看到JVM通过自己检测硬件配置而给出的缺省配置。</p>
-
-<p>最后附上一些JVM 垃圾收集方面的文章供大家参考：<br/>
-<a href="http://www.ibm.com/developerworks/library/j-jtp10283/index.html?S_TACT=105AGX52&amp;S_CMP=cn-a-j">Java theory and practice: A brief history of garbage collection</a> <br/>
-<a href="http://www.ibm.com/developerworks/library/j-jtp11253/index.html?S_TACT=105AGX52&amp;S_CMP=cn-a-j">Java theory and practice: Garbage collection in the HotSpot JVM</a><br/>
-<a href="https://blogs.oracle.com/poonam/entry/understanding_cms_gc_logs"> Understanding CMS GC Logs </a> <br/>
-<a href="http://www.oracle.com/technetwork/java/javase/tech/vmoptions-jsp-140102.html">Java HotSpot VM Options</a>
-<a href="http://docs.oracle.com/javase/6/docs/technotes/guides/vm/server-class.html">Server-Class Machine Detection</a></p>
 ]]></content>
   </entry>
   

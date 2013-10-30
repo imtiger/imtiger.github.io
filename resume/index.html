@@ -536,46 +536,50 @@ ul, ol, dt, dd {
 </div>
 <script src="http://codeorigin.jquery.com/jquery-1.7.2.min.js" type="text/javascript"></script>
 <script type="text/javascript">
+    (function($){
 
-    (function ($) {
+
         //到顶部
-        (function () {
-            var domHeight = $(document).height()，
-                    scrollTop = $(document).scrollTop()，
-                    winWidth = $(window).width()，
+        (function(){
+            var domHeight = $(document).height(),
+                    scrollTop = $(document).scrollTop(),
+                    winWidth = $(window).width(),
                     winHeight = $(window).height();
 
-            if (domHeight > winHeight + 500) {
-                var toTop = document.createElement("div")，
-                        pot_t = 0，
-                        pot_b = 1;
+            if (domHeight>winHeight+500){
+                var toTop = document.createElement("div"),
+                        pot_t=0,
+                        pot_b=1;
 
                 toTop.id = "to-top";
                 toTop.className = "to-top";
-                var toright = 15;
+                var toright=15;
 
-                $(window).bind("scroll.toTop"， function () {
+                $(window).bind("scroll.toTop", function(){
                     var scrollTop = $(document).scrollTop();
-                    if (scrollTop > 290 && pot_t == 0) {
-                        $(toTop).stop().animate({"right":toright， "opacity":"1"}， 200);
-                        pot_t = 1;
-                        pot_b = 0;
-                    } else if (scrollTop < 290 && pot_b == 0) {
-                        $(toTop).stop().animate({"right":"-60px"， "opacity":"0"}， 200);
-                        pot_t = 0;
-                        pot_b = 1;
+                    if(scrollTop>290&&pot_t==0){
+                        $(toTop).stop().animate({"right":toright,"opacity":"1"},200);
+                        pot_t=1;
+                        pot_b=0;
+                    }else if(scrollTop<290&&pot_b==0){
+                        $(toTop).stop().animate({"right":"-60px","opacity":"0"},200);
+                        pot_t=0;
+                        pot_b=1;
                     }
                 });
 
                 document.body.appendChild(toTop);
-                toTop.onclick = function () {
-                    $("html" + ( !$.browser.opera ? "，body" : "")).animate({scrollTop:0}， 500);
+                toTop.onclick = function(){
+                    $("html"+( ! $.browser.opera ? ",body" : "")).animate({scrollTop: 0}, 500);
                 };
             }
 
         })();
 
+
+
     })(jQuery);
+
 
 </script>
 
