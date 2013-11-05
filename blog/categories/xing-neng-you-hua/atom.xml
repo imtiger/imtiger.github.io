@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: 性能优化 | I'm Tiger,一个有理想爱折腾的程序员!]]></title>
+  <link href="http://imtiger.github.io/blog/categories/xing-neng-you-hua/atom.xml" rel="self"/>
+  <link href="http://imtiger.github.io/"/>
+  <updated>2013-11-05T11:14:47+08:00</updated>
+  <id>http://imtiger.github.io/</id>
+  <author>
+    <name><![CDATA[imtiger]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[QPS（req/sec 每秒请求数）、PV 、RT （响应时间） 之间的关系]]></title>
+    <link href="http://imtiger.github.io/blog/2012/08/29/qps-pv-rt/"/>
+    <updated>2012-08-29T10:32:00+08:00</updated>
+    <id>http://imtiger.github.io/blog/2012/08/29/qps-pv-rt</id>
+    <content type="html"><![CDATA[<p>{% img center /images/2012/08/29/qps-pv-rt.png %}</p>
+
+<p>在进行系统性能压测和系统性能优化的时候，会涉及到QPS,PV,RT相关的概念， 本文总结一下QPS,PV,RT之间的关系，放在博客备忘，本文参考了之前在淘宝工作时候的一些资料。</p>
+
+<h3>QPS是什么？</h3>
+
+<p>QPS：单个进程每秒请求服务器的<code>成功次数</code><br/>
+<code>QPS = req/sec = 请求数/秒</code></p>
+
+<h3>QPS如何统计？</h3>
+
+<p>QPS统计方式 [一般使用 http_load 进行统计]  <br/>
+QPS = 总请求数 / ( 进程总数 *   请求时间 )</p>
+
+<h3>根据QPS推算PV：</h3>
+
+<p>单台服务器每天PV计算:<br/>
+公式1：每天总PV = QPS * 3600 * 6<br/>
+公式2：每天总PV = QPS * 3600 * 8</p>
+
+<h3>根据QPS,PV推算服务器数量</h3>
+
+<p>服务器数量 =   每天总PV / 单台服务器每天总PV</p>
+
+<p>峰值QPS和机器计算公式：<br/>
+原理：每天80%的访问集中在20%的时间里，这20%时间叫做峰值时间  <br/>
+峰值时间每秒请求数(QPS)：<code>( 总PV数 * 80% ) / ( 每天秒数 * 20% )</code><br/>
+峰值机器数量：<code>峰值时间QPS / 单台机器的QPS</code></p>
+
+<!-- more -->
+
+
+<p>例子：<br/>
+问：每天300w PV 的在单台机器上，这台机器需要多少QPS？<br/>
+答：( 3000000 * 0.8 ) / (86400 * 0.2 ) = 139 (QPS)<br/>
+问：如果一台机器的QPS是58，需要几台机器来支持？
+答：139 / 58 = 3</p>
+
+<h3>最佳线程数:</h3>
+
+<p>性能压测的情况下，起初随着用户数的增加，QPS会上升，当到了一定的阀值之后，用户数量增加QPS并不会增加，或者增加不明显，同时请求的响应时间却大幅增加。这个阀值我们认为是最佳线程数。</p>
+
+<p>为什么要找最佳线程数</p>
+
+<ol>
+<li>过多的线程只会造成，更多的内存开销，更多的CPU开销，但是对提升QPS确毫无帮助</li>
+<li>找到最佳线程数后通过简单的设置，可以让web系统更加稳定，得到最高，最稳定的QPS输出</li>
+</ol>
+
+
+<p>最佳线程数的获取：</p>
+
+<ol>
+<li>通过用户慢慢递增来进行性能压测，观察QPS，响应时间</li>
+<li>根据公式计算:服务器端最佳线程数量=((线程等待时间+线程cpu时间)/线程cpu时间) * cpu数量</li>
+<li>单用户压测，查看CPU的消耗，然后直接乘以百分比，再进行压测，一般这个值的附近应该就是最佳线程数量。</li>
+</ol>
+
+
+<p>影响最佳线程数的主要因素：</p>
+
+<ol>
+<li>IO</li>
+</ol>
+
+
+<p>IO开销较多的应用其CPU线程等待时间会比较长，所以线程数量可以开的多一些，相反则线程数量要少一些，其实有两种极端，纯IO的应用，比如proxy，则线程数量可以开到非常大（实在太大了则需要考虑线程切换的开销），这种应用基本上后端（比如这个proxy是代理搜索的）的QPS能有多少，proxy就有多少。</p>
+
+<ol>
+<li>CPU</li>
+</ol>
+
+
+<p>对于耗CPU的计算，这种情况一般来讲只能开到CPU个数的线程数量。但是并不是说这种应用的QPS就不高，往往这种应用的QPS可以很高，因为耗CPU计算的应用，往往处理单次请求的时间会很短。</p>
+
+<h4>QPS和线程数的关系</h4>
+
+<ol>
+<li><p>在最佳线程数量之前，QPS和线程是互相递增的关系，线程数量到了最佳线程之后，QPS持平，不在上升，甚至略有下降，同时响应时间持续上升。</p></li>
+<li><p>同一个系统而言，最佳线程数越多，QPS越高</p></li>
+</ol>
+
+]]></content>
+  </entry>
+  
+</feed>

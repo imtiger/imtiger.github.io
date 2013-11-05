@@ -5,11 +5,11 @@
 
 <head>
 	<meta charset="utf-8">
-	<title>Categories - I'm Tiger,一个有理想爱折腾的程序员!</title>
+	<title>QPS（req/sec 每秒请求数）、PV 、RT （响应时间） 之间的关系 - I'm Tiger,一个有理想爱折腾的程序员!</title>
 	<meta name="author" content="imtiger">
 
 	
-	<meta name="description" content=" Java [ 16 ] 技术 [ 25 ] 系统架构 [ 1 ] Web开发 [ 1 ] 缓存 [ 1 ] Javascript [ 1 ] 性能优化 [ 1 ] Linux [ 2 ] Ios [ 1 ] 生活 [ 1 ] Tomcat [ 7 ] ">
+	<meta name="description" content="QPS（req/sec 每秒请求数）、PV 、RT （响应时间） 之间的关系 在进行系统性能压测和系统性能优化的时候，会涉及到QPS,PV,RT相关的概念， 本文总结一下QPS,PV,RT之间的关系，放在博客备忘，本文参考了之前在淘宝工作时候的一些资料。 QPS是什么？ QPS： &hellip;">
 	<meta name="keywords" content="java,ios,mac,linux,objective-c,软件设计,软件架构,摄影,imtiger.">
 
   <!-- http://t.co/dKP3o1e -->
@@ -19,7 +19,7 @@
 
 	<link href="/atom.xml" rel="alternate" title="I'm Tiger,一个有理想爱折腾的程序员!" type="application/atom+xml">
 	
-	<link rel="canonical" href="http://imtiger.github.io/blog/categories/">
+	<link rel="canonical" href="http://imtiger.github.io/blog/2012/08/29/qps-pv-rt/">
 	<link href="/favicon.png" rel="shortcut icon">
 	<link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
 	<link href="/stylesheets/font-awesome.min.css" media="screen, projection" rel="stylesheet" type="text/css">
@@ -90,38 +90,147 @@
 				
 			
 			<div class="mid-col-container">
-				<div id="content" class="inner"><article class="page">
-    
-    <h1 class="title">Categories</h1>
-    
-    <div class="entry-content"><ul>
+				<div id="content" class="inner"><article class="post" itemscope itemtype="http://schema.org/BlogPosting">
 
-    <li><a href="/blog/categories/Java/">Java</a> [ 16 ]</li>
+	<h1 class="title" itemprop="name">QPS（req/sec 每秒请求数）、PV 、RT （响应时间） 之间的关系</h1>
+	<div class="entry-content" itemprop="articleBody"><p><img class="center" src="/images/2012/08/29/qps-pv-rt.png"></p>
 
-    <li><a href="/blog/categories/技术/">技术</a> [ 25 ]</li>
+<p>在进行系统性能压测和系统性能优化的时候，会涉及到QPS,PV,RT相关的概念， 本文总结一下QPS,PV,RT之间的关系，放在博客备忘，本文参考了之前在淘宝工作时候的一些资料。</p>
 
-    <li><a href="/blog/categories/系统架构/">系统架构</a> [ 1 ]</li>
+<h3>QPS是什么？</h3>
 
-    <li><a href="/blog/categories/Web开发/">Web开发</a> [ 1 ]</li>
+<p>QPS：单个进程每秒请求服务器的<code>成功次数</code><br/>
+<code>QPS = req/sec = 请求数/秒</code></p>
 
-    <li><a href="/blog/categories/缓存/">缓存</a> [ 1 ]</li>
+<h3>QPS如何统计？</h3>
 
-    <li><a href="/blog/categories/JavaScript/">Javascript</a> [ 1 ]</li>
+<p>QPS统计方式 [一般使用 http_load 进行统计]  <br/>
+QPS = 总请求数 / ( 进程总数 *   请求时间 )</p>
 
-    <li><a href="/blog/categories/性能优化/">性能优化</a> [ 1 ]</li>
+<h3>根据QPS推算PV：</h3>
 
-    <li><a href="/blog/categories/linux/">Linux</a> [ 2 ]</li>
+<p>单台服务器每天PV计算:<br/>
+公式1：每天总PV = QPS * 3600 * 6<br/>
+公式2：每天总PV = QPS * 3600 * 8</p>
 
-    <li><a href="/blog/categories/iOS/">Ios</a> [ 1 ]</li>
+<h3>根据QPS,PV推算服务器数量</h3>
 
-    <li><a href="/blog/categories/生活/">生活</a> [ 1 ]</li>
+<p>服务器数量 =   每天总PV / 单台服务器每天总PV</p>
 
-    <li><a href="/blog/categories/Tomcat/">Tomcat</a> [ 7 ]</li>
+<p>峰值QPS和机器计算公式：<br/>
+原理：每天80%的访问集中在20%的时间里，这20%时间叫做峰值时间  <br/>
+峰值时间每秒请求数(QPS)：<code>( 总PV数 * 80% ) / ( 每天秒数 * 20% )</code><br/>
+峰值机器数量：<code>峰值时间QPS / 单台机器的QPS</code></p>
 
-</ul>
+<!-- more -->
+
+
+<p>例子：<br/>
+问：每天300w PV 的在单台机器上，这台机器需要多少QPS？<br/>
+答：( 3000000 * 0.8 ) / (86400 * 0.2 ) = 139 (QPS)<br/>
+问：如果一台机器的QPS是58，需要几台机器来支持？
+答：139 / 58 = 3</p>
+
+<h3>最佳线程数:</h3>
+
+<p>性能压测的情况下，起初随着用户数的增加，QPS会上升，当到了一定的阀值之后，用户数量增加QPS并不会增加，或者增加不明显，同时请求的响应时间却大幅增加。这个阀值我们认为是最佳线程数。</p>
+
+<p>为什么要找最佳线程数</p>
+
+<ol>
+<li>过多的线程只会造成，更多的内存开销，更多的CPU开销，但是对提升QPS确毫无帮助</li>
+<li>找到最佳线程数后通过简单的设置，可以让web系统更加稳定，得到最高，最稳定的QPS输出</li>
+</ol>
+
+
+<p>最佳线程数的获取：</p>
+
+<ol>
+<li>通过用户慢慢递增来进行性能压测，观察QPS，响应时间</li>
+<li>根据公式计算:服务器端最佳线程数量=((线程等待时间+线程cpu时间)/线程cpu时间) * cpu数量</li>
+<li>单用户压测，查看CPU的消耗，然后直接乘以百分比，再进行压测，一般这个值的附近应该就是最佳线程数量。</li>
+</ol>
+
+
+<p>影响最佳线程数的主要因素：</p>
+
+<ol>
+<li>IO</li>
+</ol>
+
+
+<p>IO开销较多的应用其CPU线程等待时间会比较长，所以线程数量可以开的多一些，相反则线程数量要少一些，其实有两种极端，纯IO的应用，比如proxy，则线程数量可以开到非常大（实在太大了则需要考虑线程切换的开销），这种应用基本上后端（比如这个proxy是代理搜索的）的QPS能有多少，proxy就有多少。</p>
+
+<ol>
+<li>CPU</li>
+</ol>
+
+
+<p>对于耗CPU的计算，这种情况一般来讲只能开到CPU个数的线程数量。但是并不是说这种应用的QPS就不高，往往这种应用的QPS可以很高，因为耗CPU计算的应用，往往处理单次请求的时间会很短。</p>
+
+<h4>QPS和线程数的关系</h4>
+
+<ol>
+<li><p>在最佳线程数量之前，QPS和线程是互相递增的关系，线程数量到了最佳线程之后，QPS持平，不在上升，甚至略有下降，同时响应时间持续上升。</p></li>
+<li><p>同一个系统而言，最佳线程数越多，QPS越高</p></li>
+</ol>
 
 </div>
+
+
+<p align="right"><span style="border-top:1px dashed #666">Posted on: 2012/08/29</span></p>
 </article>
+
+
+
+<div class="post-copyright">
+	<div class="avator" style="">
+		<img alt="" src="http://www.gravatar.com/avatar/80695ffc8afc90667bb292139686239b?s=160" width="100" height="100"/>
+	</div>
+	<div class="info">
+			作者： <A href="http://imtiger.net">imtiger</A> <br>
+			出处： <A href="http://imtiger.net">http://imtiger.net/</A>
+			<br>本文通过<a href="http://creativecommons.org/licenses/by-nc/3.0/deed.zh">署名-非商业性使用 3.0</a>进行许可,欢迎转载,但是必须保留本文的署名和连接,谢谢配合！
+			<a href="http://imtiger.net">imtiger</a>。 
+	</div>
+</div>
+
+
+
+
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	
+	
+	  <!-- JiaThis Button BEGIN -->
+<div class="jiathis_style">
+	<span class="jiathis_txt"></span>
+  <a class="jiathis_button_tsina"></a>
+	<a class="jiathis_button_qzone">QQ</a>
+	<a class="jiathis_button_tqq"></a>
+	<a class="jiathis_button_weixin"></a>
+	<a href="http://www.jiathis.com/share?uid=1845643" class="jiathis jiathis_txt jiathis_separator jtico jtico_jiathis" target="_blank"></a>
+	<a class="jiathis_counter_style"></a>
+</div>
+<script type="text/javascript">
+var jiathis_config = {data_track_clickback:'true'};
+</script>
+<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js?uid=1372156002529710" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+
+<!-- UY BEGIN -->
+<div id="uyan_frame"></div>
+<script type="text/javascript" src="http://v2.uyan.cc/code/uyan.js?uid=1845643"></script>
+<!-- UY END -->
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <!-- <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid="></script> -->
+</div>
+
 
 
 </div>

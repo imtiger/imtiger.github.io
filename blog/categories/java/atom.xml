@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Java | I'm Tiger,一个有理想爱折腾的程序员!]]></title>
   <link href="http://imtiger.github.io/blog/categories/java/atom.xml" rel="self"/>
   <link href="http://imtiger.github.io/"/>
-  <updated>2013-11-04T22:11:43+08:00</updated>
+  <updated>2013-11-05T11:14:47+08:00</updated>
   <id>http://imtiger.github.io/</id>
   <author>
     <name><![CDATA[imtiger]]></name>
@@ -18,7 +18,7 @@
     <link href="http://imtiger.github.io/blog/2013/10/28/tomcat-class-loader/"/>
     <updated>2013-10-28T14:06:00+08:00</updated>
     <id>http://imtiger.github.io/blog/2013/10/28/tomcat-class-loader</id>
-    <content type="html"><![CDATA[<p><img class="center" src="/images/2013/10/14/apache_tomcat_bag.jpg">
+    <content type="html"><![CDATA[<p>{% img center /images/2013/10/14/apache_tomcat_bag.jpg%}
 本文是<a href="/blog/2013/10/08/tomcat-source-code-study/">Tomcat源代码阅读系列</a>的第六篇文章，本系列前五篇文章如下：  <br/>
 <a href="/blog/2013/10/14/run-tomcat-in-idea-or-eclipse/">在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码（Tomcat源代码阅读系列之一）</a>   <br/>
 <a href="/blog/2013/10/16/tomcat-architecture/">Tomcat总体结构                             （Tomcat源代码阅读系列之二）</a>  <br/>
@@ -182,7 +182,7 @@ return classLoader;
 
 <p>代码阅读到这里，我们已经基本清楚了Tomcat中ClassLoader的总体结构，总结如下：
 在Tomcat存在common,cataina,shared三个公共的classloader,默认情况下，这三个classloader其实是同一个，都是common classloader,而针对每个webapp，也就是context（对应代码中的StandardContext类），都有自己的WebappClassLoader来加载每个应用自己的类。上面的描述，我们可以通过下图形象化的描述：
-<img class="center" src="/images/2013/10/30/tomcat-classloader.png"></p>
+{% img center /images/2013/10/30/tomcat-classloader.png %}</p>
 
 <p>清楚了Tomcat总体的ClassLoader结构以后，咋们就来进一步来分析一下WebAppClassLoader的代码，我们知道Java的ClassLoader机制有parent-first的机制，而这种机制是在loadClass方法保证的，一般情况下，我们只需要重写findClass方法就好了，而对于WebAppClassLoader，通过查看源代码，我们发现loadClass和findClass方法都进行了重写，那么我们首先就来看看它的loadClass方法,它的代码如下：
 ```java org.apache.catalina.loader.WebappClassLoader#loadClass
@@ -411,7 +411,7 @@ return clazz;
     <link href="http://imtiger.github.io/blog/2013/10/24/tomcat-request-process/"/>
     <updated>2013-10-24T09:54:00+08:00</updated>
     <id>http://imtiger.github.io/blog/2013/10/24/tomcat-request-process</id>
-    <content type="html"><![CDATA[<p><img class="center" src="/images/2013/10/14/apache_tomcat_bag.jpg">
+    <content type="html"><![CDATA[<p>{% img center /images/2013/10/14/apache_tomcat_bag.jpg%}
 本文是<a href="/blog/2013/10/08/tomcat-source-code-study/">Tomcat源代码阅读系列</a>的第五篇文章，本系列前四篇文章如下：<br/>
 <a href="/blog/2013/10/14/run-tomcat-in-idea-or-eclipse/">在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码（Tomcat源代码阅读系列之一）</a> <br/>
 <a href="/blog/2013/10/16/tomcat-architecture/">Tomcat总体结构                             （Tomcat源代码阅读系列之二）</a><br/>
@@ -1117,7 +1117,7 @@ try {
     <link href="http://imtiger.github.io/blog/2013/10/21/tomcat-shutdown/"/>
     <updated>2013-10-21T14:45:00+08:00</updated>
     <id>http://imtiger.github.io/blog/2013/10/21/tomcat-shutdown</id>
-    <content type="html"><![CDATA[<p><img class="center" src="/images/2013/10/14/apache_tomcat_bag.jpg">
+    <content type="html"><![CDATA[<p>{% img center /images/2013/10/14/apache_tomcat_bag.jpg%}
 本文是<a href="/blog/2013/10/08/tomcat-source-code-study/">Tomcat源代码阅读系列</a>的第四篇文章，在阅读此文之前，建议先读前三篇：<br/>
 <a href="/blog/2013/10/14/run-tomcat-in-idea-or-eclipse/">在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码（Tomcat源代码阅读系列之一）</a> <br/>
 <a href="/blog/2013/10/16/tomcat-architecture/">Tomcat总体结构                             （Tomcat源代码阅读系列之二）</a><br/>
@@ -1448,7 +1448,7 @@ Tomcat启动的时候的主线程会在8005端口（默认配置，可以更改�
     <link href="http://imtiger.github.io/blog/2013/10/17/tomcat-start-process/"/>
     <updated>2013-10-17T11:03:00+08:00</updated>
     <id>http://imtiger.github.io/blog/2013/10/17/tomcat-start-process</id>
-    <content type="html"><![CDATA[<p><img class="center" src="/images/2013/10/14/apache_tomcat_bag.jpg">
+    <content type="html"><![CDATA[<p>{% img center /images/2013/10/14/apache_tomcat_bag.jpg%}
 本文是<a href="/blog/2013/10/08/tomcat-source-code-study/">Tomcat源代码阅读系列</a>的第三篇文章，在阅读此文之前，建议先读前面的两篇：<br/>
 <a href="/blog/2013/10/14/run-tomcat-in-idea-or-eclipse/">在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码（Tomcat源代码阅读系列之一）</a> <br/>
 <a href="/blog/2013/10/16/tomcat-architecture/">Tomcat总体结构                             （Tomcat源代码阅读系列之二）</a></p>
@@ -1462,10 +1462,10 @@ Tomcat启动的时候的主线程会在8005端口（默认配置，可以更改�
 
 <p>在<a href="/blog/2013/10/16/tomcat-architecture/">Tomcat总体结构                             （Tomcat源代码阅读系列之二）</a>中，我们列出了Tomcat中Server,Service,Connector,Engine,Host,Context的继承关系图，你会发现它们都实现了<code>org.apache.catalina.Lifecycle</code>接口，而<code>org.apache.catalina.util.LifecycleBase</code>采用了<code>模板方法模式</code>来对所有支持生命周期管理的组件的生命周期各个阶段进行了总体管理，每个需要生命周期管理的组件只需要继承这个基类，然后覆盖对应的钩子方法即可完成相应的生命周期阶段性的管理工作。
 下面我们首先来看看<code>org.apache.catalina.Lifecycle</code>接口的定义，它的类图如下图所示：
-<img class="center" src="/images/2013/10/17/LifeCycle.png">
+{% img center /images/2013/10/17/LifeCycle.png %}
 从上图我们可以清楚的看到LifeCycle中主要有四个生命周期阶段，它们分别是init(初始化)，start(启动),stop(停止)，destory(销毁)。知道了这四个生命周期阶段以后，咋们就来看看<code>org.apache.catalina.util.LifecycleBase</code>是如何实现<code>模板方法模式</code>的。
 那接下来我们就来看看<code>org.apache.catalina.util.LifecycleBase</code>类的定义，它的类图如下所示：
-<img class="center" src="/images/2013/10/17/LifeCycleBase.png">
+{% img center /images/2013/10/17/LifeCycleBase.png%}
 上图中用红色标注的四个方法就是<code>模板方法模式</code>中的钩子方法，子类可以通过实现钩子方法来纳入到基类已经流程化好的生命周期管理中。<br/>
 上面我们对LifeCycle和LifeCycleBase有了一个总体的认识，接下来，我们通过查看<code>org.apache.catalina.util.LifecycleBase</code>的源代码来具体的分析一下。
 咋们首先来看<code>org.apache.catalina.util.LifecycleBase</code>的init方法的实现。
@@ -1807,7 +1807,7 @@ org.apache.catalina.core.StandardServer#init
 <blockquote><p>因为StandardService，Connector，StandardEngine实现了LifeCycle接口，因此符合我们上文所获的生命周期的管理，最终都是通过他们自己实现的initInternal方法进行初始化</p></blockquote>
 
 <p>读到这里的时候，我想大家应该和我一样，以为StandardEngine#init方法会调用StandardHost#init方法，但是当我们查看StandardEngine#init方法的时候，发现并没有进行StandardHost的初始化，它到底做了什么呢？让我们来具体分析一下,我们首先拿StanderEngine的继承关系图来看下：
-<img class="center" src="/images/2013/10/16/StandardEngine.png">
+{% img center /images/2013/10/16/StandardEngine.png %}
 通过上图以及前面说的LifeCyecle的模板方法模式，我们知道StandardEngine的初始化钩子方法initInternal方法最终调用了ContainerBase的initInternal方法，那我们拿ContainerBase#initInternal方法的代码看看：<br/>
 ```java org.apache.catalina.core.ContainerBase#initInternal
 protected void initInternal() throws LifecycleException {</p>
@@ -1974,8 +1974,8 @@ public void setProtocol(String protocol) {</p>
 <p>```</p>
 
 <p>从setProtocol的代码中，我们可以看出主要逻辑分为了两块，一种情况是使用<a href="http://tomcat.apache.org/tomcat-7.0-doc/apr.html">APR(Apache Portable Runtime)</a>，另外一种是不使用APR的情况。缺省情况下不采用APR库，这样的话，代码会走到标注1的代码分支，这里通过协议的不同，最终初始化了不同的类。如果是http1.1协议就采用<code>org.apache.coyote.http11.Http11Protocol</code>,如果是AJP(Apache Jserv Protocol)协议，就采用<code>org.apache.coyote.ajp.AjpProtocol</code>类，下面我们来看一下Http11Protocol和AjpProtocol的继承关系图如下：
-<img class="center" src="/images/2013/10/17/Http11Protocol.png"><br/>
-<img class="center" src="/images/2013/10/17/AJPProtocol.png">
+{% img center /images/2013/10/17/Http11Protocol.png %}<br/>
+{% img center /images/2013/10/17/AJPProtocol.png %}
 通过上图我们可以看到它们都继承了公共的基类<code>org.apache.coyote.AbstractProtocol</code>,而它们自己的init方法最终其实都是调用了AbstractProtocol的init方法，通过查看AbstractProtocol#init代码，我们可以看到最终是调用了<code>org.apache.tomcat.util.net.AbstractEndpoint#init</code>,而AbstractEndpoint的实例化操作是在实例化AjpProtocol和Http11Protocol的时候在其构造函数中实例化的，而AjpProtocol和Http11Protocol构造函数中，其实都是初始化了<code>org.apache.tomcat.util.net.JIoEndpoint</code>类，只不过根据是http协议还是AJP协议，它们具有不同的连接处理类。其中Http11Protocol的连接处理类为<code>org.apache.coyote.http11.Http11Protocol.Http11ConnectionHandler</code>,而连接处理类为<code>org.apache.coyote.ajp.AjpProtocol.AjpConnectionHandler</code>，因此到这里我们基本清楚了Connector的初始化流程，总结如下：
 ```java Connect init 采用APR的情况
 //1 HTTP/1.1协议连接器
@@ -2009,7 +2009,7 @@ org.apache.catalina.connector.Connector#init
 <blockquote><p>这里需要注意，除了JIoEndpoint外，还有NIoEndpoint，对于Tomcat7.0.24的代码，并没有采用NIOEndPoint，NIOEndpoint采用了NIO的方式进行Socket的处理。</p></blockquote>
 
 <p>最后，咋们再来看看org.apache.tomcat.util.net.JIoEndpoint#init的初始化过程，我们首先来看一下JIoEndpoint的继承关系图如下：
-<img class="center" src="/images/2013/10/17/JIoEndpoint.png">
+{% img center /images/2013/10/17/JIoEndpoint.png %}
 通过上图我们知道JIoEndpoint继承了AbstractEndpoint，而通过查看源码可知，JIoEndpoint没有实现自己的init方法，它默认采用了父类的init方法，那么我们就来看看AbstractEndpoint的init，它的代码如下：
 ```java org.apache.tomcat.util.net.AbstractEndpoint#init
  public final void init() throws Exception {</p>
@@ -2331,7 +2331,7 @@ org.apache.catalina.core.StandardContext    initInternal    StandardContext.java
 ```</p>
 
 <p>通过查看控制台的输出，我们可以看到有一个<code>org.apache.catalina.startup.HostConfig$DeployDirectory</code>类，于是乎找到这个类去看看呗。打开一看它是一个Runable接口的实现类，因此我们推断它也是放到某个线程池中进行异步运行的，最终通过IntellIJ IDEA提供的类调用栈分析工具（ctrl+alt+h）得到DeployDirectory构造器方法的调用栈如下图所示：
-<img class="center" src="/images/2013/10/17/DeployDirectory-call-stack.png">
+{% img center /images/2013/10/17/DeployDirectory-call-stack.png %}
 通过上图我们可以清楚的看到，最终的调用方是<code>org.apache.catalina.startup.HostConfig#lifecycleEvent</code>,到这里我们就知道了Context的启动是通过某个组件的生命周期事件的监听器来启动的，而HostConfig到底是谁的监听器呢？通过名称我们应该可以猜测出它是StandardHost的监听器,那么它到底监听哪个事件呢？我们查看下org.apache.catalina.startup.HostConfig#lifecycleEvent的代码如下：
 ```java org.apache.catalina.startup.HostConfig#lifecycleEvent
 public void lifecycleEvent(LifecycleEvent event) {</p>
@@ -2363,7 +2363,7 @@ public void lifecycleEvent(LifecycleEvent event) {</p>
 ```</p>
 
 <p>通过上面的代码，我们可以看出监听的事件是<code>Lifecycle.START_EVENT</code>,而通过查看<code>org.apache.catalina.LifecycleState</code>的代码<code>STARTING(true,Lifecycle.START_EVENT)</code>就可以得知，此时生命周期状态应该是STARTING,到这里我们应该已经猜到了，HostConfig是在StandardHost#start的时候通过监听器调用，为了验证我们的猜测，我们debug一下代码，我们可以在HostConfig#start方法中打个断点，运行以后得到如下内存结构：
-<img class="center" src="/images/2013/10/17/HostConfig.png">
+{% img center  /images/2013/10/17/HostConfig.png %}
 通过上图也就验证了我们刚才的猜测。</p>
 
 <p>通过上面的分析我们清楚了webapps目录中context的启动，总结如下：</p>
@@ -2484,7 +2484,7 @@ Full thread dump Java HotSpot&trade; 64-Bit Server VM (20.51-b01-457 mixed mode)
     <link href="http://imtiger.github.io/blog/2013/10/16/tomcat-architecture/"/>
     <updated>2013-10-16T14:33:00+08:00</updated>
     <id>http://imtiger.github.io/blog/2013/10/16/tomcat-architecture</id>
-    <content type="html"><![CDATA[<p><img class="center" src="/images/2013/10/14/apache_tomcat_bag.jpg">
+    <content type="html"><![CDATA[<p>{% img center /images/2013/10/14/apache_tomcat_bag.jpg%}
 本文是<a href="/blog/2013/10/08/tomcat-source-code-study/">Tomcat源代码阅读系列</a>的第二篇文章，我们在本系列的第一篇文章：<a href="/blog/2013/10/14/run-tomcat-in-idea-or-eclipse/">在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码</a>一文中介绍了如何在intelliJ IDEA 和 Eclipse中运行Tomcat源代码，本文介绍一下Tomcat的总体结构。</p>
 
 <blockquote><p>本文没有特别指明的地方，源代码都是针对tomcat7.0.42来说。</p></blockquote>
@@ -2496,7 +2496,7 @@ Full thread dump Java HotSpot&trade; 64-Bit Server VM (20.51-b01-457 mixed mode)
 <!-- more -->
 
 
-<p><img class="center" src="/images/2013/10/16/TomcatArchitecture.png">
+<p>{% img center /images/2013/10/16/TomcatArchitecture.png %}
 通过上图我们可以看出Tomcat中主要涉及Server,Service,Engine,Connector,Host,Context组件，之前用过Tomcat的童鞋是不是觉得这些组件的名称有点似曾相识的赶脚，没赶脚？！您再想想。好吧，不用你想了，我来告诉你吧。其实在Tomcat二进制分发包解压后,在conf目录中有一个server.xml文件，你打开它瞄两眼看看，是不是发现server.xml文件中已经包含了上述的几个名称。我拿我本地Tomcat7.0.42分发包中的server.xml来具体分析一下，它的内容如下：
 ```xml conf/server.xml(Tomcat 7.0.42)
 &lt;?xml version=&lsquo;1.0&rsquo; encoding=&lsquo;utf-8&rsquo;?></p>
@@ -2664,12 +2664,12 @@ Full thread dump Java HotSpot&trade; 64-Bit Server VM (20.51-b01-457 mixed mode)
 <h2>Server</h2>
 
 <p>首先闪联登场的是咋们的Server大哥（大家能给点掌声吗？），Server是Tomcat中最顶层的组件，它可以包含多个Service组件。在Tomcat源代码中Server组件对应源码中的<code>org.apache.catalina.core.StandardServer</code>类。StandardServer的继承关系图如下图所示：
-<img class="center" src="/images/2013/10/16/StandardServer.jpg"></p>
+{% img center /images/2013/10/16/StandardServer.jpg %}</p>
 
 <h2>Service</h2>
 
 <p>接下来咋们来看看Service组件，Service组件相当于Connetor和Engine组件的包装器，它将一个或者多个Connector组件和一个Engine建立关联。缺省的的配置文件中，定义一个叫<code>Catalina</code>的服务，并将Http,AJP这两个Connector关联到了一个名为<code>Catalina</code>的Engine.Service组件对应Tomcat源代码中的<code>org.apache.catalina.core.StandardService</code>,StandardService的继承关系图如下图所示：
-<img class="center" src="/images/2013/10/16/StandardService.png"></p>
+{% img center /images/2013/10/16/StandardService.png %}</p>
 
 <h2>Connector</h2>
 
@@ -2685,26 +2685,26 @@ AJP表示<code>Apache Jserv Protocol</code>,此连接器将处理Tomcat和Aapach
 
 
 <p>Connector对应源代码中的<code>org.apache.catalina.connector.Connector</code>,它的继承关系图如下所示：
-<img class="center" src="/images/2013/10/16/Connector.png"></p>
+{% img center /images/2013/10/16/Connector.png %}</p>
 
 <h2>Engine</h2>
 
 <p>Tomcat中有一个容器的概念，而Engine,Host,Context都属于Contanier，我们先来说说最顶层的容器Engine.<br/>
 一个Engine可以包含一个或者多个Host,也就是说我们一个Tomcat的实例可以配置多个虚拟主机。<br/>
 缺省的情况下<code>&lt;Engine name="Catalina" defaultHost="localhost"&gt;</code>定义了一个名称为Cataline的Engine.Engine对应源代码中的<code>org.apache.catalina.core.StandardEngine</code>，它的继承关系图如下图所示：
-<img class="center" src="/images/2013/10/16/StandardEngine.png"></p>
+{% img center /images/2013/10/16/StandardEngine.png %}</p>
 
 <h2>Host</h2>
 
 <p>Host定义了一个虚拟主机，一个虚拟主机可以有多个Context，缺省的配置如下：<br/>
 <code>&lt;Host name="localhost"  appBase="webapps" unpackWARs="true" autoDeploy="true"&gt;….&lt;/Host&gt;</code> 其中<code>appBase</code>为webapps，也就是<code>&lt;CATALINA_HOME&gt;\webapps</code>目录，<code>unpackingWARS</code>属性指定在appBase指定的目录中的war包都自动的解压，缺省配置为true,<code>autoDeploy</code>属性指定是否对加入到appBase目录的war包进行自动的部署，缺省为true.<br/>
 Host对应源代码中的<code>org.apache.catalina.core.StandardHost</code>,它的继承关系图如下所示：
-<img class="center" src="/images/2013/10/16/StandardHost.png"></p>
+{% img center /images/2013/10/16/StandardHost.png %}</p>
 
 <h2>Context</h2>
 
 <p>在Tomcat中，每一个运行的webapp其实最终都是以Context的形成存在，每个Context都有一个根路径和请求URL路径，Context对应源代码中的<code>org.apache.catalina.core.StandardContext</code>,它的继承关系图如下图所示：
-<img class="center" src="/images/2013/10/16/StandardContext.png">
+{% img center /images/2013/10/16/StandardContext.png %}
 在Tomcat中我们通常采用如下的两种方式创建一个Context.下面分别描述一下：</p>
 
 <ol>

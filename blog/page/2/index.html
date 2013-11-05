@@ -340,6 +340,69 @@
   
 
 
+<time datetime="2012-08-29T10:32:00+08:00" data-updated="true" itemprop="datePublished">Aug 29<span>th</span>, 2012</time></div>
+		<div class="tags">
+
+
+	<a class='category' href='/blog/categories/xing-neng-you-hua/'>性能优化</a>, <a class='category' href='/blog/categories/ji-zhu/'>技术</a>
+
+
+</div>
+		
+	</div>
+	<h1 class="title" itemprop="name"><a href="/blog/2012/08/29/qps-pv-rt/" itemprop="url">QPS（req/sec 每秒请求数）、PV 、RT （响应时间） 之间的关系</a></h1>
+	<div class="entry-content" itemprop="articleBody">
+		<p><img class="center" src="/images/2012/08/29/qps-pv-rt.png"></p>
+
+<p>在进行系统性能压测和系统性能优化的时候，会涉及到QPS,PV,RT相关的概念， 本文总结一下QPS,PV,RT之间的关系，放在博客备忘，本文参考了之前在淘宝工作时候的一些资料。</p>
+
+<h3>QPS是什么？</h3>
+
+<p>QPS：单个进程每秒请求服务器的<code>成功次数</code><br/>
+<code>QPS = req/sec = 请求数/秒</code></p>
+
+<h3>QPS如何统计？</h3>
+
+<p>QPS统计方式 [一般使用 http_load 进行统计]  <br/>
+QPS = 总请求数 / ( 进程总数 *   请求时间 )</p>
+
+<h3>根据QPS推算PV：</h3>
+
+<p>单台服务器每天PV计算:<br/>
+公式1：每天总PV = QPS * 3600 * 6<br/>
+公式2：每天总PV = QPS * 3600 * 8</p>
+
+<h3>根据QPS,PV推算服务器数量</h3>
+
+<p>服务器数量 =   每天总PV / 单台服务器每天总PV</p>
+
+<p>峰值QPS和机器计算公式：<br/>
+原理：每天80%的访问集中在20%的时间里，这20%时间叫做峰值时间  <br/>
+峰值时间每秒请求数(QPS)：<code>( 总PV数 * 80% ) / ( 每天秒数 * 20% )</code><br/>
+峰值机器数量：<code>峰值时间QPS / 单台机器的QPS</code></p>
+
+
+		
+		<a href="/blog/2012/08/29/qps-pv-rt/" class="more-link">Read on(阅读全文) &rarr;</a>
+	</div>
+
+</article>
+
+
+    <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
+	<div class="meta">
+		<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
 <time datetime="2012-05-10T09:31:00+08:00" data-updated="true" itemprop="datePublished">May 10<span>th</span>, 2012</time></div>
 		<div class="tags">
 
@@ -497,50 +560,6 @@
 
 		
 		<a href="/blog/2011/03/25/client-design-of-distributed-system/" class="more-link">Read on(阅读全文) &rarr;</a>
-	</div>
-
-</article>
-
-
-    <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
-	<div class="meta">
-		<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2010-07-12T15:52:00+08:00" data-updated="true" itemprop="datePublished">Jul 12<span>th</span>, 2010</time></div>
-		<div class="tags">
-
-
-	<a class='category' href='/blog/categories/ji-zhu/'>技术</a>, <a class='category' href='/blog/categories/xi-tong-jia-gou/'>系统架构</a>
-
-
-</div>
-		
-	</div>
-	<h1 class="title" itemprop="name"><a href="/blog/2010/07/12/scalable-and-high-performance-system/" itemprop="url">构建可伸缩、高性能的互联网应用</a></h1>
-	<div class="entry-content" itemprop="articleBody">
-		<p><img class="center" src="/images/2010/07/12/high-scalability.jpg"></p>
-
-<blockquote><p>本文发布在我原来的博客上面，后来换博客了，重新整理一下，发布在新的博客上。</p></blockquote>
-
-<p>本文结合本人的工作经验分析一下，如何构建一个可伸缩，高性能的互联网应用？下面从几个方面来谈谈个人的一些浅见，供有兴趣的同学参考下，也欢迎大家一起讨论。</p>
-
-<h1>1. 应用无状态</h1>
-
-<p>俗话说，一个系统的伸缩性的好坏取决于应用的状态如何管理。为什么这么说呢？咱们试想一下，假如我们在session中保存了大量与客户端的状态信息的话，那么当保存状态信息的server宕机的时候，我们怎么办？通常来说，我们都是通过集群来解决这个问题，而通常所说的集群，不仅有负载均衡，更重要的是要有失效恢复failover,比如tomcat采用的集群节点广播复制，jboss采用的配对复制等session状态复制策略，但是集群中的状态恢复也有其缺点，那就是严重影响了系统的伸缩性，系统不能通过增加更多的机器来达到良好的水平伸缩，因为集群节点间session的通信会随着节点的增多而开销增大，因此要想做到应用本身的伸缩性，我们需要保证应用的无状态性，这样集群中的各个节点来说都是相同的，从而是的系统更好的水平伸缩。</p>
-
-
-		
-		<a href="/blog/2010/07/12/scalable-and-high-performance-system/" class="more-link">Read on(阅读全文) &rarr;</a>
 	</div>
 
 </article>

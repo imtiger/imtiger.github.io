@@ -92,6 +92,7 @@
 			
 			<div class="mid-col-container">
 				<div id="content" class="inner"><article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+
 	<h1 class="title" itemprop="name">Tomcat启动过程（Tomcat源代码阅读系列之三）</h1>
 	<div class="entry-content" itemprop="articleBody"><p><img class="center" src="/images/2013/10/14/apache_tomcat_bag.jpg">
 本文是<a href="/blog/2013/10/08/tomcat-source-code-study/">Tomcat源代码阅读系列</a>的第三篇文章，在阅读此文之前，建议先读前面的两篇：<br/>
@@ -1821,6 +1822,8 @@
 <p>上面的截图我已经取消了JVM自己本生的线程，从上图中我们可以清楚的看到，有6条线程，其中<code>ajp-bio-8009-AsyncTimeout</code>和<code>ajp-bio-8009-Acceptor-0</code>是在Ajp的Connector启动的时候启动的，<code>http-bio-8080-AsyncTimeout</code>和<code>http-bio-8080-Acceptor-0</code>是http的Connector启动的时候启动的，<code>ContainerBackgroundProcessor[StandardEngine[Catalina]]</code>是在StandardEngine启动的时候启动的，而main线程就是我们的主线程。这里还需要注意一点就是除了Main线程以外，其它的线程都是Dameon线程，相关的内容在下篇<a href="">Tomcat的关闭</a>我们再来详细说明。</p>
 </div>
 
+
+<p align="right"><span style="border-top:1px dashed #666">Posted on: 2013/10/17</span></p>
 </article>
 
 
@@ -1872,6 +1875,7 @@ var jiathis_config = {data_track_clickback:'true'};
 	</div>
   <!-- <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid="></script> -->
 </div>
+
 
 
 </div>

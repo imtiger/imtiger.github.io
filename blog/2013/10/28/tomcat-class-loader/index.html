@@ -91,6 +91,7 @@
 			
 			<div class="mid-col-container">
 				<div id="content" class="inner"><article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+
 	<h1 class="title" itemprop="name">Tomcat类加载器机制（Tomcat源代码阅读系列之六）</h1>
 	<div class="entry-content" itemprop="articleBody"><p><img class="center" src="/images/2013/10/14/apache_tomcat_bag.jpg">
 本文是<a href="/blog/2013/10/08/tomcat-source-code-study/">Tomcat源代码阅读系列</a>的第六篇文章，本系列前五篇文章如下：  <br/>
@@ -765,6 +766,8 @@
 <p>上面的代码标注1（第19行）的地方通过名称去当前webappClassLoader的仓库中查找对应的类文件，标注2(第38行)的代码，将找到的类文件通过defineClass转变为Jvm可以识别的Class对象返回。</p>
 </div>
 
+
+<p align="right"><span style="border-top:1px dashed #666">Posted on: 2013/10/28</span></p>
 </article>
 
 
@@ -816,6 +819,7 @@ var jiathis_config = {data_track_clickback:'true'};
 	</div>
   <!-- <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid="></script> -->
 </div>
+
 
 
 </div>

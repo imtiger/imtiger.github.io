@@ -92,6 +92,7 @@
 			
 			<div class="mid-col-container">
 				<div id="content" class="inner"><article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+
 	<h1 class="title" itemprop="name">Tomcat关闭过程（Tomcat源代码阅读系列之四）</h1>
 	<div class="entry-content" itemprop="articleBody"><p><img class="center" src="/images/2013/10/14/apache_tomcat_bag.jpg">
 本文是<a href="/blog/2013/10/08/tomcat-source-code-study/">Tomcat源代码阅读系列</a>的第四篇文章，在阅读此文之前，建议先读前三篇：<br/>
@@ -661,6 +662,8 @@
 Tomcat启动的时候的主线程会在8005端口（默认配置，可以更改）上建立socket监听，当关闭的时候，最终其实就是新起了一个进程然后向Tomcat主线程监听的8005端口发送了一个SHUTDOWN字符串，这样主线程就会结束了，主线程结束了以后，因为其它的线程都是dameon线程，这样依赖Jvm就会退出了。</p>
 </div>
 
+
+<p align="right"><span style="border-top:1px dashed #666">Posted on: 2013/10/21</span></p>
 </article>
 
 
@@ -712,6 +715,7 @@ var jiathis_config = {data_track_clickback:'true'};
 	</div>
   <!-- <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid="></script> -->
 </div>
+
 
 
 </div>
