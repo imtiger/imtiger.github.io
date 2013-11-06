@@ -24,5 +24,5 @@ categories:
 [Tomcat关闭过程（Tomcat源代码阅读系列之四）](/blog/2013/10/21/tomcat-shutdown/)   
 [Tomcat请求处理流程（Tomcat源代码阅读系列之五）](/blog/2013/10/24/tomcat-request-process/)   
 [Tomcat类加载器机制（Tomcat源代码阅读系列之六）](/blog/2013/10/28/tomcat-class-loader/)   
-[Tomcat Session管理机制](#)(未完成)    
+[Tomcat Session管理机制](/blog/2013/11/05/tomcat-session-manage/)   
 [Tomcat 涉及的设计模式总结](#) (未完成)   
