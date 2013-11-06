@@ -411,7 +411,7 @@ public SocketState process(SocketWrapper<S> socketWrapper)
 }
 
 ```
-上面的代码有点长，但是经过分析，我们还是可以看出起主干，我已经在代码中将主流程通过数字标注了，我们就来一一看看标注了数字的地方：
+上面的代码有点长，但是经过分析，我们还是可以看清楚主干，我已经在代码中将主流程通过数字标注了，我们就来一一看看标注了数字的地方：
 
 1.	标注1的地方（第7行）将Socket的输入流和输出流通过InternalInputBuffer进行了包装，InternalInputBuffer是在Http11Processor的构造函数中初始化的。
 2.	标注2的地方（第35行）调用了InternalInputBuffer的parseRequesLine方法解析http请求的请求行。(关于http请求行和请求头请看下文解释)

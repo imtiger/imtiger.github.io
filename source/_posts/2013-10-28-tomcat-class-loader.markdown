@@ -367,4 +367,4 @@ protected Class<?> findClassInternal(String name)
 
 }
 ```
-上面的代码标注1（第19行）的地方通过名称去当前webappClassLoader的仓库中查找对应的类文件，标注2的代码，将找到的类文件通过defineClass转变为Jvm可以识别的Class对象返回。
+上面的代码标注1（第19行）的地方通过名称去当前webappClassLoader的仓库中查找对应的类文件，标注2(第38行)的代码，将找到的类文件通过defineClass转变为Jvm可以识别的Class对象返回。
