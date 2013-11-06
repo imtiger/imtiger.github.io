@@ -9,7 +9,7 @@
 	<meta name="author" content="imtiger">
 
 	
-	<meta name="description" content="Oct 28th, 2013 Java, Tomcat, 技术 Tomcat类加载器机制（Tomcat源代码阅读系列之六） 本文是Tomcat源代码阅读系列的第六篇文章，本系列前五篇文章如下： 在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码（ &hellip;">
+	<meta name="description" content="Nov 5th, 2013 Java, Tomcat, 技术 Tomcat Session管理机制（Tomcat源代码阅读系列之七） 本文是Tomcat源代码阅读系列的第七篇文章，本系列前六篇文章如下： 在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码（ &hellip;">
 	<meta name="keywords" content="java,ios,mac,linux,objective-c,软件设计,软件架构,摄影,imtiger.">
 
   <!-- http://t.co/dKP3o1e -->
@@ -92,6 +92,51 @@
 			<div class="mid-col-container">
 				<div id="content" class="inner">
 <div itemscope itemtype="http://schema.org/Blog">
+
+
+    <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
+	<div class="meta">
+		<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-11-05T15:39:00+08:00" data-updated="true" itemprop="datePublished">Nov 5<span>th</span>, 2013</time></div>
+		<div class="tags">
+
+
+	<a class='category' href='/blog/categories/java/'>Java</a>, <a class='category' href='/blog/categories/tomcat/'>Tomcat</a>, <a class='category' href='/blog/categories/ji-zhu/'>技术</a>
+
+
+</div>
+		
+	</div>
+	<h1 class="title" itemprop="name"><a href="/blog/2013/11/05/tomcat-session-manage/" itemprop="url">Tomcat Session管理机制（Tomcat源代码阅读系列之七）</a></h1>
+	<div class="entry-content" itemprop="articleBody">
+		<p><img class="center" src="/images/2013/10/14/apache_tomcat_bag.jpg">
+本文是<a href="/blog/2013/10/08/tomcat-source-code-study/">Tomcat源代码阅读系列</a>的第七篇文章，本系列前六篇文章如下：  <br/>
+<a href="/blog/2013/10/14/run-tomcat-in-idea-or-eclipse/">在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码（Tomcat源代码阅读系列之一）</a>   <br/>
+<a href="/blog/2013/10/16/tomcat-architecture/">Tomcat总体结构                             （Tomcat源代码阅读系列之二）</a>  <br/>
+<a href="/blog/2013/10/17/tomcat-start-process/">Tomcat启动过程（Tomcat源代码阅读系列之三）</a> <br/>
+<a href="/blog/2013/10/21/tomcat-shutdown/">Tomcat关闭过程（Tomcat源代码阅读系列之四）</a><br/>
+<a href="/blog/2013/10/24/tomcat-request-process/">Tomcat请求处理流程（Tomcat源代码阅读系列之五）</a><br/>
+<a href="/blog/2013/10/28/tomcat-class-loader/">Tomcat类加载器机制（Tomcat源代码阅读系列之六）</a></p>
+
+<p>前面几篇我们分析了Tomcat的启动，关闭，请求处理的流程，tomcat的classloader机制，本篇将接着分析Tomcat的session管理方面的内容。</p>
+
+
+		
+		<a href="/blog/2013/11/05/tomcat-session-manage/" class="more-link">Read on(阅读全文) &rarr;</a>
+	</div>
+
+</article>
 
 
     <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
@@ -473,52 +518,11 @@
 月薪:    15k-20k</p>
 
 <p>公司介绍: <br/>
-我们公司<a href="http://www.ejushang.com">易居尚</a>秉承着<code>让品质走进生活的理念</code>，致力于打造一个品质、高效、便捷的居家用品网络销售平台.咋们公司不打卡，弹性工作制，每天下午有公司大厨做的下午茶，攻城狮童鞋每周可以自由支配20%的工作时间做自己想做的事情，我们技术团队内部有很强互助和知识分享意识（包括技术骚们喜欢的爱情动作片，嘘&hellip;，其他人我不告诉他）当然了还有很多美女和帅哥，想置身互联网和电子商务有理想的的技术骚们，请你加入我们 一起high，<strong>我们不求改变世界，但求超越自我</strong>。也请各位朋友帮忙推荐，推荐成功有神秘礼物相送哦，有意者请联系:<a href="&#x6d;&#x61;&#x69;&#x6c;&#116;&#x6f;&#x3a;&#x74;&#x69;&#x67;&#x65;&#114;&#x2e;&#x7a;&#x68;&#x6f;&#117;&#x40;&#x6b;&#x61;&#x72;&#x69;&#113;&#x75;&#46;&#99;&#x6f;&#x6d;">&#116;&#105;&#x67;&#x65;&#x72;&#46;&#122;&#x68;&#x6f;&#x75;&#64;&#107;&#97;&#x72;&#105;&#x71;&#117;&#x2e;&#99;&#x6f;&#109;</a> 或者留言给我，另外也可以通过<a href="http://weibo.com/xmuzyq">@krq_tiger</a>新浪微博与我取的联系.</p>
+我们公司<a href="http://www.ejushang.com">易居尚</a>秉承着<code>让品质走进生活的理念</code>，致力于打造一个品质、高效、便捷的居家用品网络销售平台.咋们公司不打卡，弹性工作制，每天下午有公司大厨做的下午茶，攻城狮童鞋每周可以自由支配20%的工作时间做自己想做的事情，我们技术团队内部有很强互助和知识分享意识（包括技术骚们喜欢的爱情动作片，嘘&hellip;，其他人我不告诉他）当然了还有很多美女和帅哥，想置身互联网和电子商务有理想的的技术骚们，请你加入我们 一起high，<strong>我们不求改变世界，但求超越自我</strong>。也请各位朋友帮忙推荐，推荐成功有神秘礼物相送哦，有意者请联系:<a href="&#x6d;&#97;&#105;&#108;&#116;&#x6f;&#x3a;&#x74;&#x69;&#x67;&#x65;&#x72;&#46;&#122;&#x68;&#x6f;&#117;&#64;&#x6b;&#97;&#114;&#105;&#113;&#x75;&#x2e;&#99;&#111;&#x6d;">&#x74;&#x69;&#x67;&#101;&#x72;&#x2e;&#x7a;&#x68;&#x6f;&#117;&#64;&#107;&#97;&#x72;&#105;&#113;&#x75;&#x2e;&#99;&#x6f;&#x6d;</a> 或者留言给我，另外也可以通过<a href="http://weibo.com/xmuzyq">@krq_tiger</a>新浪微博与我取的联系.</p>
 
 
 		
 		<a href="/blog/2013/09/27/java-engineer-recruitment/" class="more-link">Read on(阅读全文) &rarr;</a>
-	</div>
-
-</article>
-
-
-    <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
-	<div class="meta">
-		<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-09-26T22:39:00+08:00" data-updated="true" itemprop="datePublished">Sep 26<span>th</span>, 2013</time></div>
-		<div class="tags">
-
-
-	<a class='category' href='/blog/categories/linux/'>linux</a>, <a class='category' href='/blog/categories/ji-zhu/'>技术</a>
-
-
-</div>
-		
-	</div>
-	<h1 class="title" itemprop="name"><a href="/blog/2013/09/26/find-files-with-a-keyword-in-a-dir/" itemprop="url">Unix Like系统中，查找某个目录下包含特定关键字的文件</a></h1>
-	<div class="entry-content" itemprop="articleBody">
-		<p><img class="center" src="/images/2013/09/27/2013-09-27-02.jpg"></p>
-
-<p>作为一枚程序猿，咋们经常在工作当中会遇到一种场景：   <br/>
-<strong>查找某个目录中包含某个关键字的文件</strong>，那么我们如何来实现这个需求呢？我个人的习惯是如果某个任务经常要执行，那么我会习惯性的写一个脚本，建立一个alias，然后每次需要的时候，直接调用脚本来完成任务，这才是咋们程序猿应该有的工作态度嘛。</p>
-
-<p>好了，废话不多了，咋们直接show code啦。</p>
-
-
-		
-		<a href="/blog/2013/09/26/find-files-with-a-keyword-in-a-dir/" class="more-link">Read on(阅读全文) &rarr;</a>
 	</div>
 
 </article>

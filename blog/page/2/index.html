@@ -9,7 +9,7 @@
 	<meta name="author" content="imtiger">
 
 	
-	<meta name="description" content="Sep 3rd, 2013 iOS, 技术 &#8216;美剧英语每日一句&#8217; iOS App（已开源） 学习ios开发，自己做了个学习英语的iOS app，app里面的英文资料全部来自微信公共账号&#8221;美剧英语每日一句(id:followmeapp)&ldquo;， &hellip;">
+	<meta name="description" content="Sep 26th, 2013 linux, 技术 Unix Like系统中，查找某个目录下包含特定关键字的文件 作为一枚程序猿，咋们经常在工作当中会遇到一种场景： 查找某个目录中包含某个关键字的文件，那么我们如何来实现这个需求呢？我个人的习惯是如果某个任务经常要执行，那么我会习惯性的写一个脚本， &hellip;">
 	<meta name="keywords" content="java,ios,mac,linux,objective-c,软件设计,软件架构,摄影,imtiger.">
 
   <!-- http://t.co/dKP3o1e -->
@@ -92,6 +92,47 @@
 			<div class="mid-col-container">
 				<div id="content" class="inner">
 <div itemscope itemtype="http://schema.org/Blog">
+
+
+    <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
+	<div class="meta">
+		<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-09-26T22:39:00+08:00" data-updated="true" itemprop="datePublished">Sep 26<span>th</span>, 2013</time></div>
+		<div class="tags">
+
+
+	<a class='category' href='/blog/categories/linux/'>linux</a>, <a class='category' href='/blog/categories/ji-zhu/'>技术</a>
+
+
+</div>
+		
+	</div>
+	<h1 class="title" itemprop="name"><a href="/blog/2013/09/26/find-files-with-a-keyword-in-a-dir/" itemprop="url">Unix Like系统中，查找某个目录下包含特定关键字的文件</a></h1>
+	<div class="entry-content" itemprop="articleBody">
+		<p><img class="center" src="/images/2013/09/27/2013-09-27-02.jpg"></p>
+
+<p>作为一枚程序猿，咋们经常在工作当中会遇到一种场景：   <br/>
+<strong>查找某个目录中包含某个关键字的文件</strong>，那么我们如何来实现这个需求呢？我个人的习惯是如果某个任务经常要执行，那么我会习惯性的写一个脚本，建立一个alias，然后每次需要的时候，直接调用脚本来完成任务，这才是咋们程序猿应该有的工作态度嘛。</p>
+
+<p>好了，废话不多了，咋们直接show code啦。</p>
+
+
+		
+		<a href="/blog/2013/09/26/find-files-with-a-keyword-in-a-dir/" class="more-link">Read on(阅读全文) &rarr;</a>
+	</div>
+
+</article>
 
 
     <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
@@ -518,48 +559,6 @@ QPS = 总请求数 / ( 进程总数 *   请求时间 )</p>
 
 		
 		<a href="/blog/2011/07/07/optimize-your-site-using-http-caching/" class="more-link">Read on(阅读全文) &rarr;</a>
-	</div>
-
-</article>
-
-
-    <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
-	<div class="meta">
-		<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2011-03-25T18:16:00+08:00" data-updated="true" itemprop="datePublished">Mar 25<span>th</span>, 2011</time></div>
-		<div class="tags">
-
-
-	<a class='category' href='/blog/categories/java/'>Java</a>, <a class='category' href='/blog/categories/ji-zhu/'>技术</a>
-
-
-</div>
-		
-	</div>
-	<h1 class="title" itemprop="name"><a href="/blog/2011/03/25/client-design-of-distributed-system/" itemprop="url">分布式应用中客户端的设计</a></h1>
-	<div class="entry-content" itemprop="articleBody">
-		<p>一个分布式的系统一般都会有很多的节点，节点和节点之间的通讯采用远程调用的方式，而当在实现业务逻辑的时候，我们可以通过客户端的实现方式实现，目前实现客户端的方式有两种方式，瘦客户端和富客户端。</p>
-
-<h1>瘦客户端</h1>
-
-<p>所谓瘦客户端类似于之前EJB那种方式，瘦客户端本身不具有业务逻辑，瘦客户端通过业务接口调用服务端逻辑，这个时候逻辑运算还是跑那个被多个系统共用的服务器，这样当存在大量的请求的情况下，负责逻辑运算的服务器就会成为瓶颈，这个时候通过水平伸缩负责逻辑运算的服务器，这个时候涉及到客户端请求的负载均衡，每次将远程调用采用负载均衡算法将其分配到逻辑端服务器，采用这种方式以后，可能就需要远程调用框架内部支持一些比如流量控制，负载均衡等的机制，这样使得调用方本身不需要关心服务器端的物理部署。</p>
-
-<p>当然了，我们也可以通过富客户端的方式来实现，下面我们就来介绍一下富客户端的设计。</p>
-
-
-		
-		<a href="/blog/2011/03/25/client-design-of-distributed-system/" class="more-link">Read on(阅读全文) &rarr;</a>
 	</div>
 
 </article>

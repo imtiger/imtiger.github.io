@@ -4,7 +4,7 @@
   <title><![CDATA[I'm Tiger,一个有理想爱折腾的程序员!]]></title>
   <link href="http://imtiger.github.io/atom.xml" rel="self"/>
   <link href="http://imtiger.github.io/"/>
-  <updated>2013-11-05T11:55:35+08:00</updated>
+  <updated>2013-11-06T18:36:53+08:00</updated>
   <id>http://imtiger.github.io/</id>
   <author>
     <name><![CDATA[imtiger]]></name>
@@ -12,6 +12,665 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Tomcat Session管理机制（Tomcat源代码阅读系列之七）]]></title>
+    <link href="http://imtiger.github.io/blog/2013/11/05/tomcat-session-manage/"/>
+    <updated>2013-11-05T15:39:00+08:00</updated>
+    <id>http://imtiger.github.io/blog/2013/11/05/tomcat-session-manage</id>
+    <content type="html"><![CDATA[<p><img class="center" src="http://imtiger.github.io/images/2013/10/14/apache_tomcat_bag.jpg">
+本文是<a href="http://imtiger.github.io/blog/2013/10/08/tomcat-source-code-study/">Tomcat源代码阅读系列</a>的第七篇文章，本系列前六篇文章如下：  <br/>
+<a href="http://imtiger.github.io/blog/2013/10/14/run-tomcat-in-idea-or-eclipse/">在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码（Tomcat源代码阅读系列之一）</a>   <br/>
+<a href="http://imtiger.github.io/blog/2013/10/16/tomcat-architecture/">Tomcat总体结构                             （Tomcat源代码阅读系列之二）</a>  <br/>
+<a href="http://imtiger.github.io/blog/2013/10/17/tomcat-start-process/">Tomcat启动过程（Tomcat源代码阅读系列之三）</a> <br/>
+<a href="http://imtiger.github.io/blog/2013/10/21/tomcat-shutdown/">Tomcat关闭过程（Tomcat源代码阅读系列之四）</a><br/>
+<a href="http://imtiger.github.io/blog/2013/10/24/tomcat-request-process/">Tomcat请求处理流程（Tomcat源代码阅读系列之五）</a><br/>
+<a href="http://imtiger.github.io/blog/2013/10/28/tomcat-class-loader/">Tomcat类加载器机制（Tomcat源代码阅读系列之六）</a></p>
+
+<p>前面几篇我们分析了Tomcat的启动，关闭，请求处理的流程，tomcat的classloader机制，本篇将接着分析Tomcat的session管理方面的内容。</p>
+
+<!-- more -->
+
+
+<p>在开始之前，我们先来看一下总体上的结构，熟悉了总体结构以后，我们在一步步的去分析源代码。Tomcat session相光的类图如下：
+<img class="center" src="http://imtiger.github.io/images/2013/11/06/tomcat-session.jpg">
+通过上图，我们可以看出每一个StandardContext会关联一个Manager,默认情况下Manager的实现类是StandardManager，而StandardManager内部会聚合多个Session，其中StandardSession是Session的默认实现类，当我们调用Request.getSession的时候，Tomcat通过StandardSessionFacade这个外观类将StandardSession包装以后返回。</p>
+
+<p>上面清楚了总体的结构以后，我们来进一步的通过源代码来分析一下。咋们首先从Request的getSession方法看起。</p>
+
+<figure class='code'><figcaption><span>org.apache.catalina.connector.Request#getSession</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="n">HttpSession</span> <span class="nf">getSession</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>    <span class="n">Session</span> <span class="n">session</span> <span class="o">=</span> <span class="n">doGetSession</span><span class="o">(</span><span class="kc">true</span><span class="o">);</span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">session</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">return</span> <span class="n">session</span><span class="o">.</span><span class="na">getSession</span><span class="o">();</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>从上面的代码，我们可以看出首先首先调用doGetSession方法获取Session，然后再调用Session的getSession方法返回HttpSession，那接下来我们再来看看doGetSession方法：</p>
+
+<figure class='code'><figcaption><span>org.apache.catalina.connector.Request#doGetSession</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+<span class='line-number'>68</span>
+<span class='line-number'>69</span>
+<span class='line-number'>70</span>
+<span class='line-number'>71</span>
+<span class='line-number'>72</span>
+<span class='line-number'>73</span>
+<span class='line-number'>74</span>
+<span class='line-number'>75</span>
+<span class='line-number'>76</span>
+<span class='line-number'>77</span>
+<span class='line-number'>78</span>
+<span class='line-number'>79</span>
+<span class='line-number'>80</span>
+<span class='line-number'>81</span>
+<span class='line-number'>82</span>
+<span class='line-number'>83</span>
+<span class='line-number'>84</span>
+<span class='line-number'>85</span>
+<span class='line-number'>86</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">protected</span> <span class="n">Session</span> <span class="nf">doGetSession</span><span class="o">(</span><span class="kt">boolean</span> <span class="n">create</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// There cannot be a session if no context has been assigned yet</span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">context</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="o">(</span><span class="kc">null</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// Return the current session if it exists and is valid</span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">((</span><span class="n">session</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">session</span><span class="o">.</span><span class="na">isValid</span><span class="o">())</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">session</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">session</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="o">(</span><span class="n">session</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// Return the requested session if it exists and is valid</span>
+</span><span class='line'>    <span class="c1">// 1 </span>
+</span><span class='line'>    <span class="n">Manager</span> <span class="n">manager</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">context</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">manager</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="na">getManager</span><span class="o">();</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">manager</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span>
+</span><span class='line'>     <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="o">(</span><span class="kc">null</span><span class="o">);</span>      <span class="c1">// Sessions are not supported</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>    <span class="c1">// 2</span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">requestedSessionId</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">session</span> <span class="o">=</span> <span class="n">manager</span><span class="o">.</span><span class="na">findSession</span><span class="o">(</span><span class="n">requestedSessionId</span><span class="o">);</span>
+</span><span class='line'>        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">IOException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">session</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">((</span><span class="n">session</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">session</span><span class="o">.</span><span class="na">isValid</span><span class="o">())</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">session</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">session</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">session</span><span class="o">.</span><span class="na">access</span><span class="o">();</span>
+</span><span class='line'>            <span class="k">return</span> <span class="o">(</span><span class="n">session</span><span class="o">);</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// Create a new session if requested and the response is not committed</span>
+</span><span class='line'>    <span class="c1">// 3</span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(!</span><span class="n">create</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="o">(</span><span class="kc">null</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">((</span><span class="n">context</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">&amp;&amp;</span> <span class="o">(</span><span class="n">response</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">&amp;&amp;</span>
+</span><span class='line'>        <span class="n">context</span><span class="o">.</span><span class="na">getServletContext</span><span class="o">().</span><span class="na">getEffectiveSessionTrackingModes</span><span class="o">().</span>
+</span><span class='line'>                <span class="n">contains</span><span class="o">(</span><span class="n">SessionTrackingMode</span><span class="o">.</span><span class="na">COOKIE</span><span class="o">)</span> <span class="o">&amp;&amp;</span>
+</span><span class='line'>        <span class="n">response</span><span class="o">.</span><span class="na">getResponse</span><span class="o">().</span><span class="na">isCommitted</span><span class="o">())</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">throw</span> <span class="k">new</span> <span class="nf">IllegalStateException</span>
+</span><span class='line'>          <span class="o">(</span><span class="n">sm</span><span class="o">.</span><span class="na">getString</span><span class="o">(</span><span class="s">&quot;coyoteRequest.sessionCreateCommitted&quot;</span><span class="o">));</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// Attempt to reuse session id if one was submitted in a cookie</span>
+</span><span class='line'>    <span class="c1">// Do not reuse the session id if it is from a URL, to prevent possible</span>
+</span><span class='line'>    <span class="c1">// phishing attacks</span>
+</span><span class='line'>    <span class="c1">// Use the SSL session ID if one is present.</span>
+</span><span class='line'>    <span class="c1">// 4</span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">((</span><span class="s">&quot;/&quot;</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">context</span><span class="o">.</span><span class="na">getSessionCookiePath</span><span class="o">())</span>
+</span><span class='line'>            <span class="o">&amp;&amp;</span> <span class="n">isRequestedSessionIdFromCookie</span><span class="o">())</span> <span class="o">||</span> <span class="n">requestedSessionSSL</span> <span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">session</span> <span class="o">=</span> <span class="n">manager</span><span class="o">.</span><span class="na">createSession</span><span class="o">(</span><span class="n">getRequestedSessionId</span><span class="o">());</span>
+</span><span class='line'>    <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">session</span> <span class="o">=</span> <span class="n">manager</span><span class="o">.</span><span class="na">createSession</span><span class="o">(</span><span class="kc">null</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// Creating a new session cookie based on that session</span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">((</span><span class="n">session</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">&amp;&amp;</span> <span class="o">(</span><span class="n">getContext</span><span class="o">()</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span>
+</span><span class='line'>           <span class="o">&amp;&amp;</span> <span class="n">getContext</span><span class="o">().</span><span class="na">getServletContext</span><span class="o">().</span>
+</span><span class='line'>                   <span class="n">getEffectiveSessionTrackingModes</span><span class="o">().</span><span class="na">contains</span><span class="o">(</span>
+</span><span class='line'>                           <span class="n">SessionTrackingMode</span><span class="o">.</span><span class="na">COOKIE</span><span class="o">))</span> <span class="o">{</span>
+</span><span class='line'>        <span class="c1">// 5 </span>
+</span><span class='line'>        <span class="n">Cookie</span> <span class="n">cookie</span> <span class="o">=</span>
+</span><span class='line'>            <span class="n">ApplicationSessionCookieConfig</span><span class="o">.</span><span class="na">createSessionCookie</span><span class="o">(</span>
+</span><span class='line'>                    <span class="n">context</span><span class="o">,</span> <span class="n">session</span><span class="o">.</span><span class="na">getIdInternal</span><span class="o">(),</span> <span class="n">isSecure</span><span class="o">());</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">response</span><span class="o">.</span><span class="na">addSessionCookieInternal</span><span class="o">(</span><span class="n">cookie</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">session</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">session</span><span class="o">.</span><span class="na">access</span><span class="o">();</span>
+</span><span class='line'>    <span class="k">return</span> <span class="n">session</span><span class="o">;</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>下面我们就来重点分析一下，上面代码中标注了数字的地方：</p>
+
+<ol>
+<li>标注1（第17行）首先从StandardContext中获取对应的Manager对象，缺省情况下，这个地方获取的其实就是StandardManager的实例。</li>
+<li>标注2（第26行）从Manager中根据requestedSessionId获取session，如果session已经失效了，则将session置为null以便下面创建新的session,如果session不为空则通过调用session的access方法标注session的访问时间，然后返回。</li>
+<li>标注3（第43行）判断传递的参数，如果为false，则直接返回空，这其实就是对应的Request.getSession(true/false)的情况，当传递false的时候，如果不存在session，则直接返回空，不会新建。</li>
+<li>标注4 （第59行）调用Manager来创建一个新的session，这里默认会调用到StandardManager的方法，而StandardManager继承了ManagerBase，那么默认其实是调用了了ManagerBase的方法。</li>
+<li>标注5 (第72行)创建了一个Cookie，而Cookie的名称就是大家熟悉的JSESSIONID，另外JSESSIONID其实也是可以配置的，这个可以通过context节点的sessionCookieName来修改。比如<Context sessionCookieName="yoursessionId">&hellip;</Context>.</li>
+</ol>
+
+
+<p>通过doGetSession获取到Session了以后，我们发现调用了session.getSession方法，而Session的实现类是StandardSession，那么我们再来看下StandardSession的getSession方法。</p>
+
+<figure class='code'><figcaption><span>org.apache.catalina.session.StandardSession#getSession</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="n">HttpSession</span> <span class="nf">getSession</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">facade</span> <span class="o">==</span> <span class="kc">null</span><span class="o">){</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">SecurityUtil</span><span class="o">.</span><span class="na">isPackageProtectionEnabled</span><span class="o">()){</span>
+</span><span class='line'>            <span class="kd">final</span> <span class="n">StandardSession</span> <span class="n">fsession</span> <span class="o">=</span> <span class="k">this</span><span class="o">;</span>
+</span><span class='line'>            <span class="n">facade</span> <span class="o">=</span> <span class="n">AccessController</span><span class="o">.</span><span class="na">doPrivileged</span><span class="o">(</span>
+</span><span class='line'>                    <span class="k">new</span> <span class="n">PrivilegedAction</span><span class="o">&lt;</span><span class="n">StandardSessionFacade</span><span class="o">&gt;(){</span>
+</span><span class='line'>                <span class="nd">@Override</span>
+</span><span class='line'>                <span class="kd">public</span> <span class="n">StandardSessionFacade</span> <span class="nf">run</span><span class="o">(){</span>
+</span><span class='line'>                    <span class="k">return</span> <span class="k">new</span> <span class="nf">StandardSessionFacade</span><span class="o">(</span><span class="n">fsession</span><span class="o">);</span>
+</span><span class='line'>                <span class="o">}</span>
+</span><span class='line'>            <span class="o">});</span>
+</span><span class='line'>        <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">facade</span> <span class="o">=</span> <span class="k">new</span> <span class="n">StandardSessionFacade</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>    <span class="k">return</span> <span class="o">(</span><span class="n">facade</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>通过上面的代码，我们可以看到通过StandardSessionFacade的包装类将StandardSession包装以后返回。到这里我想大家应该熟悉了Session创建的整个流程。</p>
+
+<p>接着我们再来看看，Sesssion是如何被销毁的。我们在<a href="http://imtiger.github.io/blog/2013/10/17/tomcat-start-process/">Tomcat启动过程（Tomcat源代码阅读系列之三）</a>中之处，在容器启动以后会启动一个ContainerBackgroundProcessor线程，这个线程是在Container启动的时候启动的，这条线程就通过后台周期性的调用org.apache.catalina.core.ContainerBase#backgroundProcess，而backgroundProcess方法最终又会调用org.apache.catalina.session.ManagerBase#backgroundProcess，接下来我们就来看看Manger的backgroundProcess方法。</p>
+
+<figure class='code'><figcaption><span>org.apache.catalina.session.ManagerBase#backgroundProcess </span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kt">void</span> <span class="nf">backgroundProcess</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>    <span class="n">count</span> <span class="o">=</span> <span class="o">(</span><span class="n">count</span> <span class="o">+</span> <span class="mi">1</span><span class="o">)</span> <span class="o">%</span> <span class="n">processExpiresFrequency</span><span class="o">;</span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">count</span> <span class="o">==</span> <span class="mi">0</span><span class="o">)</span>
+</span><span class='line'>        <span class="n">processExpires</span><span class="o">();</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>上面的代码里，需要注意一下，默认情况下backgroundProcess是每10秒运行一次（StandardEngine构造的时候，将backgroundProcessorDelay设置为了10），而这里我们通过processExpiresFrequency来控制频率，例如processExpiresFrequency的值默认为6，那么相当于没一分钟运行一次processExpires方法。接下来我们再来看看processExpires。</p>
+
+<figure class='code'><figcaption><span>org.apache.catalina.session.ManagerBase#processExpires</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kt">void</span> <span class="nf">processExpires</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kt">long</span> <span class="n">timeNow</span> <span class="o">=</span> <span class="n">System</span><span class="o">.</span><span class="na">currentTimeMillis</span><span class="o">();</span>
+</span><span class='line'>    <span class="n">Session</span> <span class="n">sessions</span><span class="o">[]</span> <span class="o">=</span> <span class="n">findSessions</span><span class="o">();</span>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">expireHere</span> <span class="o">=</span> <span class="mi">0</span> <span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">if</span><span class="o">(</span><span class="n">log</span><span class="o">.</span><span class="na">isDebugEnabled</span><span class="o">())</span>
+</span><span class='line'>        <span class="n">log</span><span class="o">.</span><span class="na">debug</span><span class="o">(</span><span class="s">&quot;Start expire sessions &quot;</span> <span class="o">+</span> <span class="n">getName</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot; at &quot;</span> <span class="o">+</span> <span class="n">timeNow</span> <span class="o">+</span> <span class="s">&quot; sessioncount &quot;</span> <span class="o">+</span> <span class="n">sessions</span><span class="o">.</span><span class="na">length</span><span class="o">);</span>
+</span><span class='line'>    <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">sessions</span><span class="o">.</span><span class="na">length</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">sessions</span><span class="o">[</span><span class="n">i</span><span class="o">]!=</span><span class="kc">null</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">sessions</span><span class="o">[</span><span class="n">i</span><span class="o">].</span><span class="na">isValid</span><span class="o">())</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">expireHere</span><span class="o">++;</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>    <span class="kt">long</span> <span class="n">timeEnd</span> <span class="o">=</span> <span class="n">System</span><span class="o">.</span><span class="na">currentTimeMillis</span><span class="o">();</span>
+</span><span class='line'>    <span class="k">if</span><span class="o">(</span><span class="n">log</span><span class="o">.</span><span class="na">isDebugEnabled</span><span class="o">())</span>
+</span><span class='line'>         <span class="n">log</span><span class="o">.</span><span class="na">debug</span><span class="o">(</span><span class="s">&quot;End expire sessions &quot;</span> <span class="o">+</span> <span class="n">getName</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot; processingTime &quot;</span> <span class="o">+</span> <span class="o">(</span><span class="n">timeEnd</span> <span class="o">-</span> <span class="n">timeNow</span><span class="o">)</span> <span class="o">+</span> <span class="s">&quot; expired sessions: &quot;</span> <span class="o">+</span> <span class="n">expireHere</span><span class="o">);</span>
+</span><span class='line'>    <span class="n">processingTime</span> <span class="o">+=</span> <span class="o">(</span> <span class="n">timeEnd</span> <span class="o">-</span> <span class="n">timeNow</span> <span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>上面的代码比较简单，首先查找出当前context的所有的session，然后调用session的isValid方法，接下来我们在看看Session的isValid方法。</p>
+
+<figure class='code'><figcaption><span>org.apache.catalina.session.StandardSession#isValid</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kt">boolean</span> <span class="nf">isValid</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="k">this</span><span class="o">.</span><span class="na">expiring</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="kc">true</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(!</span><span class="k">this</span><span class="o">.</span><span class="na">isValid</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="kc">false</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">ACTIVITY_CHECK</span> <span class="o">&amp;&amp;</span> <span class="n">accessCount</span><span class="o">.</span><span class="na">get</span><span class="o">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="kc">true</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">maxInactiveInterval</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="kt">long</span> <span class="n">timeNow</span> <span class="o">=</span> <span class="n">System</span><span class="o">.</span><span class="na">currentTimeMillis</span><span class="o">();</span>
+</span><span class='line'>        <span class="kt">int</span> <span class="n">timeIdle</span><span class="o">;</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">LAST_ACCESS_AT_START</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">timeIdle</span> <span class="o">=</span> <span class="o">(</span><span class="kt">int</span><span class="o">)</span> <span class="o">((</span><span class="n">timeNow</span> <span class="o">-</span> <span class="n">lastAccessedTime</span><span class="o">)</span> <span class="o">/</span> <span class="mi">1000L</span><span class="o">);</span>
+</span><span class='line'>        <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">timeIdle</span> <span class="o">=</span> <span class="o">(</span><span class="kt">int</span><span class="o">)</span> <span class="o">((</span><span class="n">timeNow</span> <span class="o">-</span> <span class="n">thisAccessedTime</span><span class="o">)</span> <span class="o">/</span> <span class="mi">1000L</span><span class="o">);</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">timeIdle</span> <span class="o">&gt;=</span> <span class="n">maxInactiveInterval</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">expire</span><span class="o">(</span><span class="kc">true</span><span class="o">);</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">return</span> <span class="o">(</span><span class="k">this</span><span class="o">.</span><span class="na">isValid</span><span class="o">);</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>查看上面的代码，主要就是通过对比当前时间和上次访问的时间差是否大于了最大的非活动时间间隔，如果大于就会调用expire(true)方法对session进行超期处理。这里需要注意一点，默认情况下LAST_ACCESS_AT_START为false，读者也可以通过设置系统属性的方式进行修改，而如果采用LAST_ACCESS_AT_START的时候，那么请求本身的处理时间将不算在内。比如一个请求处理开始的时候是10:00,请求处理花了1分钟，那么如果LAST_ACCESS_AT_START为true，则算是否超期的时候，是从10:00算起，而不是10:01。</p>
+
+<p>接下来我们再来看看expire方法，代码如下：</p>
+
+<figure class='code'><figcaption><span>org.apache.catalina.session.StandardSession#expire</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+<span class='line-number'>68</span>
+<span class='line-number'>69</span>
+<span class='line-number'>70</span>
+<span class='line-number'>71</span>
+<span class='line-number'>72</span>
+<span class='line-number'>73</span>
+<span class='line-number'>74</span>
+<span class='line-number'>75</span>
+<span class='line-number'>76</span>
+<span class='line-number'>77</span>
+<span class='line-number'>78</span>
+<span class='line-number'>79</span>
+<span class='line-number'>80</span>
+<span class='line-number'>81</span>
+<span class='line-number'>82</span>
+<span class='line-number'>83</span>
+<span class='line-number'>84</span>
+<span class='line-number'>85</span>
+<span class='line-number'>86</span>
+<span class='line-number'>87</span>
+<span class='line-number'>88</span>
+<span class='line-number'>89</span>
+<span class='line-number'>90</span>
+<span class='line-number'>91</span>
+<span class='line-number'>92</span>
+<span class='line-number'>93</span>
+<span class='line-number'>94</span>
+<span class='line-number'>95</span>
+<span class='line-number'>96</span>
+<span class='line-number'>97</span>
+<span class='line-number'>98</span>
+<span class='line-number'>99</span>
+<span class='line-number'>100</span>
+<span class='line-number'>101</span>
+<span class='line-number'>102</span>
+<span class='line-number'>103</span>
+<span class='line-number'>104</span>
+<span class='line-number'>105</span>
+<span class='line-number'>106</span>
+<span class='line-number'>107</span>
+<span class='line-number'>108</span>
+<span class='line-number'>109</span>
+<span class='line-number'>110</span>
+<span class='line-number'>111</span>
+<span class='line-number'>112</span>
+<span class='line-number'>113</span>
+<span class='line-number'>114</span>
+<span class='line-number'>115</span>
+<span class='line-number'>116</span>
+<span class='line-number'>117</span>
+<span class='line-number'>118</span>
+<span class='line-number'>119</span>
+<span class='line-number'>120</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kt">void</span> <span class="nf">expire</span><span class="o">(</span><span class="kt">boolean</span> <span class="n">notify</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// Check to see if expire is in progress or has previously been called</span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">expiring</span> <span class="o">||</span> <span class="o">!</span><span class="n">isValid</span><span class="o">)</span>
+</span><span class='line'>        <span class="k">return</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kd">synchronized</span> <span class="o">(</span><span class="k">this</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="c1">// Check again, now we are inside the sync so this code only runs once</span>
+</span><span class='line'>        <span class="c1">// Double check locking - expiring and isValid need to be volatile</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">expiring</span> <span class="o">||</span> <span class="o">!</span><span class="n">isValid</span><span class="o">)</span>
+</span><span class='line'>            <span class="k">return</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">manager</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span>
+</span><span class='line'>            <span class="k">return</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// Mark this session as &quot;being expired&quot;</span>
+</span><span class='line'>        <span class="c1">// 1         </span>
+</span><span class='line'>        <span class="n">expiring</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// Notify interested application event listeners</span>
+</span><span class='line'>        <span class="c1">// FIXME - Assumes we call listeners in reverse order</span>
+</span><span class='line'>        <span class="n">Context</span> <span class="n">context</span> <span class="o">=</span> <span class="o">(</span><span class="n">Context</span><span class="o">)</span> <span class="n">manager</span><span class="o">.</span><span class="na">getContainer</span><span class="o">();</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// The call to expire() may not have been triggered by the webapp.</span>
+</span><span class='line'>        <span class="c1">// Make sure the webapp&#39;s class loader is set when calling the</span>
+</span><span class='line'>        <span class="c1">// listeners</span>
+</span><span class='line'>        <span class="n">ClassLoader</span> <span class="n">oldTccl</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">context</span><span class="o">.</span><span class="na">getLoader</span><span class="o">()</span> <span class="o">!=</span> <span class="kc">null</span> <span class="o">&amp;&amp;</span>
+</span><span class='line'>                <span class="n">context</span><span class="o">.</span><span class="na">getLoader</span><span class="o">().</span><span class="na">getClassLoader</span><span class="o">()</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">oldTccl</span> <span class="o">=</span> <span class="n">Thread</span><span class="o">.</span><span class="na">currentThread</span><span class="o">().</span><span class="na">getContextClassLoader</span><span class="o">();</span>
+</span><span class='line'>            <span class="k">if</span> <span class="o">(</span><span class="n">Globals</span><span class="o">.</span><span class="na">IS_SECURITY_ENABLED</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">PrivilegedAction</span><span class="o">&lt;</span><span class="n">Void</span><span class="o">&gt;</span> <span class="n">pa</span> <span class="o">=</span> <span class="k">new</span> <span class="n">PrivilegedSetTccl</span><span class="o">(</span>
+</span><span class='line'>                        <span class="n">context</span><span class="o">.</span><span class="na">getLoader</span><span class="o">().</span><span class="na">getClassLoader</span><span class="o">());</span>
+</span><span class='line'>                <span class="n">AccessController</span><span class="o">.</span><span class="na">doPrivileged</span><span class="o">(</span><span class="n">pa</span><span class="o">);</span>
+</span><span class='line'>            <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">Thread</span><span class="o">.</span><span class="na">currentThread</span><span class="o">().</span><span class="na">setContextClassLoader</span><span class="o">(</span>
+</span><span class='line'>                        <span class="n">context</span><span class="o">.</span><span class="na">getLoader</span><span class="o">().</span><span class="na">getClassLoader</span><span class="o">());</span>
+</span><span class='line'>            <span class="o">}</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>        <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>            <span class="c1">// 2</span>
+</span><span class='line'>            <span class="n">Object</span> <span class="n">listeners</span><span class="o">[]</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="na">getApplicationLifecycleListeners</span><span class="o">();</span>
+</span><span class='line'>            <span class="k">if</span> <span class="o">(</span><span class="n">notify</span> <span class="o">&amp;&amp;</span> <span class="o">(</span><span class="n">listeners</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">))</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">HttpSessionEvent</span> <span class="n">event</span> <span class="o">=</span>
+</span><span class='line'>                    <span class="k">new</span> <span class="nf">HttpSessionEvent</span><span class="o">(</span><span class="n">getSession</span><span class="o">());</span>
+</span><span class='line'>                <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">listeners</span><span class="o">.</span><span class="na">length</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
+</span><span class='line'>                    <span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="o">(</span><span class="n">listeners</span><span class="o">.</span><span class="na">length</span> <span class="o">-</span> <span class="mi">1</span><span class="o">)</span> <span class="o">-</span> <span class="n">i</span><span class="o">;</span>
+</span><span class='line'>                    <span class="k">if</span> <span class="o">(!(</span><span class="n">listeners</span><span class="o">[</span><span class="n">j</span><span class="o">]</span> <span class="k">instanceof</span> <span class="n">HttpSessionListener</span><span class="o">))</span>
+</span><span class='line'>                        <span class="k">continue</span><span class="o">;</span>
+</span><span class='line'>                    <span class="n">HttpSessionListener</span> <span class="n">listener</span> <span class="o">=</span>
+</span><span class='line'>                        <span class="o">(</span><span class="n">HttpSessionListener</span><span class="o">)</span> <span class="n">listeners</span><span class="o">[</span><span class="n">j</span><span class="o">];</span>
+</span><span class='line'>                    <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>                        <span class="n">context</span><span class="o">.</span><span class="na">fireContainerEvent</span><span class="o">(</span><span class="s">&quot;beforeSessionDestroyed&quot;</span><span class="o">,</span>
+</span><span class='line'>                                <span class="n">listener</span><span class="o">);</span>
+</span><span class='line'>                        <span class="n">listener</span><span class="o">.</span><span class="na">sessionDestroyed</span><span class="o">(</span><span class="n">event</span><span class="o">);</span>
+</span><span class='line'>                        <span class="n">context</span><span class="o">.</span><span class="na">fireContainerEvent</span><span class="o">(</span><span class="s">&quot;afterSessionDestroyed&quot;</span><span class="o">,</span>
+</span><span class='line'>                                <span class="n">listener</span><span class="o">);</span>
+</span><span class='line'>                    <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">Throwable</span> <span class="n">t</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                        <span class="n">ExceptionUtils</span><span class="o">.</span><span class="na">handleThrowable</span><span class="o">(</span><span class="n">t</span><span class="o">);</span>
+</span><span class='line'>                        <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>                            <span class="n">context</span><span class="o">.</span><span class="na">fireContainerEvent</span><span class="o">(</span>
+</span><span class='line'>                                    <span class="s">&quot;afterSessionDestroyed&quot;</span><span class="o">,</span> <span class="n">listener</span><span class="o">);</span>
+</span><span class='line'>                        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">Exception</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                            <span class="c1">// Ignore</span>
+</span><span class='line'>                        <span class="o">}</span>
+</span><span class='line'>                        <span class="n">manager</span><span class="o">.</span><span class="na">getContainer</span><span class="o">().</span><span class="na">getLogger</span><span class="o">().</span><span class="na">error</span>
+</span><span class='line'>                            <span class="o">(</span><span class="n">sm</span><span class="o">.</span><span class="na">getString</span><span class="o">(</span><span class="s">&quot;standardSession.sessionEvent&quot;</span><span class="o">),</span> <span class="n">t</span><span class="o">);</span>
+</span><span class='line'>                    <span class="o">}</span>
+</span><span class='line'>                <span class="o">}</span>
+</span><span class='line'>            <span class="o">}</span>
+</span><span class='line'>        <span class="o">}</span> <span class="k">finally</span> <span class="o">{</span>
+</span><span class='line'>            <span class="k">if</span> <span class="o">(</span><span class="n">oldTccl</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                <span class="k">if</span> <span class="o">(</span><span class="n">Globals</span><span class="o">.</span><span class="na">IS_SECURITY_ENABLED</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                    <span class="n">PrivilegedAction</span><span class="o">&lt;</span><span class="n">Void</span><span class="o">&gt;</span> <span class="n">pa</span> <span class="o">=</span>
+</span><span class='line'>                        <span class="k">new</span> <span class="nf">PrivilegedSetTccl</span><span class="o">(</span><span class="n">oldTccl</span><span class="o">);</span>
+</span><span class='line'>                    <span class="n">AccessController</span><span class="o">.</span><span class="na">doPrivileged</span><span class="o">(</span><span class="n">pa</span><span class="o">);</span>
+</span><span class='line'>                <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+</span><span class='line'>                    <span class="n">Thread</span><span class="o">.</span><span class="na">currentThread</span><span class="o">().</span><span class="na">setContextClassLoader</span><span class="o">(</span><span class="n">oldTccl</span><span class="o">);</span>
+</span><span class='line'>                <span class="o">}</span>
+</span><span class='line'>            <span class="o">}</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">ACTIVITY_CHECK</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">accessCount</span><span class="o">.</span><span class="na">set</span><span class="o">(</span><span class="mi">0</span><span class="o">);</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>        <span class="n">setValid</span><span class="o">(</span><span class="kc">false</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// Remove this session from our manager&#39;s active sessions</span>
+</span><span class='line'>        <span class="c1">// 3 </span>
+</span><span class='line'>        <span class="n">manager</span><span class="o">.</span><span class="na">remove</span><span class="o">(</span><span class="k">this</span><span class="o">,</span> <span class="kc">true</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// Notify interested session event listeners</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">notify</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">fireSessionEvent</span><span class="o">(</span><span class="n">Session</span><span class="o">.</span><span class="na">SESSION_DESTROYED_EVENT</span><span class="o">,</span> <span class="kc">null</span><span class="o">);</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// Call the logout method</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">principal</span> <span class="k">instanceof</span> <span class="n">GenericPrincipal</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">GenericPrincipal</span> <span class="n">gp</span> <span class="o">=</span> <span class="o">(</span><span class="n">GenericPrincipal</span><span class="o">)</span> <span class="n">principal</span><span class="o">;</span>
+</span><span class='line'>            <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">gp</span><span class="o">.</span><span class="na">logout</span><span class="o">();</span>
+</span><span class='line'>            <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">Exception</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">manager</span><span class="o">.</span><span class="na">getContainer</span><span class="o">().</span><span class="na">getLogger</span><span class="o">().</span><span class="na">error</span><span class="o">(</span>
+</span><span class='line'>                        <span class="n">sm</span><span class="o">.</span><span class="na">getString</span><span class="o">(</span><span class="s">&quot;standardSession.logoutfail&quot;</span><span class="o">),</span>
+</span><span class='line'>                        <span class="n">e</span><span class="o">);</span>
+</span><span class='line'>            <span class="o">}</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// We have completed expire of this session</span>
+</span><span class='line'>        <span class="n">expiring</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// Unbind any objects associated with this session</span>
+</span><span class='line'>        <span class="c1">// 4</span>
+</span><span class='line'>        <span class="n">String</span> <span class="n">keys</span><span class="o">[]</span> <span class="o">=</span> <span class="n">keys</span><span class="o">();</span>
+</span><span class='line'>        <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">keys</span><span class="o">.</span><span class="na">length</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span>
+</span><span class='line'>            <span class="n">removeAttributeInternal</span><span class="o">(</span><span class="n">keys</span><span class="o">[</span><span class="n">i</span><span class="o">],</span> <span class="n">notify</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>上面代码的主流程我已经标注了数字，我们来逐一分析一下：</p>
+
+<ol>
+<li>标注1（第18行）标记当前的session为超期</li>
+<li>标注2（第41行）出发HttpSessionListener监听器的方法。</li>
+<li>标注3（第89行）从Manager里面移除当前的session</li>
+<li>标注4（第113行）将session中保存的属性移除。</li>
+</ol>
+
+
+<p>到这里我们已经清楚了Tomcat中对与StandardSession的创建以及销毁的过程，其实StandardSession仅仅是实现了内存中Session的存储，而Tomcat还支持将Session持久化，以及Session集群节点间的同步。这些内容我们以后再来分析。</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Tomcat类加载器机制（Tomcat源代码阅读系列之六）]]></title>
@@ -1483,7 +2142,7 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>上面的代码有点长，但是经过分析，我们还是可以看出起主干，我已经在代码中将主流程通过数字标注了，我们就来一一看看标注了数字的地方：</p>
+<p>上面的代码有点长，但是经过分析，我们还是可以看清楚主干，我已经在代码中将主流程通过数字标注了，我们就来一一看看标注了数字的地方：</p>
 
 <ol>
 <li>标注1的地方（第7行）将Socket的输入流和输出流通过InternalInputBuffer进行了包装，InternalInputBuffer是在Http11Processor的构造函数中初始化的。</li>
@@ -5407,7 +6066,7 @@ Host对应源代码中的<code>org.apache.catalina.core.StandardHost</code>,它�
 月薪:    15k-20k</p>
 
 <p>公司介绍: <br/>
-我们公司<a href="http://www.ejushang.com">易居尚</a>秉承着<code>让品质走进生活的理念</code>，致力于打造一个品质、高效、便捷的居家用品网络销售平台.咋们公司不打卡，弹性工作制，每天下午有公司大厨做的下午茶，攻城狮童鞋每周可以自由支配20%的工作时间做自己想做的事情，我们技术团队内部有很强互助和知识分享意识（包括技术骚们喜欢的爱情动作片，嘘&hellip;，其他人我不告诉他）当然了还有很多美女和帅哥，想置身互联网和电子商务有理想的的技术骚们，请你加入我们 一起high，<strong>我们不求改变世界，但求超越自我</strong>。也请各位朋友帮忙推荐，推荐成功有神秘礼物相送哦，有意者请联系:<a href="&#x6d;&#x61;&#x69;&#x6c;&#116;&#x6f;&#x3a;&#x74;&#x69;&#x67;&#x65;&#114;&#x2e;&#x7a;&#x68;&#x6f;&#117;&#x40;&#x6b;&#x61;&#x72;&#x69;&#113;&#x75;&#46;&#99;&#x6f;&#x6d;">&#116;&#105;&#x67;&#x65;&#x72;&#46;&#122;&#x68;&#x6f;&#x75;&#64;&#107;&#97;&#x72;&#105;&#x71;&#117;&#x2e;&#99;&#x6f;&#109;</a> 或者留言给我，另外也可以通过<a href="http://weibo.com/xmuzyq">@krq_tiger</a>新浪微博与我取的联系.</p>
+我们公司<a href="http://www.ejushang.com">易居尚</a>秉承着<code>让品质走进生活的理念</code>，致力于打造一个品质、高效、便捷的居家用品网络销售平台.咋们公司不打卡，弹性工作制，每天下午有公司大厨做的下午茶，攻城狮童鞋每周可以自由支配20%的工作时间做自己想做的事情，我们技术团队内部有很强互助和知识分享意识（包括技术骚们喜欢的爱情动作片，嘘&hellip;，其他人我不告诉他）当然了还有很多美女和帅哥，想置身互联网和电子商务有理想的的技术骚们，请你加入我们 一起high，<strong>我们不求改变世界，但求超越自我</strong>。也请各位朋友帮忙推荐，推荐成功有神秘礼物相送哦，有意者请联系:<a href="&#x6d;&#97;&#105;&#108;&#116;&#x6f;&#x3a;&#x74;&#x69;&#x67;&#x65;&#x72;&#46;&#122;&#x68;&#x6f;&#117;&#64;&#x6b;&#97;&#114;&#105;&#113;&#x75;&#x2e;&#99;&#111;&#x6d;">&#x74;&#x69;&#x67;&#101;&#x72;&#x2e;&#x7a;&#x68;&#x6f;&#117;&#64;&#107;&#97;&#x72;&#105;&#113;&#x75;&#x2e;&#99;&#x6f;&#x6d;</a> 或者留言给我，另外也可以通过<a href="http://weibo.com/xmuzyq">@krq_tiger</a>新浪微博与我取的联系.</p>
 
 <!-- more -->
 
@@ -6626,42 +7285,6 @@ SessionFilter的核心代码如下：</p>
 <a href="http://betterexplained.com/articles/how-to-optimize-your-site-with-http-caching/">How To Optimize Your Site With HTTP Caching</a><br/>
 <a href="http://www.jdon.com/jivejdon/thread/40381">Http缓存Last-Modified、ETag和Expires的Java终结解决之道</a><br/>
 <a href="http://www.mnot.net/cache_docs/#CACHE-CONTROL">Caching Tutorial</a></p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[分布式应用中客户端的设计]]></title>
-    <link href="http://imtiger.github.io/blog/2011/03/25/client-design-of-distributed-system/"/>
-    <updated>2011-03-25T18:16:00+08:00</updated>
-    <id>http://imtiger.github.io/blog/2011/03/25/client-design-of-distributed-system</id>
-    <content type="html"><![CDATA[<p>一个分布式的系统一般都会有很多的节点，节点和节点之间的通讯采用远程调用的方式，而当在实现业务逻辑的时候，我们可以通过客户端的实现方式实现，目前实现客户端的方式有两种方式，瘦客户端和富客户端。</p>
-
-<h1>瘦客户端</h1>
-
-<p>所谓瘦客户端类似于之前EJB那种方式，瘦客户端本身不具有业务逻辑，瘦客户端通过业务接口调用服务端逻辑，这个时候逻辑运算还是跑那个被多个系统共用的服务器，这样当存在大量的请求的情况下，负责逻辑运算的服务器就会成为瓶颈，这个时候通过水平伸缩负责逻辑运算的服务器，这个时候涉及到客户端请求的负载均衡，每次将远程调用采用负载均衡算法将其分配到逻辑端服务器，采用这种方式以后，可能就需要远程调用框架内部支持一些比如流量控制，负载均衡等的机制，这样使得调用方本身不需要关心服务器端的物理部署。</p>
-
-<p>当然了，我们也可以通过富客户端的方式来实现，下面我们就来介绍一下富客户端的设计。</p>
-
-<!-- more -->
-
-
-<h1>富客户端</h1>
-
-<p>富客户端是将运算逻辑以客户端包的形式提供给调用方来使用，这样可以分摊逻辑运算服务器的压力，将压力分担到调用方服务器。这种方式非常适合调用方服务器本身负责的逻辑很简单，运算量很小的情况下，采用富客户端以后可以合理利用调用方服务器的资源来分摊掉被调用方服务器的压力。另外一方面，富客户端也适用于当需要将一些非核心的业务从核心业务中剥离出来，然后让非核心的业务跑到调用方的服务器中，同时富客户端还可以做其它的一些事情，比如缓存调用结果，实现调用方的local cache等。</p>
-
-<p>当然了采用富客户端也会带来一个明显的问题，那就是客户端的升级，假如逻辑有变化需要让调用方升级客户端包，当然这也有解决办法，就是将业务逻辑进行抽象，每一步都采用动态脚本的方式比如Groovy脚本去执行，每次客户端服务器启动的时候，中心服务器推送最新的Groovy脚本到web客户端服务器，这样客户端服务器就可以获取到最新的执行逻辑,当然这对客户端的设计要求严格，客户端可能要设计的具有插件式的灵活功能。</p>
-
-<p>采用富客户端另外一个问题就是富客户端的状态和服务器端的如何进行同步，假如服务器端的一些数据变化了，而客户端需要感知这些变化怎么办？这也有解决办法，一种方式是<code>拉模式</code>，另外一种模式<code>推模式</code>。</p>
-
-<ol>
-<li><p>拉模式 <br/>
-拉模式就是每次服务端有变化的时候，给富客户端发条指令，然后富客户端会主动向服务器端来拉数据，这种方式对于客户端服务器量比较大的情况下比较方便，比如富客户端被前端数百台机器使用，这个时候可以显著减少服务端的工作量。</p></li>
-<li><p>推模式<br/>
-推模式就是当服务器端发生变化的时候，主动推送给每个客户端，这种情况适合客户端服务器数量不多的情况，当然无论是采用拉还是推模式都需客户端和服务端保持一定的联系，这可能需要客户端在启动的时候主动的向服务端去注册一下，客户端注册以后，中心服务器端可以监控客户端的一些运行状况等信息。</p></li>
-</ol>
-
-
-<p>以上两种是在分布式系统中常见的两种客户端的设计策略，具体需要哪种，需要根据系统场景进行取舍。</p>
 ]]></content>
   </entry>
   
