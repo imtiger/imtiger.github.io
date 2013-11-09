@@ -80,7 +80,7 @@
     </url>
     <url>
         <loc>http://imtiger.github.io/blog/2013/10/08/tomcat-source-code-study/</loc>
-        <lastmod>2013-11-06T18:35:52+08:00</lastmod>
+        <lastmod>2013-11-09T12:00:49+08:00</lastmod>
     </url>
     <url>
         <loc>http://imtiger.github.io/blog/2013/10/11/category-design-of-e-commerce-website/</loc>
@@ -104,7 +104,7 @@
     </url>
     <url>
         <loc>http://imtiger.github.io/blog/2013/10/24/tomcat-request-process/</loc>
-        <lastmod>2013-11-06T18:35:52+08:00</lastmod>
+        <lastmod>2013-11-08T15:15:48+08:00</lastmod>
     </url>
     <url>
         <loc>http://imtiger.github.io/blog/2013/10/28/tomcat-class-loader/</loc>
@@ -113,6 +113,10 @@
     <url>
         <loc>http://imtiger.github.io/blog/2013/11/05/tomcat-session-manage/</loc>
         <lastmod>2013-11-06T18:35:52+08:00</lastmod>
+    </url>
+    <url>
+        <loc>http://imtiger.github.io/blog/2013/11/08/tomcat-design-pattern/</loc>
+        <lastmod>2013-11-09T11:59:46+08:00</lastmod>
     </url>
     <url>
         <loc>http://imtiger.github.io/404.html</loc>
@@ -124,11 +128,11 @@
     </url>
     <url>
         <loc>http://imtiger.github.io/archives/</loc>
-        <lastmod>2013-11-06T18:28:30+08:00</lastmod>
+        <lastmod>2013-11-09T12:00:49+08:00</lastmod>
     </url>
     <url>
         <loc>http://imtiger.github.io/blog/archives/</loc>
-        <lastmod>2013-11-06T18:28:30+08:00</lastmod>
+        <lastmod>2013-11-09T12:00:49+08:00</lastmod>
     </url>
     <url>
         <loc>http://imtiger.github.io/blog/categories/</loc>
@@ -136,7 +140,7 @@
     </url>
     <url>
         <loc>http://imtiger.github.io/blog/</loc>
-        <lastmod>2013-11-06T18:28:30+08:00</lastmod>
+        <lastmod>2013-11-09T12:00:49+08:00</lastmod>
     </url>
     <url>
         <loc>http://imtiger.github.io/book/</loc>
@@ -144,7 +148,7 @@
     </url>
     <url>
         <loc>http://imtiger.github.io/</loc>
-        <lastmod>2013-11-06T18:28:30+08:00</lastmod>
+        <lastmod>2013-11-09T12:00:49+08:00</lastmod>
     </url>
     <url>
         <loc>http://imtiger.github.io/life/</loc>

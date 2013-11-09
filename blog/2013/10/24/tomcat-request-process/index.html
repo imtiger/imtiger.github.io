@@ -1131,7 +1131,7 @@
 
 <p>那我们再来看看此方法。通过分析它的代码，我们发现最终其实是调用了几个<code>internalMap**</code>方法将找到的Context,Wrapper设置到org.apache.catalina.connector.Request对象的org.apache.tomcat.util.http.mapper.MappingData类型的属性中,map方法执行完以后，然后接下来就从MappingData中获取已经找到的Context和Wrapper，再设置到Request的context和wrapper中。</p>
 
-<p>接下来我们再来分析第3步，第3步通过pipeline链式调用机制最终调用了Servlet对象，而对于pipeline其实是运用了责任链模式，它将各个阀门链接起来，然后一步步的调用，而至于有多少个阀门（Valve）对象，主要来源于两个地方，一个是conf/server.xml中配置的valve，我们知道所有的容器都是支持pipeline机制的，另外一个就是每一个容器的构造其中自己初始化的阀门对象。接下来一一看一下。对已StandardEngine来说有一个与之对应的StandardEngineValve，对于StandardHost有一个StandardHostValve与之对应，StandardContext有一个StandardContextValve与之对应，StandardWrapper与StandardWrapperValve对应,通过分析代码，我们可以得到如下的一个调用链。</p>
+<p>接下来我们再来分析第3步，第3步通过pipeline链式调用机制最终调用了Servlet对象，而对于pipeline其实是运用了责任链模式，它将各个阀门链接起来，然后一步步的调用，而至于有多少个阀门（Valve）对象，主要来源于两个地方，一个是conf/server.xml中配置的valve，我们知道所有的容器都是支持pipeline机制的，另外一个就是每一个容器的构造其中自己初始化的阀门对象。接下来一一看一下。对于StandardEngine来说有一个与之对应的StandardEngineValve，对于StandardHost有一个StandardHostValve与之对应，StandardContext有一个StandardContextValve与之对应，StandardWrapper与StandardWrapperValve对应,通过分析代码，我们可以得到如下的一个调用链。</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>

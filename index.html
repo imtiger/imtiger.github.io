@@ -9,7 +9,8 @@
 	<meta name="author" content="imtiger">
 
 	
-	<meta name="description" content="Nov 5th, 2013 Java, Tomcat, 技术 Tomcat Session管理机制（Tomcat源代码阅读系列之七） 本文是Tomcat源代码阅读系列的第七篇文章，本系列前六篇文章如下： 在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码（ &hellip;">
+	<meta name="description" content="Nov 8th, 2013 Java, Tomcat, 技术 Tomcat 设计模式总结(Tomcat源代码阅读系列之八) 本文是Tomcat源代码阅读系列的第八篇文章，本系列前七篇文章如下：
+在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码（ &hellip;">
 	<meta name="keywords" content="java,ios,mac,linux,objective-c,软件设计,软件架构,摄影,imtiger.">
 
   <!-- http://t.co/dKP3o1e -->
@@ -92,6 +93,53 @@
 			<div class="mid-col-container">
 				<div id="content" class="inner">
 <div itemscope itemtype="http://schema.org/Blog">
+
+
+    <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
+	<div class="meta">
+		<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-11-08T10:38:00+08:00" data-updated="true" itemprop="datePublished">Nov 8<span>th</span>, 2013</time></div>
+		<div class="tags">
+
+
+	<a class='category' href='/blog/categories/java/'>Java</a>, <a class='category' href='/blog/categories/tomcat/'>Tomcat</a>, <a class='category' href='/blog/categories/ji-zhu/'>技术</a>
+
+
+</div>
+		
+	</div>
+	<h1 class="title" itemprop="name"><a href="/blog/2013/11/08/tomcat-design-pattern/" itemprop="url">Tomcat 设计模式总结(Tomcat源代码阅读系列之八)</a></h1>
+	<div class="entry-content" itemprop="articleBody">
+		<p><img class="center" src="/images/2013/10/14/apache_tomcat_bag.jpg">
+本文是<a href="/blog/2013/10/08/tomcat-source-code-study/">Tomcat源代码阅读系列</a>的第八篇文章，本系列前七篇文章如下：<br/>
+<a href="/blog/2013/10/14/run-tomcat-in-idea-or-eclipse/">在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码（Tomcat源代码阅读系列之一）</a>     <br/>
+<a href="/blog/2013/10/16/tomcat-architecture/">Tomcat总体结构                             （Tomcat源代码阅读系列之二）</a>    <br/>
+<a href="/blog/2013/10/17/tomcat-start-process/">Tomcat启动过程（Tomcat源代码阅读系列之三）</a> <br/>
+<a href="/blog/2013/10/21/tomcat-shutdown/">Tomcat关闭过程（Tomcat源代码阅读系列之四）</a><br/>
+<a href="/blog/2013/10/24/tomcat-request-process/">Tomcat请求处理流程（Tomcat源代码阅读系列之五）</a><br/>
+<a href="/blog/2013/10/28/tomcat-class-loader/">Tomcat类加载器机制（Tomcat源代码阅读系列之六）</a> <br/>
+<a href="/blog/2013/11/05/tomcat-session-manage/">Tomcat Session管理机制（Tomcat源代码阅读系列之七）</a></p>
+
+<p>本篇我们将来分析一下Tomcat中所涉及到设计模式，本文我们将主要来分析<code>外观模式</code>，<code>观察者模式</code>，<code>责任链模式</code>，<code>模板方法模式</code>,<code>命令模式</code>。  <br/>
+在开始本文之前，笔者先说明一下对于设计模式的一点看法。笔者曾经经常看到网上有人讨论设计模式，也偶尔会遇到有人非要严格按照GOF设计模式的类图以及其中的角色去套用别人的设计，只要类图不一样，或者角色多了或者少了就会觉得怎么和官方定义的模式不一样，其实这都是对设计模式的误解。设计模式其实不仅仅存在软件行业，各行各业其实都有模式，它是所在行业对一些通用问题解决方案的总结和抽象，是一种对常见问题的抽象的解决方案，不是一种具体的实现，所以我们在讨论设计模式的时候，千万别一个劲的套用GOF设计模式中的类图以及其中所涉及到的角色，而是要理解设计模式的思维，理解设计模式的使用场景，只有理解了设计模式中所蕴含的思维以及具体的使用场景以后，你才算是真正的掌握了它。ok,小扯了一下淡，接下来我们进入主题吧。</p>
+
+
+		
+		<a href="/blog/2013/11/08/tomcat-design-pattern/" class="more-link">Read on(阅读全文) &rarr;</a>
+	</div>
+
+</article>
 
 
     <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
@@ -473,56 +521,11 @@
 <a href="/blog/2013/10/21/tomcat-shutdown/">Tomcat关闭过程（Tomcat源代码阅读系列之四）</a> <br/>
 <a href="/blog/2013/10/24/tomcat-request-process/">Tomcat请求处理流程（Tomcat源代码阅读系列之五）</a> <br/>
 <a href="/blog/2013/10/28/tomcat-class-loader/">Tomcat类加载器机制（Tomcat源代码阅读系列之六）</a> <br/>
-<a href="#">Tomcat Session管理机制</a>(未完成)  <br/>
-<a href="#">Tomcat 涉及的设计模式总结</a> (未完成)</p>
+<a href="/blog/2013/11/05/tomcat-session-manage/">Tomcat Session管理机制（Tomcat源代码阅读系列之七）</a> <br/>
+<a href="/blog/2013/11/08/tomcat-design-pattern/">Tomcat 涉及的设计模式总结（Tomcat源代码阅读系列之八）</a></p>
 
 		
 		
-	</div>
-
-</article>
-
-
-    <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
-	<div class="meta">
-		<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-09-27T15:29:00+08:00" data-updated="true" itemprop="datePublished">Sep 27<span>th</span>, 2013</time></div>
-		<div class="tags">
-
-
-	<a class='category' href='/blog/categories/ji-zhu/'>技术</a>, <a class='category' href='/blog/categories/sheng-huo/'>生活</a>
-
-
-</div>
-		
-	</div>
-	<h1 class="title" itemprop="name"><a href="/blog/2013/09/27/java-engineer-recruitment/" itemprop="url">月薪15k-20k招聘高级Java软件工程师</a></h1>
-	<div class="entry-content" itemprop="articleBody">
-		<p><img class="center" src="/images/2013/09/27/2013-09-27-01.jpg" width="700" height="350"><br/>
-创业一年多，感触颇多，也走过一些弯路，不过总体上还好。随着公司业务的不断扩大，现在需要招聘高级Java软件攻城狮数名，下面简单介绍下：</p>
-
-<p>公司名称: 深圳易居尚网络科技有限公司<br/>
-工作地点: 深圳宝安区大宝路41号德丰盛大厦 <br/>
-职位名称: 高级Java软件攻城狮<br/>
-月薪:    15k-20k</p>
-
-<p>公司介绍: <br/>
-我们公司<a href="http://www.ejushang.com">易居尚</a>秉承着<code>让品质走进生活的理念</code>，致力于打造一个品质、高效、便捷的居家用品网络销售平台.咋们公司不打卡，弹性工作制，每天下午有公司大厨做的下午茶，攻城狮童鞋每周可以自由支配20%的工作时间做自己想做的事情，我们技术团队内部有很强互助和知识分享意识（包括技术骚们喜欢的爱情动作片，嘘&hellip;，其他人我不告诉他）当然了还有很多美女和帅哥，想置身互联网和电子商务有理想的的技术骚们，请你加入我们 一起high，<strong>我们不求改变世界，但求超越自我</strong>。也请各位朋友帮忙推荐，推荐成功有神秘礼物相送哦，有意者请联系:<a href="&#x6d;&#97;&#105;&#108;&#116;&#x6f;&#x3a;&#x74;&#x69;&#x67;&#x65;&#x72;&#46;&#122;&#x68;&#x6f;&#117;&#64;&#x6b;&#97;&#114;&#105;&#113;&#x75;&#x2e;&#99;&#111;&#x6d;">&#x74;&#x69;&#x67;&#101;&#x72;&#x2e;&#x7a;&#x68;&#x6f;&#117;&#64;&#107;&#97;&#x72;&#105;&#113;&#x75;&#x2e;&#99;&#x6f;&#x6d;</a> 或者留言给我，另外也可以通过<a href="http://weibo.com/xmuzyq">@krq_tiger</a>新浪微博与我取的联系.</p>
-
-
-		
-		<a href="/blog/2013/09/27/java-engineer-recruitment/" class="more-link">Read on(阅读全文) &rarr;</a>
 	</div>
 
 </article>
