@@ -4,7 +4,7 @@
   <title><![CDATA[I'm Tiger,一个有理想爱折腾的程序员!]]></title>
   <link href="http://imtiger.github.io/atom.xml" rel="self"/>
   <link href="http://imtiger.github.io/"/>
-  <updated>2013-11-13T13:35:35+08:00</updated>
+  <updated>2013-11-13T16:10:37+08:00</updated>
   <id>http://imtiger.github.io/</id>
   <author>
     <name><![CDATA[imtiger]]></name>
@@ -1461,15 +1461,16 @@ Connector通过对应的Endpint监听Socket连接，当对应的端口有连接�
 本文是<a href="http://imtiger.github.io/blog/2013/10/08/tomcat-source-code-study/">Tomcat源代码阅读系列</a>的第五篇文章，本系列前四篇文章如下：<br/>
 <a href="http://imtiger.github.io/blog/2013/10/14/run-tomcat-in-idea-or-eclipse/">在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码（Tomcat源代码阅读系列之一）</a> <br/>
 <a href="http://imtiger.github.io/blog/2013/10/16/tomcat-architecture/">Tomcat总体结构                             （Tomcat源代码阅读系列之二）</a><br/>
-<a href="http://imtiger.github.io/blog/2013/10/17/tomcat-start-process/">Tomcat启动过程（Tomcat源代码阅读系列之三）</a>
+<a href="http://imtiger.github.io/blog/2013/10/17/tomcat-start-process/">Tomcat启动过程（Tomcat源代码阅读系列之三）</a><br/>
 <a href="http://imtiger.github.io/blog/2013/10/21/tomcat-shutdown/">Tomcat关闭过程（Tomcat源代码阅读系列之四）</a></p>
 
-<p>前面已经分析完了Tomcat的启动和关闭过程，本篇就来接着分析一下Tomcat中请求的处理过程。</p>
+<p><img class="center" src="http://imtiger.github.io/images/2013/11/08/tomcat-pipeline.png">
+前面已经分析完了Tomcat的启动和关闭过程，本篇就来接着分析一下Tomcat中请求的处理过程。</p>
 
 <!-- more -->
 
 
-<p>在开始本文之前，咋们首先来看看一个Http请求处理的过程，一般情况下是<code>浏览器发送http请求-&gt;建立Socket连接-&gt;通过Socket读取数据-&gt;根据http协议解析数据-&gt;调用后台服务完成响应</code>,而Tomcat既是一个HttpServer也是一个Servlet 容器，那么这里必然也涉及到如上过程，首先根据HTTP协议规范解析请求数据，然后将请求转发给Servlet进行处理，因此顺应这样的思路，本文也将从<strong>Http协议请求解析</strong>，<strong>请求如何转发给Servlet</strong>两个方面来进行分析。首先来看Http协议请求解析。</p>
+<p>在开始本文之前，咋们首先来看看一个Http请求处理的过程，一般情况下是<code>浏览器发送http请求-&gt;建立Socket连接-&gt;通过Socket读取数据-&gt;根据http协议解析数据-&gt;调用后台服务完成响应</code>,详细的流程图如上图所示，等读者读完本篇，应该就清楚了上图所表达的意思。Tomcat既是一个HttpServer也是一个Servlet 容器，那么这里必然也涉及到如上过程，首先根据HTTP协议规范解析请求数据，然后将请求转发给Servlet进行处理，因此顺应这样的思路，本文也将从<strong>Http协议请求解析</strong>，<strong>请求如何转发给Servlet</strong>两个方面来进行分析。首先来看Http协议请求解析。</p>
 
 <h1>Http协议请求解析</h1>
 
@@ -6167,7 +6168,7 @@ Host对应源代码中的<code>org.apache.catalina.core.StandardHost</code>,它�
 月薪:    15k-20k</p>
 
 <p>公司介绍: <br/>
-我们公司<a href="http://www.ejushang.com">易居尚</a>秉承着<code>让品质走进生活的理念</code>，致力于打造一个品质、高效、便捷的居家用品网络销售平台.咋们公司不打卡，弹性工作制，每天下午有公司大厨做的下午茶，攻城狮童鞋每周可以自由支配20%的工作时间做自己想做的事情，我们技术团队内部有很强互助和知识分享意识（包括技术骚们喜欢的爱情动作片，嘘&hellip;，其他人我不告诉他）当然了还有很多美女和帅哥，想置身互联网和电子商务有理想的的技术骚们，请你加入我们 一起high，<strong>我们不求改变世界，但求超越自我</strong>。也请各位朋友帮忙推荐，推荐成功有神秘礼物相送哦，有意者请联系:<a href="&#109;&#97;&#x69;&#108;&#x74;&#x6f;&#x3a;&#x74;&#x69;&#103;&#x65;&#x72;&#x2e;&#122;&#104;&#x6f;&#117;&#64;&#107;&#x61;&#114;&#x69;&#x71;&#x75;&#x2e;&#99;&#111;&#x6d;">&#116;&#x69;&#x67;&#x65;&#x72;&#x2e;&#x7a;&#104;&#111;&#x75;&#64;&#x6b;&#x61;&#x72;&#105;&#113;&#117;&#x2e;&#x63;&#111;&#x6d;</a> 或者留言给我，另外也可以通过<a href="http://weibo.com/xmuzyq">@krq_tiger</a>新浪微博与我取的联系.</p>
+我们公司<a href="http://www.ejushang.com">易居尚</a>秉承着<code>让品质走进生活的理念</code>，致力于打造一个品质、高效、便捷的居家用品网络销售平台.咋们公司不打卡，弹性工作制，每天下午有公司大厨做的下午茶，攻城狮童鞋每周可以自由支配20%的工作时间做自己想做的事情，我们技术团队内部有很强互助和知识分享意识（包括技术骚们喜欢的爱情动作片，嘘&hellip;，其他人我不告诉他）当然了还有很多美女和帅哥，想置身互联网和电子商务有理想的的技术骚们，请你加入我们 一起high，<strong>我们不求改变世界，但求超越自我</strong>。也请各位朋友帮忙推荐，推荐成功有神秘礼物相送哦，有意者请联系:<a href="&#109;&#97;&#105;&#108;&#x74;&#111;&#58;&#116;&#105;&#x67;&#101;&#114;&#46;&#122;&#104;&#111;&#x75;&#x40;&#x6b;&#x61;&#114;&#x69;&#x71;&#117;&#46;&#x63;&#111;&#x6d;">&#116;&#105;&#x67;&#101;&#114;&#46;&#x7a;&#104;&#111;&#x75;&#64;&#107;&#97;&#114;&#105;&#113;&#117;&#46;&#x63;&#x6f;&#109;</a> 或者留言给我，另外也可以通过<a href="http://weibo.com/xmuzyq">@krq_tiger</a>新浪微博与我取的联系.</p>
 
 <!-- more -->
 
