@@ -4,7 +4,7 @@
   <title><![CDATA[I'm Tiger,一个有理想爱折腾的程序员!]]></title>
   <link href="http://imtiger.github.io/atom.xml" rel="self"/>
   <link href="http://imtiger.github.io/"/>
-  <updated>2013-11-13T16:10:37+08:00</updated>
+  <updated>2013-12-05T11:17:25+08:00</updated>
   <id>http://imtiger.github.io/</id>
   <author>
     <name><![CDATA[imtiger]]></name>
@@ -12,6 +12,44 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[月薪10k-20k招聘高级Java软件攻城狮]]></title>
+    <link href="http://imtiger.github.io/blog/2013/12/04/java-engineer-recruitment/"/>
+    <updated>2013-12-04T15:29:00+08:00</updated>
+    <id>http://imtiger.github.io/blog/2013/12/04/java-engineer-recruitment</id>
+    <content type="html"><![CDATA[<p><img class="center" src="http://imtiger.github.io/images/2013/09/27/2013-09-27-01.jpg" width="700" height="350"><br/>
+创业快两年，感触颇多，也走过一些弯路，不过总体上还好。随着公司业务的不断扩大，现在需要招聘高级Java软件攻城狮数名，下面简单介绍下：</p>
+
+<p>公司名称: 深圳易居尚网络科技有限公司<br/>
+工作地点: 珠海清华科技园<br/>
+职位名称: 高级Java软件攻城狮<br/>
+月薪:    10k-20k</p>
+
+<p>公司介绍: <br/>
+我们公司<a href="http://www.ejushang.com">易居尚</a>秉承着<code>让品质走进生活的理念</code>，致力于打造一个品质、高效、便捷的居家用品网络销售平台.咋们公司不打卡，弹性工作制，每天下午有公司大厨做的下午茶，攻城狮童鞋每周可以自由支配20%的工作时间做自己想做的事情，我们技术团队内部有很强互助和知识分享意识（包括技术骚们喜欢的爱情动作片，嘘&hellip;，其他人我不告诉他）当然了还有很多美女和帅哥，想置身互联网和电子商务有理想的的技术骚们，请你加入我们 一起high，<strong>我们不求改变世界，但求超越自我</strong>。也请各位朋友帮忙推荐，推荐成功有神秘礼物相送哦，有意者请联系:<a href="&#109;&#x61;&#x69;&#x6c;&#116;&#x6f;&#58;&#116;&#x69;&#x67;&#x65;&#114;&#x2e;&#x7a;&#x68;&#111;&#x75;&#64;&#107;&#x61;&#114;&#105;&#x71;&#117;&#46;&#99;&#111;&#x6d;">&#116;&#x69;&#x67;&#101;&#114;&#46;&#x7a;&#104;&#x6f;&#x75;&#64;&#107;&#97;&#x72;&#105;&#x71;&#117;&#46;&#99;&#111;&#109;</a> 或者留言给我，另外也可以通过<a href="http://weibo.com/xmuzyq">@krq_tiger</a>新浪微博与我取的联系.</p>
+
+<!-- more -->
+
+
+<p>最后附上招聘要求：<br/>
+<strong>岗位职责</strong>：<br/>
+1. 业务需求分析；<br/>
+2. 模块设计；<br/>
+3. 代码编写，测试；<br/>
+4. 技术文档编写；<br/>
+5. 协调其他成员完成项目;</p>
+
+<p><strong>岗位要求</strong>:<br/>
+1. JAVA基础扎实，理解io、多线程、集合等基础框架，对JVM原理有一定的了解；<br/>
+2. 3年及以上使用JAVA开发的经验，对于你用过的开源框架，能了解到它的原理和机制；对Spring,ibatis,struts等开源框架熟悉；<br/>
+3. 熟悉常见的设计模式以及设计原则；<br/>
+4. 熟悉Linux 操作系统以及mysql数据库，对sql优化有一定的经验；<br/>
+5. 喜欢去看及尝试最新的技术，追求编写优雅的代码，从技术趋势和思路上能影响技术团队；<br/>
+6. 学习能力强，适应能力好，具备耐心/细心的品质；<br/>
+7. 3年及以上工作经验。</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Tomcat 设计模式总结(Tomcat源代码阅读系列之八)]]></title>
@@ -6151,44 +6189,6 @@ Host对应源代码中的<code>org.apache.catalina.core.StandardHost</code>,它�
 <a href="http://imtiger.github.io/blog/2013/10/28/tomcat-class-loader/">Tomcat类加载器机制（Tomcat源代码阅读系列之六）</a> <br/>
 <a href="http://imtiger.github.io/blog/2013/11/05/tomcat-session-manage/">Tomcat Session管理机制（Tomcat源代码阅读系列之七）</a> <br/>
 <a href="http://imtiger.github.io/blog/2013/11/08/tomcat-design-pattern/">Tomcat 涉及的设计模式总结（Tomcat源代码阅读系列之八）</a></p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[月薪15k-20k招聘高级Java软件工程师]]></title>
-    <link href="http://imtiger.github.io/blog/2013/09/27/java-engineer-recruitment/"/>
-    <updated>2013-09-27T15:29:00+08:00</updated>
-    <id>http://imtiger.github.io/blog/2013/09/27/java-engineer-recruitment</id>
-    <content type="html"><![CDATA[<p><img class="center" src="http://imtiger.github.io/images/2013/09/27/2013-09-27-01.jpg" width="700" height="350"><br/>
-创业一年多，感触颇多，也走过一些弯路，不过总体上还好。随着公司业务的不断扩大，现在需要招聘高级Java软件攻城狮数名，下面简单介绍下：</p>
-
-<p>公司名称: 深圳易居尚网络科技有限公司<br/>
-工作地点: 深圳宝安区大宝路41号德丰盛大厦 <br/>
-职位名称: 高级Java软件攻城狮<br/>
-月薪:    15k-20k</p>
-
-<p>公司介绍: <br/>
-我们公司<a href="http://www.ejushang.com">易居尚</a>秉承着<code>让品质走进生活的理念</code>，致力于打造一个品质、高效、便捷的居家用品网络销售平台.咋们公司不打卡，弹性工作制，每天下午有公司大厨做的下午茶，攻城狮童鞋每周可以自由支配20%的工作时间做自己想做的事情，我们技术团队内部有很强互助和知识分享意识（包括技术骚们喜欢的爱情动作片，嘘&hellip;，其他人我不告诉他）当然了还有很多美女和帅哥，想置身互联网和电子商务有理想的的技术骚们，请你加入我们 一起high，<strong>我们不求改变世界，但求超越自我</strong>。也请各位朋友帮忙推荐，推荐成功有神秘礼物相送哦，有意者请联系:<a href="&#109;&#97;&#105;&#108;&#x74;&#111;&#58;&#116;&#105;&#x67;&#101;&#114;&#46;&#122;&#104;&#111;&#x75;&#x40;&#x6b;&#x61;&#114;&#x69;&#x71;&#117;&#46;&#x63;&#111;&#x6d;">&#116;&#105;&#x67;&#101;&#114;&#46;&#x7a;&#104;&#111;&#x75;&#64;&#107;&#97;&#114;&#105;&#113;&#117;&#46;&#x63;&#x6f;&#109;</a> 或者留言给我，另外也可以通过<a href="http://weibo.com/xmuzyq">@krq_tiger</a>新浪微博与我取的联系.</p>
-
-<!-- more -->
-
-
-<p>最后附上招聘要求：<br/>
-<strong>岗位职责</strong>：<br/>
-1. 业务需求分析；<br/>
-2. 模块设计；<br/>
-3. 代码编写，测试；<br/>
-4. 技术文档编写；<br/>
-5. 协调其他成员完成项目;</p>
-
-<p><strong>岗位要求</strong>:<br/>
-1. JAVA基础扎实，理解io、多线程、集合等基础框架，对JVM原理有一定的了解；<br/>
-2. 3年及以上使用JAVA开发的经验，对于你用过的开源框架，能了解到它的原理和机制；对Spring,ibatis,struts等开源框架熟悉；<br/>
-3. 熟悉常见的设计模式以及设计原则；<br/>
-4. 熟悉Linux 操作系统以及mysql数据库，对sql优化有一定的经验；<br/>
-5. 喜欢去看及尝试最新的技术，追求编写优雅的代码，从技术趋势和思路上能影响技术团队；<br/>
-6. 学习能力强，适应能力好，具备耐心/细心的品质；<br/>
-7. 四年及以上工作经验。</p>
 ]]></content>
   </entry>
   

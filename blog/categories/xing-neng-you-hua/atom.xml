@@ -4,7 +4,7 @@
   <title><![CDATA[Category: 性能优化 | I'm Tiger,一个有理想爱折腾的程序员!]]></title>
   <link href="http://imtiger.github.io/blog/categories/xing-neng-you-hua/atom.xml" rel="self"/>
   <link href="http://imtiger.github.io/"/>
-  <updated>2013-11-13T16:10:37+08:00</updated>
+  <updated>2013-12-05T11:17:39+08:00</updated>
   <id>http://imtiger.github.io/</id>
   <author>
     <name><![CDATA[imtiger]]></name>
@@ -18,7 +18,7 @@
     <link href="http://imtiger.github.io/blog/2012/08/29/qps-pv-rt/"/>
     <updated>2012-08-29T10:32:00+08:00</updated>
     <id>http://imtiger.github.io/blog/2012/08/29/qps-pv-rt</id>
-    <content type="html"><![CDATA[<p><img class="center" src="/images/2012/08/29/qps-pv-rt.png"></p>
+    <content type="html"><![CDATA[<p>{% img center /images/2012/08/29/qps-pv-rt.png %}</p>
 
 <p>在进行系统性能压测和系统性能优化的时候，会涉及到QPS,PV,RT相关的概念， 本文总结一下QPS,PV,RT之间的关系，放在博客备忘，本文参考了之前在淘宝工作时候的一些资料。</p>
 
