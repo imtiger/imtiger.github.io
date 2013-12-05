@@ -4,7 +4,7 @@
   <title><![CDATA[Category: 技术 | I'm Tiger,一个有理想爱折腾的程序员!]]></title>
   <link href="http://imtiger.github.io/blog/categories/ji-zhu/atom.xml" rel="self"/>
   <link href="http://imtiger.github.io/"/>
-  <updated>2013-12-05T11:17:39+08:00</updated>
+  <updated>2013-12-05T13:11:09+08:00</updated>
   <id>http://imtiger.github.io/</id>
   <author>
     <name><![CDATA[imtiger]]></name>
@@ -18,7 +18,7 @@
     <link href="http://imtiger.github.io/blog/2013/12/04/java-engineer-recruitment/"/>
     <updated>2013-12-04T15:29:00+08:00</updated>
     <id>http://imtiger.github.io/blog/2013/12/04/java-engineer-recruitment</id>
-    <content type="html"><![CDATA[<p>{% img center /images/2013/09/27/2013-09-27-01.jpg 700 350 %}<br/>
+    <content type="html"><![CDATA[<p><img class="center" src="/images/2013/09/27/2013-09-27-01.jpg" width="700" height="350"><br/>
 创业快两年，感触颇多，也走过一些弯路，不过总体上还好。随着公司业务的不断扩大，现在需要招聘高级Java软件攻城狮数名，下面简单介绍下：</p>
 
 <p>公司名称: 深圳易居尚网络科技有限公司<br/>
@@ -27,7 +27,7 @@
 月薪:    10k-20k</p>
 
 <p>公司介绍: <br/>
-我们公司<a href="http://www.ejushang.com">易居尚</a>秉承着<code>让品质走进生活的理念</code>，致力于打造一个品质、高效、便捷的居家用品网络销售平台.咋们公司不打卡，弹性工作制，每天下午有公司大厨做的下午茶，攻城狮童鞋每周可以自由支配20%的工作时间做自己想做的事情，我们技术团队内部有很强互助和知识分享意识（包括技术骚们喜欢的爱情动作片，嘘&hellip;，其他人我不告诉他）当然了还有很多美女和帅哥，想置身互联网和电子商务有理想的的技术骚们，请你加入我们 一起high，<strong>我们不求改变世界，但求超越自我</strong>。也请各位朋友帮忙推荐，推荐成功有神秘礼物相送哦，有意者请联系:<a href="&#109;&#x61;&#x69;&#108;&#x74;&#x6f;&#58;&#x74;&#x69;&#103;&#x65;&#114;&#x2e;&#x7a;&#104;&#x6f;&#117;&#64;&#107;&#x61;&#114;&#105;&#x71;&#x75;&#x2e;&#x63;&#111;&#x6d;">&#x74;&#105;&#x67;&#x65;&#x72;&#46;&#x7a;&#104;&#x6f;&#117;&#64;&#107;&#97;&#x72;&#105;&#x71;&#x75;&#46;&#99;&#x6f;&#109;</a> 或者留言给我，另外也可以通过<a href="http://weibo.com/xmuzyq">@krq_tiger</a>新浪微博与我取的联系.</p>
+我们公司<a href="http://www.ejushang.com">易居尚</a>秉承着<code>让品质走进生活的理念</code>，致力于打造一个品质、高效、便捷的居家用品网络销售平台.咋们公司不打卡，弹性工作制，每天下午有公司大厨做的下午茶，攻城狮童鞋每周可以自由支配20%的工作时间做自己想做的事情，我们技术团队内部有很强互助和知识分享意识（包括技术骚们喜欢的爱情动作片，嘘&hellip;，其他人我不告诉他）当然了还有很多美女和帅哥，想置身互联网和电子商务有理想的的技术骚们，请你加入我们 一起high，<strong>我们不求改变世界，但求超越自我</strong>。也请各位朋友帮忙推荐，推荐成功有神秘礼物相送哦，有意者请联系:<a href="&#x6d;&#97;&#105;&#108;&#116;&#111;&#58;&#x74;&#x69;&#103;&#x65;&#x72;&#x2e;&#122;&#104;&#111;&#x75;&#x40;&#107;&#97;&#114;&#x69;&#x71;&#x75;&#46;&#x63;&#x6f;&#x6d;">&#116;&#x69;&#x67;&#x65;&#114;&#x2e;&#x7a;&#104;&#x6f;&#117;&#x40;&#107;&#97;&#114;&#105;&#x71;&#117;&#46;&#x63;&#x6f;&#x6d;</a> 或者留言给我，另外也可以通过<a href="http://weibo.com/xmuzyq">@krq_tiger</a>新浪微博与我取的联系.</p>
 
 <!-- more -->
 
@@ -56,7 +56,7 @@
     <link href="http://imtiger.github.io/blog/2013/11/08/tomcat-design-pattern/"/>
     <updated>2013-11-08T10:38:00+08:00</updated>
     <id>http://imtiger.github.io/blog/2013/11/08/tomcat-design-pattern</id>
-    <content type="html"><![CDATA[<p>{% img center /images/2013/10/14/apache_tomcat_bag.jpg%}
+    <content type="html"><![CDATA[<p><img class="center" src="/images/2013/10/14/apache_tomcat_bag.jpg">
 本文是<a href="/blog/2013/10/08/tomcat-source-code-study/">Tomcat源代码阅读系列</a>的第八篇文章，本系列前七篇文章如下：<br/>
 <a href="/blog/2013/10/14/run-tomcat-in-idea-or-eclipse/">在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码（Tomcat源代码阅读系列之一）</a>     <br/>
 <a href="/blog/2013/10/16/tomcat-architecture/">Tomcat总体结构                             （Tomcat源代码阅读系列之二）</a>    <br/>
@@ -81,7 +81,7 @@
 <h2>外观模式在Tomcat的应用</h2>
 
 <p>在Tomcat中对于Request,Response,StandardSession,ApplicationContext,StandardWrapper都采用了外观模式，它的类图如下：
-{% img center /images/2013/11/08/tomcat-facade.png %}</p>
+<img class="center" src="/images/2013/11/08/tomcat-facade.png"></p>
 
 <p>通过上图，我们可以看到RequestFacade包装了Request，它们都实现了HttpServletRequest，当传递Request对象给应用的时候，其实是返回了RequestFacade对象，而RequestFacade内部可以根据是否自定义了安全管理器来进行相应的操作。</p>
 
@@ -96,7 +96,7 @@
 <h2>观察者模式在Tomcat的应用</h2>
 
 <p>Tomcat中需要对很多组件进行生命周期管理，为此Tomcat抽象了统一的生命周期管理骨架，通过这个骨架将所有需要进行生命周期管理的类都纳入进来管理，而这里的骨架的类图如下：
-{% img center /images/2013/11/08/tomcat-observer.png %}</p>
+<img class="center" src="/images/2013/11/08/tomcat-observer.png"></p>
 
 <p>通过上图我们可以看出Tomcat抽象了一个LifecycleSupport的类，而所有需要生命周期管理的组件通过LifecycleSupport类通知对某个生命周期事件感兴趣的观察者，而所有的观察者都需要实现LifecycleListener。<br/>
 另外我们需要关注一下EventObject对象，它里面定义了一个事件源对象，所谓事件源就是事件发生的地方，而在Tomcat的设计中，事件源就是实现了LifeCycle接口的各个需要管理生命周期的组件，这里LifecycleSupport和LifeCycleBase之间是双向的关联，LifeCycleSupport关联LifeCycle对象就是为了实现事件源的传递，这样在LifeCycleSupport触发事件的时候，可以通过事件源构建EventObject.这样以来LifecycleListener就可以通过事件对象获取到事件源，从而做一些与事件源相关的操作。</p>
@@ -110,10 +110,10 @@
 <h2>责任链模式在Tomcat的应用</h2>
 
 <p>Tomcat中请求的处理流程其实就是采用了责任链模式，关于Tomcat请求处理，大家可以参考下<a href="/blog/2013/10/24/tomcat-request-process/">Tomcat请求处理流程（Tomcat源代码阅读系列之五）</a>,Tomcat中责任链模式的实现的类图如下图所示：
-{% img center /images/2013/11/08/tomcat-chain-of-responsiblity.png %}</p>
+<img class="center" src="/images/2013/11/08/tomcat-chain-of-responsiblity.png"></p>
 
 <p>从上图中，我们可以看到每一个容器都会有一个Pipeline，而一个Pipeline又会具有多个Valve阀门，其中StandardEngine对应的阀门是StandardEngineValve，StandardHost对应的阀门是StandardHostValve，StandardContext对应的阀门是StandardContextValve，StandardWrapper对应的阀门是StandardWrapperValve。这里每一Pipeline就好比一个管道，而每一Valve就相当于一个阀门，一个管道可以有多个阀门，而对于阀门来说有两种，一种阀门在处理完自己的事情以后，只需要将工作委托给下一个和自己在同一管道的阀门即可，第二种阀门是负责衔接各个管道的，它负责将请求传递给下个管道的第一个阀门处理，而这种阀门叫Basic阀门，它是每个管道中最后一个阀门，上面的Standard*Valve都属于第二种阀门。我们可以形象的通过下图来描述上面的过程:
-{% img center /images/2013/11/08/tomcat-pipeline.png %}</p>
+<img class="center" src="/images/2013/11/08/tomcat-pipeline.png"></p>
 
 <p>通过上图，我们可以很清楚的了解到Tomcat的请求处理流程。当用户请求服务器的时候，Connector会接受请求，从Socket连接中根据http协议解析出对应的数据，构造Request和Response对象，然后传递给后面的容器处理，顶层容器是StandardEngine，StandardEngine处理请求其实是通过容器的Pipeline进行的，而Pipeline其实最终是通过管道上的各个阀门进行的，当请求到达StandardEngineValve的时候，此阀门会将请求转发给对应StandardHost的Pipeline的第一个阀门处理，然后以此最终到达StandardHostValve阀门，它又会将请求转发给StandardContext的Pipeline的第一个阀门，这样以此类推，最后到达StandardWrapperValve，此阀门会根据Request来构建对应的Servelt，并将请求转发给对应的HttpServlet处理。从这里我们可以看出其实Tomcat核心处理流程就是通过责任链一步步的组装起来的。</p>
 
@@ -126,7 +126,7 @@
 <h2>模板方法模式在Tomcat的应用</h2>
 
 <p>Tomcat中关于生命周期管理的地方很好应用了模板方法模式，在一个组件的生命周期中都会涉及到init(初始化)，start（启动），stop(停止)，destory（销毁），而对于每一个生命周期阶段其实都有固定一些事情要做，比如判断前置状态，设置后置状态，以及通知状态变更事件的监听者等，而这些工作其实是可以固化的，所以Tomcat中就将每个生命周期阶段公共的部分固化，然后通过initInternal,startInternal,stopInternal,destoryInternal这几个钩子方法开放给子类去实现具体的逻辑。Tomcat中关于模板方法模式的实现如下图所示：
-{% img center /images/2013/10/17/LifeCycleBase.png %}</p>
+<img class="center" src="/images/2013/10/17/LifeCycleBase.png"></p>
 
 <h1>命令模式</h1>
 
@@ -139,11 +139,11 @@
 <h2>命令模式在Tomcat的应用</h2>
 
 <p>命令模式在Tomcat中主要是应用在对请求的处理过程中，Tomcat的实现中，根据它支持两种协议AJP和Http,而在具体的IO实现中，又分为Java同步阻赛IO,Java同步非祖塞IO，以及采用APR<a href="http://tomcat.apache.org/tomcat-7.0-doc/apr.html">Apache Portable Runtime </a>支持库,因此Tomcat统一了<code>org.apache.coyote.Processor</code>接口，根据协议和IO实现的不同通过不同的Process子类去实现，Connector作为客户端每次只需要根据具体的协议和IO实现创建对应的Process执行即可。下面我们来看一下命令模式在Tomcat中实现的相关类图:
-{% img center /images/2013/11/08/tomcat-command-pattern.png %}</p>
+<img class="center" src="/images/2013/11/08/tomcat-command-pattern.png"></p>
 
 <p>通过上图我们可以清楚的看到，Tomcat首先根据协议的不同将Processor分为了Ajp和Http两组，然后又根据具体的IO实现方式的不同，将每一组都会实现同步祖塞IO,同步非祖塞IO，以及APR的Processor。
 接下来我们再来看一个类图，我们就可以更加清楚的看到Tomcat中是如何利用命令模式来根据不同的协议以及IO实现方式来处理请求的。我们来看一下Tomcat中关于ProtocolHandler的类图。
-{% img center /images/2013/11/08/tomcat-protocol.png %}</p>
+<img class="center" src="/images/2013/11/08/tomcat-protocol.png"></p>
 
 <p>通过上图我们可以看到针对每一种协议和IO实现方式的组合，都会有相应的协议处理类，而每个协议处理类都会有一个Handler，而每一个Handler在运行的时候就会创建出对应的Processor，比如AjpProtocol.AjpConnectionHandler创建AjpProcessor处理器，其它的类似。</p>
 
@@ -157,7 +157,7 @@ Connector通过对应的Endpint监听Socket连接，当对应的端口有连接�
     <link href="http://imtiger.github.io/blog/2013/11/05/tomcat-session-manage/"/>
     <updated>2013-11-05T15:39:00+08:00</updated>
     <id>http://imtiger.github.io/blog/2013/11/05/tomcat-session-manage</id>
-    <content type="html"><![CDATA[<p>{% img center /images/2013/10/14/apache_tomcat_bag.jpg%}
+    <content type="html"><![CDATA[<p><img class="center" src="/images/2013/10/14/apache_tomcat_bag.jpg">
 本文是<a href="/blog/2013/10/08/tomcat-source-code-study/">Tomcat源代码阅读系列</a>的第七篇文章，本系列前六篇文章如下：  <br/>
 <a href="/blog/2013/10/14/run-tomcat-in-idea-or-eclipse/">在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码（Tomcat源代码阅读系列之一）</a>   <br/>
 <a href="/blog/2013/10/16/tomcat-architecture/">Tomcat总体结构                             （Tomcat源代码阅读系列之二）</a>  <br/>
@@ -172,7 +172,7 @@ Connector通过对应的Endpint监听Socket连接，当对应的端口有连接�
 
 
 <p>在开始之前，我们先来看一下总体上的结构，熟悉了总体结构以后，我们在一步步的去分析源代码。Tomcat session相光的类图如下：
-{% img center /images/2013/11/06/tomcat-session.jpg %}
+<img class="center" src="/images/2013/11/06/tomcat-session.jpg">
 通过上图，我们可以看出每一个StandardContext会关联一个Manager,默认情况下Manager的实现类是StandardManager，而StandardManager内部会聚合多个Session，其中StandardSession是Session的默认实现类，当我们调用Request.getSession的时候，Tomcat通过StandardSessionFacade这个外观类将StandardSession包装以后返回。</p>
 
 <p>上面清楚了总体的结构以后，我们来进一步的通过源代码来分析一下。咋们首先从Request的getSession方法看起。
@@ -534,7 +534,7 @@ synchronized (this) {
     <link href="http://imtiger.github.io/blog/2013/10/28/tomcat-class-loader/"/>
     <updated>2013-10-28T14:06:00+08:00</updated>
     <id>http://imtiger.github.io/blog/2013/10/28/tomcat-class-loader</id>
-    <content type="html"><![CDATA[<p>{% img center /images/2013/10/14/apache_tomcat_bag.jpg%}
+    <content type="html"><![CDATA[<p><img class="center" src="/images/2013/10/14/apache_tomcat_bag.jpg">
 本文是<a href="/blog/2013/10/08/tomcat-source-code-study/">Tomcat源代码阅读系列</a>的第六篇文章，本系列前五篇文章如下：  <br/>
 <a href="/blog/2013/10/14/run-tomcat-in-idea-or-eclipse/">在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码（Tomcat源代码阅读系列之一）</a>   <br/>
 <a href="/blog/2013/10/16/tomcat-architecture/">Tomcat总体结构                             （Tomcat源代码阅读系列之二）</a>  <br/>
@@ -698,7 +698,7 @@ return classLoader;
 
 <p>代码阅读到这里，我们已经基本清楚了Tomcat中ClassLoader的总体结构，总结如下：
 在Tomcat存在common,cataina,shared三个公共的classloader,默认情况下，这三个classloader其实是同一个，都是common classloader,而针对每个webapp，也就是context（对应代码中的StandardContext类），都有自己的WebappClassLoader来加载每个应用自己的类。上面的描述，我们可以通过下图形象化的描述：
-{% img center /images/2013/10/30/tomcat-classloader.png %}</p>
+<img class="center" src="/images/2013/10/30/tomcat-classloader.png"></p>
 
 <p>清楚了Tomcat总体的ClassLoader结构以后，咋们就来进一步来分析一下WebAppClassLoader的代码，我们知道Java的ClassLoader机制有parent-first的机制，而这种机制是在loadClass方法保证的，一般情况下，我们只需要重写findClass方法就好了，而对于WebAppClassLoader，通过查看源代码，我们发现loadClass和findClass方法都进行了重写，那么我们首先就来看看它的loadClass方法,它的代码如下：
 ```java org.apache.catalina.loader.WebappClassLoader#loadClass
@@ -927,14 +927,14 @@ return clazz;
     <link href="http://imtiger.github.io/blog/2013/10/24/tomcat-request-process/"/>
     <updated>2013-10-24T09:54:00+08:00</updated>
     <id>http://imtiger.github.io/blog/2013/10/24/tomcat-request-process</id>
-    <content type="html"><![CDATA[<p>{% img center /images/2013/10/14/apache_tomcat_bag.jpg%}
+    <content type="html"><![CDATA[<p><img class="center" src="/images/2013/10/14/apache_tomcat_bag.jpg">
 本文是<a href="/blog/2013/10/08/tomcat-source-code-study/">Tomcat源代码阅读系列</a>的第五篇文章，本系列前四篇文章如下：<br/>
 <a href="/blog/2013/10/14/run-tomcat-in-idea-or-eclipse/">在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码（Tomcat源代码阅读系列之一）</a> <br/>
 <a href="/blog/2013/10/16/tomcat-architecture/">Tomcat总体结构                             （Tomcat源代码阅读系列之二）</a><br/>
 <a href="/blog/2013/10/17/tomcat-start-process/">Tomcat启动过程（Tomcat源代码阅读系列之三）</a><br/>
 <a href="/blog/2013/10/21/tomcat-shutdown/">Tomcat关闭过程（Tomcat源代码阅读系列之四）</a></p>
 
-<p>{% img center /images/2013/11/08/tomcat-pipeline.png %}
+<p><img class="center" src="/images/2013/11/08/tomcat-pipeline.png">
 前面已经分析完了Tomcat的启动和关闭过程，本篇就来接着分析一下Tomcat中请求的处理过程。</p>
 
 <!-- more -->
