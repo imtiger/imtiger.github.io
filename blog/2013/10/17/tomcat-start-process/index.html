@@ -1819,7 +1819,7 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>上面的截图我已经取消了JVM自己本生的线程，从上图中我们可以清楚的看到，有6条线程，其中<code>ajp-bio-8009-AsyncTimeout</code>和<code>ajp-bio-8009-Acceptor-0</code>是在Ajp的Connector启动的时候启动的，<code>http-bio-8080-AsyncTimeout</code>和<code>http-bio-8080-Acceptor-0</code>是http的Connector启动的时候启动的，<code>ContainerBackgroundProcessor[StandardEngine[Catalina]]</code>是在StandardEngine启动的时候启动的，而main线程就是我们的主线程。这里还需要注意一点就是除了Main线程以外，其它的线程都是Dameon线程，相关的内容在下篇<a href="">Tomcat的关闭</a>我们再来详细说明。</p>
+<p>上面的截图我已经取消了JVM自己本生的线程，从上图中我们可以清楚的看到，有6条线程，其中<code>ajp-bio-8009-AsyncTimeout</code>和<code>ajp-bio-8009-Acceptor-0</code>是在Ajp的Connector启动的时候启动的，<code>http-bio-8080-AsyncTimeout</code>和<code>http-bio-8080-Acceptor-0</code>是http的Connector启动的时候启动的，<code>ContainerBackgroundProcessor[StandardEngine[Catalina]]</code>是在StandardEngine启动的时候启动的，而main线程就是我们的主线程。这里还需要注意一点就是除了Main线程以外，其它的线程都是Dameon线程，相关的内容在下篇<a href="/blog/2013/10/21/tomcat-shutdown/">Tomcat的关闭</a>我们再来详细说明。</p>
 </div>
 
 
