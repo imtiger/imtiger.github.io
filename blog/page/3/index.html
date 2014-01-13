@@ -9,7 +9,7 @@
 	<meta name="author" content="imtiger">
 
 	
-	<meta name="description" content="Jul 7th, 2011 Web开发, 技术, 缓存 Web开发之Http Cache 在如今的 web 系统中， cache 应该是每个 web 系统架构师或者开发人员必须要掌握的技能。而 cache 在 web 的世界中一般分为客户端 cache( 当然有些人也叫它浏览器 cache) &hellip;">
+	<meta name="description" content="Oct 17th, 2011 JavaScript, 技术 JavaScript 作用域和作用域链解析 最近看了下JavaScript方面的几本书，把里面的一些核心概念按照自己的理解做个总结。 JavaScript 中有 Scope( 作用域 ) ， Scope chain( 作用域链 ) ， &hellip;">
 	<meta name="keywords" content="java,ios,mac,linux,objective-c,软件设计,软件架构,摄影,imtiger.">
 
   <!-- http://t.co/dKP3o1e -->
@@ -92,6 +92,58 @@
 			<div class="mid-col-container">
 				<div id="content" class="inner">
 <div itemscope itemtype="http://schema.org/Blog">
+
+
+    <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
+	<div class="meta">
+		<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-10-17T18:26:00+08:00" data-updated="true" itemprop="datePublished">Oct 17<span>th</span>, 2011</time></div>
+		<div class="tags">
+
+
+	<a class='category' href='/blog/categories/javascript/'>JavaScript</a>, <a class='category' href='/blog/categories/ji-zhu/'>技术</a>
+
+
+</div>
+		
+	</div>
+	<h1 class="title" itemprop="name"><a href="/blog/2011/10/17/javascript-scope-and-scope-chain-explain/" itemprop="url">JavaScript 作用域和作用域链解析</a></h1>
+	<div class="entry-content" itemprop="articleBody">
+		<p><img class="center" src="/images/2011/10/17/JavaScript-Logo.png">
+最近看了下JavaScript方面的几本书，把里面的一些核心概念按照自己的理解做个总结。</p>
+
+<p>JavaScript 中有 Scope( 作用域 ) ， Scope chain( 作用域链 ) ， Execute context( 执行上下文 ) ， Active Object ( 活动对象 ),Dynamic Scope( 动态作用域 ) ， Closure( 闭包 ) 这些概念，要理解这些概念，我们从静态和动态两个方面去分析一下。</p>
+
+<p>首先我们写一个简单的 function 来做一个例子：</p>
+
+<figure class='code'><figcaption><span>JavaScript code</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">function</span> <span class="nx">add</span><span class="p">(</span><span class="nx">num1</span><span class="p">,</span> <span class="nx">num2</span><span class="p">){</span>
+</span><span class='line'>  <span class="kd">var</span> <span class="nx">sum</span> <span class="o">=</span> <span class="nx">num1</span> <span class="o">+</span> <span class="nx">num2</span><span class="p">;</span>
+</span><span class='line'>  <span class="k">return</span> <span class="nx">sum</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+		
+		<a href="/blog/2011/10/17/javascript-scope-and-scope-chain-explain/" class="more-link">Read on(阅读全文) &rarr;</a>
+	</div>
+
+</article>
 
 
     <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
@@ -464,7 +516,7 @@ Java虚拟机规范规定JVM的内存分为了好几块，比如堆，栈，程�
 			<footer id="footer" class="inner"><p>
 </a>本站点采用<a href="http://creativecommons.org/licenses/by-nc/3.0/deed.zh" rel="license">知识共享署名-非商业性使用 3.0 国际版本许可协议</a>进行许可
 </p>
-Copyright &copy; 2013
+Copyright &copy; 2014
 
     imtiger
 

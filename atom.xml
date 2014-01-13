@@ -4,7 +4,7 @@
   <title><![CDATA[I'm Tiger,一个有理想爱折腾的程序员!]]></title>
   <link href="http://imtiger.github.io/atom.xml" rel="self"/>
   <link href="http://imtiger.github.io/"/>
-  <updated>2013-12-06T11:07:41+08:00</updated>
+  <updated>2014-01-13T15:24:35+08:00</updated>
   <id>http://imtiger.github.io/</id>
   <author>
     <name><![CDATA[imtiger]]></name>
@@ -12,6 +12,57 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[2013年创业回顾与总结]]></title>
+    <link href="http://imtiger.github.io/blog/2014/01/07/2013-summary/"/>
+    <updated>2014-01-07T15:22:00+08:00</updated>
+    <id>http://imtiger.github.io/blog/2014/01/07/2013-summary</id>
+    <content type="html"><![CDATA[<p><img class="center" src="http://imtiger.github.io/images/2014/01/goodbye-2013.png">
+2013年已经过去了，做个简短的总结吧。</p>
+
+<h2>公司方面</h2>
+
+<p>公司2012年走了很多弯路，交了挺多学费，经过2012年的学习和经验，2013年公司业务有了飞速的发展，2013年业务增长了200多倍。公司从刚开始的代运营，到后来的渠道品牌，再到年底确定的云供应链模式的一次次转变和升级，每一次调整都有对过去经验的总结以及对未来趋势的掌握，总体上来说是按照正确的方向在奔跑。</p>
+
+<p>创业的时候，多想想当时打工时候的心态，打工的时候，每次过年春节，咋们都希望早点放假，多点假期，所以在自己创业的时候，也多这样想一想，今年咋们公司1月22号放假，初七上班，放假15天，很多伙伴都很开心。关键的是，我们想想，临过年一个月的时候，很多人其实都是工作效率低下，其实也不会给公司带来什么效益，所以其实春节多放点假对公司和伙伴都是双赢的。换位思考，多站在对方的角度考虑问题，这种话大多数人都会说，但是真正能做到的人多吗？换位思考，从自己做起。</p>
+
+<!-- more -->
+
+
+<h2>技术以及管理方面</h2>
+
+<p>自学了Ios开发，开源了<a href="http://imtiger.github.io/blog/2013/09/03/happyenglish-ios-app/">美剧英语每日一句ios app</a>,在学习ios开发的过程中，也认识了不少做ios开发的朋友，更重要的是通过学习ios开发可以让我对移动互联网的开发有一个新的认识，拓宽一下自己的知识面。</p>
+
+<p>阅读了<a href="">数学之美</a>让自己重新感受了下数学的魅力，也深刻的为中国的大学教育感到悲哀，其实数学是挺有趣的，只不过大学把数学教的很晦涩，很无趣。</p>
+
+<p>阅读了Tomcat7源代码，并写了读书笔记<a href="http://imtiger.github.io/blog/2013/10/08/tomcat-source-code-study/">Tomcat7源代码阅读系列</a>，通过阅读Tomcat源代码，对其工作原理有了更深的理解。并且也意识到系统架构和设计的时候，过度设计的危害，总体上来说，我个人觉得tomcat还是过度设计了。</p>
+
+<p>管理方面，越来越能理解:<code>一个优秀的管理者，通过成就别人来成就自己</code>这句话。作为一个团队的管理者，你没有必要事必躬亲，要懂得适当放权。对于有能力的人足够的空间让其发挥其应有的能力，对于能力不够的伙伴，要通过内部培训，技术分享，代码review等措施让其在技术方面有对应的成长。当事情出现问题的时候，管理者要勇敢的站出来承担责任，当事取的好成绩时候，不要觉得成绩是自己的，成绩其实是属于团队每个人的，要懂得让团队成员有成就感和归属感。只有团队伙伴有了成就感，他们觉得他们做的事情有意义，那么团队才有战斗力和执行力。</p>
+
+<h2>个人家庭方面</h2>
+
+<p>2013.01.04,终于结束了长达6年的恋情，和自己认识6年的大学女友结婚了，在认识的6年里，真正在一起的时间也就只有2年，毕业以后，大家一直分居两地，非常感谢她对我事业的支持。</p>
+
+<p>2013.6和8月分别在老婆老家和自己老家举办了婚礼，办完了人生中的一件大事。</p>
+
+<p>最后，目前老婆已经怀孕5个月，今年5月份小孩就要出生了，马上就要步入当爹的生活了，不知道会是什么样子？拭目以待吧。</p>
+
+<h2>2014年目标</h2>
+
+<ol>
+<li>英语口语 <br/>
+个人在英语口语方面一直比较弱一点，今年计划在这方面有所提升。</li>
+<li>技术方面
+适当参加一些技术方面的会议，一方面扩充自己的视野，一方面认识更多的技术方面的朋友，多交流，才能进步。</li>
+<li>公司方面 <br/>
+公司确定了2014年云供应链模式的新的起点，加油。</li>
+<li>健身 <br/>
+身体是革命的本钱，今年要加强体育锻炼，年底的时候要有6块腹肌。</li>
+</ol>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[月薪10k-20k招聘高级Java软件攻城狮]]></title>
@@ -27,7 +78,7 @@
 月薪:    10k-20k</p>
 
 <p>公司介绍: <br/>
-我们公司<a href="http://www.ejushang.com">易居尚</a>秉承着<code>让品质走进生活的理念</code>，致力于打造一个品质、高效、便捷的居家用品网络销售平台.咋们公司不打卡，弹性工作制，每天下午有公司大厨做的下午茶，攻城狮童鞋每周可以自由支配20%的工作时间做自己想做的事情，我们技术团队内部有很强互助和知识分享意识（包括技术骚们喜欢的爱情动作片，嘘&hellip;，其他人我不告诉他）当然了还有很多美女和帅哥，想置身互联网和电子商务有理想的的技术骚们，请你加入我们 一起high，<strong>我们不求改变世界，但求超越自我</strong>。也请各位朋友帮忙推荐，推荐成功有神秘礼物相送哦，有意者请联系:<a href="&#x6d;&#x61;&#x69;&#108;&#x74;&#x6f;&#58;&#x74;&#x69;&#x67;&#101;&#114;&#x2e;&#x7a;&#x68;&#111;&#117;&#x40;&#107;&#97;&#114;&#x69;&#x71;&#x75;&#x2e;&#99;&#x6f;&#x6d;">&#x74;&#105;&#x67;&#101;&#x72;&#46;&#122;&#104;&#111;&#x75;&#x40;&#x6b;&#97;&#x72;&#x69;&#x71;&#x75;&#46;&#x63;&#x6f;&#x6d;</a> 或者留言给我，另外也可以通过<a href="http://weibo.com/xmuzyq">@krq_tiger</a>新浪微博与我取的联系.</p>
+我们公司<a href="http://www.ejushang.com">易居尚</a>秉承着<code>让品质走进生活的理念</code>，致力于打造一个品质、高效、便捷的居家用品网络销售平台.咋们公司不打卡，弹性工作制，每天下午有公司大厨做的下午茶，攻城狮童鞋每周可以自由支配20%的工作时间做自己想做的事情，我们技术团队内部有很强互助和知识分享意识（包括技术骚们喜欢的爱情动作片，嘘&hellip;，其他人我不告诉他）当然了还有很多美女和帅哥，想置身互联网和电子商务有理想的的技术骚们，请你加入我们 一起high，<strong>我们不求改变世界，但求超越自我</strong>。也请各位朋友帮忙推荐，推荐成功有神秘礼物相送哦，有意者请联系:<a href="&#x6d;&#97;&#105;&#108;&#x74;&#111;&#58;&#x74;&#105;&#103;&#101;&#114;&#x2e;&#x7a;&#x68;&#111;&#x75;&#x40;&#107;&#x61;&#x72;&#x69;&#x71;&#117;&#46;&#x63;&#111;&#x6d;">&#116;&#x69;&#103;&#x65;&#114;&#46;&#x7a;&#x68;&#111;&#117;&#64;&#x6b;&#97;&#x72;&#x69;&#113;&#117;&#46;&#99;&#111;&#109;</a> 或者留言给我，另外也可以通过<a href="http://weibo.com/xmuzyq">@krq_tiger</a>新浪微博与我取的联系.</p>
 
 <!-- more -->
 
@@ -7181,136 +7232,6 @@ SessionFilter的核心代码如下：</p>
 <p>SessionHolder抽象了Session保存的接口，具体实现可以有好多种，比如你可以选择把session信息保存到cookie中，也可以将其保存到缓存中，甚至你可以将其保存到文件系统中。我自己写的session框架，根据前面的讨论，提供了两种存储方式，CookieHolder和CacheHolder分别对应客户端存储和服务器端缓存存储。在CookieHolder中要涉及到对cookie的解析，保存以及加密等操作，而CacheHolder涉及到从分布式缓存中查询到Session的信息以及同步session信息到缓存等一系列操作，具体代码我就贴了。</p>
 
 <p>上面就是写一个Session框架大体的思路，对此有兴趣的同学可以一起讨论一下。</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[JavaScript 作用域和作用域链解析]]></title>
-    <link href="http://imtiger.github.io/blog/2011/10/17/javascript-scope-and-scope-chain-explain/"/>
-    <updated>2011-10-17T18:26:00+08:00</updated>
-    <id>http://imtiger.github.io/blog/2011/10/17/javascript-scope-and-scope-chain-explain</id>
-    <content type="html"><![CDATA[<p><img class="center" src="http://imtiger.github.io/images/2011/10/17/JavaScript-Logo.png">
-最近看了下JavaScript方面的几本书，把里面的一些核心概念按照自己的理解做个总结。</p>
-
-<p>JavaScript 中有 Scope( 作用域 ) ， Scope chain( 作用域链 ) ， Execute context( 执行上下文 ) ， Active Object ( 活动对象 ),Dynamic Scope( 动态作用域 ) ， Closure( 闭包 ) 这些概念，要理解这些概念，我们从静态和动态两个方面去分析一下。</p>
-
-<p>首先我们写一个简单的 function 来做一个例子：</p>
-
-<figure class='code'><figcaption><span>JavaScript code</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">function</span> <span class="nx">add</span><span class="p">(</span><span class="nx">num1</span><span class="p">,</span> <span class="nx">num2</span><span class="p">){</span>
-</span><span class='line'>  <span class="kd">var</span> <span class="nx">sum</span> <span class="o">=</span> <span class="nx">num1</span> <span class="o">+</span> <span class="nx">num2</span><span class="p">;</span>
-</span><span class='line'>  <span class="k">return</span> <span class="nx">sum</span><span class="p">;</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<!-- more -->
-
-
-<p>我们定义了一个具有两个形参的 add 函数。</p>
-
-<p><strong>静态方面：</strong></p>
-
-<p>当创建 add 函数的时候， Javascript 引擎会创建 add 函数的 <code>Scope chain</code>, 这个作用域链指向了 <code>Global Context( 全局上下文 )</code> 。如果用图形形象化的表述如下图所示：</p>
-
-<p><img class="center" src="http://imtiger.github.io/images/2011/10/17/add-method.jpg"></p>
-
-<p>从上图可以看出，当 add 函数创建的时候，作用域链就已经创建了，因此可以得出一个结论:</p>
-
-<blockquote><p>函数的作用域链是创建函数的时候就已经创建了，而不是动态运行期。</p></blockquote>
-
-<p>下面就来看看动态运行期的时候会发生什么事情。</p>
-
-<p><strong>动态方面：</strong></p>
-
-<p>当执行 add 函数的时候， JavaScript 会创建一个 <code>Execute context （执行上下文）</code>，执行上下文中就包含了 add 函数运行期所需要的所有信息。 Execute context 也有自己的 Scope chain, 当函数运行的时候， JavaScript 引擎会首先从用 add 函数的作用域链来初始化执行上下文的作用域链，然后 JavaScript 引擎又会创建一个 Active Object, 这个对象里面包含了函数运行期的所有局部变量，参数以及 this 等变量。</p>
-
-<p>如果形象的描述 add 函数动态运行期会发生什么，可以用如下图来描述：
-<img class="center" src="http://imtiger.github.io/images/2011/10/17/add-method-runtime.jpg"></p>
-
-<p>从上图可以看出，执行上下文是一个动态的概念，它是当函数运行的时候创建的，同时 Active Object 对象也是一个动态的概念，它是被执行上下文的作用域链引用的。因此可以得出一个结论：</p>
-
-<blockquote><p>执行上下文和活动对象都是动态概念，并且执行上下文的作用域链是由函数作用域链初始化的。</p></blockquote>
-
-<p>上面说了函数作用域和执行上下文作用域，下面接着说一下动态作用域的问题.<br/>
-当在 JavaScript 通过 with 语句， try-catch 的 catch 子句，以及 eval 方法的时候， JavaScript 引擎就会动态的改变执行上下文的作用域。下面还是通过一个例子来看看：</p>
-
-<figure class='code'><figcaption><span>JavaScript Code</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">function</span> <span class="nx">initUI</span><span class="p">(){</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="kd">with</span> <span class="p">(</span><span class="nb">document</span><span class="p">){</span> <span class="c1">//avoid!</span>
-</span><span class='line'>      <span class="kd">var</span> <span class="nx">bd</span> <span class="o">=</span> <span class="nx">body</span><span class="p">,</span>
-</span><span class='line'>      <span class="nx">links</span> <span class="o">=</span> <span class="nx">getElementsByTagName</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">),</span>
-</span><span class='line'>      <span class="nx">i</span><span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
-</span><span class='line'>      <span class="nx">len</span> <span class="o">=</span> <span class="nx">links</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span>
-</span><span class='line'>      <span class="k">while</span><span class="p">(</span><span class="nx">i</span> <span class="o">&lt;</span> <span class="nx">len</span><span class="p">){</span>
-</span><span class='line'>      <span class="nx">update</span><span class="p">(</span><span class="nx">links</span><span class="p">[</span><span class="nx">i</span><span class="o">++</span><span class="p">]);</span>
-</span><span class='line'>  <span class="p">}</span>
-</span><span class='line'>  
-</span><span class='line'>  <span class="nx">getElementById</span><span class="p">(</span><span class="s2">&quot;go-btn&quot;</span><span class="p">).</span><span class="nx">onclick</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(){</span>
-</span><span class='line'>      <span class="nx">start</span><span class="p">();</span>
-</span><span class='line'>  <span class="p">};</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="nx">bd</span><span class="p">.</span><span class="nx">className</span> <span class="o">=</span> <span class="s2">&quot;active&quot;</span><span class="p">;</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>当执行上面的 initUI 函数的时候， JavaScript 会动态的创建一个 with 语句对应的作用域放到执行上下文作用域链的最前端，通过下图可以形象的描述上述过程，下图红色标注的区域就显示了 with 语句产生的作用域。
-<img class="center" src="http://imtiger.github.io/images/2011/10/17/initui-method.jpg"></p>
-
-<p>最后，我们来看看 JavaScript 最神秘的 Closure （闭包），闭包在 JavaScript 其实就是一个函数，闭包是在函数运行期被创建的，下面还是以一个实例来看看：</p>
-
-<figure class='code'><figcaption><span>JavaScript Code</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">function</span> <span class="nx">assignEvents</span><span class="p">(){</span>
-</span><span class='line'>  <span class="kd">var</span> <span class="nx">id</span> <span class="o">=</span> <span class="s2">&quot;xdi9592&quot;</span><span class="p">;</span>
-</span><span class='line'>  <span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s2">&quot;save-btn&quot;</span><span class="p">).</span><span class="nx">onclick</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">event</span><span class="p">){</span>
-</span><span class='line'>      <span class="nx">saveDocument</span><span class="p">(</span><span class="nx">id</span><span class="p">);</span>
-</span><span class='line'>  <span class="p">};</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>当上面的 assignEvents 函数被执行的时候，会创建一个闭包，而这个闭包会引用 assignEvents 作用域中的 id 变量，如果按照传统的编程语言的方式， id 是存储在堆栈上的一个变量，当函数执行完了以后 id 就消失，那么怎么可能再次引用呢？显然这里 JavaScript 采用了另外的方式。<br/>
-下面就来看看 JavaScript 是如何来实现闭包的。当执行 assignEvents 函数的时候， JavaScript 引擎会创建assignEvents函数执行上下文的作用域链，这个作用域链包含了 assignEvents 执行时的活动对象，而同时 JavaScript 引擎也会创建一个闭包，而闭包的作用域链也会引用 assignEvent 执行时候的活动对象，这样当 assignEvents 执行完的时候，虽然它本身执行上下文的作用域链不再引用活动对象了，但是闭包还是引用着 assignEvents 运行期对应的活动对象，这就解释了 JavaScipt 内部的闭包机制。可以用下图形象的表述上面 assignEvents 函数运行期的情形：
-<img class="center" src="http://imtiger.github.io/images/2011/10/17/assignevents-method.jpg"></p>
-
-<p>从上面可以看出，当 assignEvents 函数执行完毕以后， document.getElementById(&ldquo;save-btn&rdquo;).onclick 引用了闭包，这样当用户点击 save-btn 的时候，就会触发闭包的执行，那么下面就来看看闭包执行时的情形。前面也说了 JavaScript 中闭包其实就是函数，因此闭包执行和函数执行时的情形是一致的，通过下图来形象的描述上述 onclick 事件所关联的闭包。
-<img class="center" src="http://imtiger.github.io/images/2011/10/17/closure-runtime.jpg"></p>
-
-<p>从上图可以看出 JavaScript 引擎首先创建了闭包的执行上下文，然后用闭包作用域链来初始化闭包的执行上下文作用域链，最后再将闭包执行时对应的活动对象放入到作用域的最前端，这也进一步验证了闭包就是函数的论断。</p>
-
-<p>参考资料：</p>
-
-<ol>
-<li><a href="http://book.douban.com/subject/5362856/">High Performance JavaScript</a></li>
-<li><a href="http://book.douban.com/subject/4886879/">JavaScript高级程序设计</a></li>
-</ol>
-
 ]]></content>
   </entry>
   
