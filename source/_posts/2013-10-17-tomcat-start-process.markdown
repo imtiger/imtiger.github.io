@@ -944,4 +944,4 @@ Full thread dump Java HotSpot(TM) 64-Bit Server VM (20.51-b01-457 mixed mode):
         at com.intellij.rt.execution.application.AppMain.main(AppMain.java:120)
 ```
 
-上面的截图我已经取消了JVM自己本生的线程，从上图中我们可以清楚的看到，有6条线程，其中`ajp-bio-8009-AsyncTimeout`和`ajp-bio-8009-Acceptor-0`是在Ajp的Connector启动的时候启动的，`http-bio-8080-AsyncTimeout`和`http-bio-8080-Acceptor-0`是http的Connector启动的时候启动的，`ContainerBackgroundProcessor[StandardEngine[Catalina]]`是在StandardEngine启动的时候启动的，而main线程就是我们的主线程。这里还需要注意一点就是除了Main线程以外，其它的线程都是Dameon线程，相关的内容在下篇[Tomcat的关闭]()我们再来详细说明。
+上面的截图我已经取消了JVM自己本生的线程，从上图中我们可以清楚的看到，有6条线程，其中`ajp-bio-8009-AsyncTimeout`和`ajp-bio-8009-Acceptor-0`是在Ajp的Connector启动的时候启动的，`http-bio-8080-AsyncTimeout`和`http-bio-8080-Acceptor-0`是http的Connector启动的时候启动的，`ContainerBackgroundProcessor[StandardEngine[Catalina]]`是在StandardEngine启动的时候启动的，而main线程就是我们的主线程。这里还需要注意一点就是除了Main线程以外，其它的线程都是Dameon线程，相关的内容在下篇[Tomcat的关闭](/blog/2013/10/21/tomcat-shutdown/)我们再来详细说明。

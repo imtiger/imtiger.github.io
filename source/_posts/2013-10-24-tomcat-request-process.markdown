@@ -13,12 +13,13 @@ categories:
 本文是[Tomcat源代码阅读系列](/blog/2013/10/08/tomcat-source-code-study/)的第五篇文章，本系列前四篇文章如下：  
 [在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码（Tomcat源代码阅读系列之一）](/blog/2013/10/14/run-tomcat-in-idea-or-eclipse/)   
 [Tomcat总体结构                             （Tomcat源代码阅读系列之二）](/blog/2013/10/16/tomcat-architecture/)  
-[Tomcat启动过程（Tomcat源代码阅读系列之三）](/blog/2013/10/17/tomcat-start-process/)
-[Tomcat关闭过程（Tomcat源代码阅读系列之四）](/blog/2013/10/21/tomcat-shutdown/)
+[Tomcat启动过程（Tomcat源代码阅读系列之三）](/blog/2013/10/17/tomcat-start-process/)  
+[Tomcat关闭过程（Tomcat源代码阅读系列之四）](/blog/2013/10/21/tomcat-shutdown/)  
 
+{% img center /images/2013/11/08/tomcat-pipeline.png %}
 前面已经分析完了Tomcat的启动和关闭过程，本篇就来接着分析一下Tomcat中请求的处理过程。
 <!-- more -->
-在开始本文之前，咋们首先来看看一个Http请求处理的过程，一般情况下是`浏览器发送http请求->建立Socket连接->通过Socket读取数据->根据http协议解析数据->调用后台服务完成响应`,而Tomcat既是一个HttpServer也是一个Servlet 容器，那么这里必然也涉及到如上过程，首先根据HTTP协议规范解析请求数据，然后将请求转发给Servlet进行处理，因此顺应这样的思路，本文也将从**Http协议请求解析**，**请求如何转发给Servlet**两个方面来进行分析。首先来看Http协议请求解析。
+在开始本文之前，咋们首先来看看一个Http请求处理的过程，一般情况下是`浏览器发送http请求->建立Socket连接->通过Socket读取数据->根据http协议解析数据->调用后台服务完成响应`,详细的流程图如上图所示，等读者读完本篇，应该就清楚了上图所表达的意思。Tomcat既是一个HttpServer也是一个Servlet 容器，那么这里必然也涉及到如上过程，首先根据HTTP协议规范解析请求数据，然后将请求转发给Servlet进行处理，因此顺应这样的思路，本文也将从**Http协议请求解析**，**请求如何转发给Servlet**两个方面来进行分析。首先来看Http协议请求解析。
 #Http协议请求解析
 在[Tomcat启动过程（Tomcat源代码阅读系列之三）](/blog/2013/10/17/tomcat-start-process/)一文中，我们已经知道Tomcat启动以后，默认情况下会通过`org.apache.tomcat.util.net.JIoEndpoint.Acceptor`监听Socket连接，当监听到有Socket连接的时候，就会调用`org.apache.tomcat.util.net.JIoEndpoint#processSocket`方法进行处理，下面我们就来看看此方法的代码，为了节省版面，只保留与本文相关的代码。
 ```java org.apache.tomcat.util.net.JIoEndpoint#processSocket

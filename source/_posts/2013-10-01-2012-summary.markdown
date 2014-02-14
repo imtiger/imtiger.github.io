@@ -4,6 +4,7 @@ title: "2012年创业回顾与总结"
 date: 2013-01-22 11:44
 comments: true
 categories: 
+- 生活
 ---
 {% img center /images/2013/01/22/2012-summary.jpg 450 350 %}
 自从用了Evernote以后，发现自己写博客的频率变低了好多，很多时候都是自己直接在Evernote里面直接写笔记，很少来写博客了。不过今天还是把自己前几天在Evernote写的2012年度总结贴出来和大家分享以下，一起交流和进步。   
