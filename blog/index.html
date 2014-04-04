@@ -9,7 +9,7 @@
 	<meta name="author" content="imtiger">
 
 	
-	<meta name="description" content="Jan 7th, 2014 生活 2013年创业回顾与总结 2013年已经过去了，做个简短的总结吧。 公司方面 公司2012年走了很多弯路，交了挺多学费，经过2012年的学习和经验，2013年公司业务有了飞速的发展，2013年业务增长了200多倍。公司从刚开始的代运营，到后来的渠道品牌， &hellip;">
+	<meta name="description" content="Apr 3rd, 2014 技术 How to Install Mod_jk on Mac Osx Mavericks(1.9) 最近要在mac osx 10.9上集成apache 和 Tomcat，采用mod_jk的方式进行集成，但是在过程中遇到了一些在10.8上面没有遇到的蛋疼的问题， &hellip;">
 	<meta name="keywords" content="java,ios,mac,linux,objective-c,软件设计,软件架构,摄影,imtiger.">
 
   <!-- http://t.co/dKP3o1e -->
@@ -107,6 +107,133 @@
   
 
 
+<time datetime="2014-04-03T16:53:00+08:00" data-updated="true" itemprop="datePublished">Apr 3<span>rd</span>, 2014</time></div>
+		<div class="tags">
+
+
+	<a class='category' href='/blog/categories/ji-zhu/'>技术</a>
+
+
+</div>
+		
+	</div>
+	<h1 class="title" itemprop="name"><a href="/blog/2014/04/03/how-to-install-mod-jk-on-mac-osx-10-dot-9/" itemprop="url">How to Install Mod_jk on Mac Osx Mavericks(1.9)</a></h1>
+	<div class="entry-content" itemprop="articleBody">
+		<p><img class="center" src="/images/2014/04/Mavericks.jpg"></p>
+
+<p>最近要在mac osx 10.9上集成apache 和 Tomcat，采用mod_jk的方式进行集成，但是在过程中遇到了一些在10.8上面没有遇到的蛋疼的问题，本篇文章就做一下总结。</p>
+
+<h1>第一步 下载mod_jk源代码</h1>
+
+<p>首先去<a href="http://tomcat.apache.org/connectors-doc/">官方网站</a>下载mod_jk的代码,在笔者写本篇总结的时候，最新版本的是1.2.39，请根据对应的apache版本选择相应版本的mod_jk下载。</p>
+
+<h1>第二步 安装mod_jk</h1>
+
+<p>笔者将源代码放在~/Download目录下面。接下来我们就来看看如何安装mod_jk.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">cd</span> ~/Downloads/tomcat-connectors-1.2.39-src/native
+</span><span class='line'>
+</span><span class='line'>./configure <span class="nv">CFLAGS</span><span class="o">=</span><span class="s1">&#39;-arch x86_64&#39;</span> <span class="nv">APXSLDFLAGS</span><span class="o">=</span><span class="s1">&#39;-arch x86_64&#39;</span> --with-apxs<span class="o">=</span>/usr/sbin/apxs
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>执行上面的命令结果出现了一个错误:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>configure: error: could not detect a 32-bit integer <span class="nb">type</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+		
+		<a href="/blog/2014/04/03/how-to-install-mod-jk-on-mac-osx-10-dot-9/" class="more-link">Read on(阅读全文) &rarr;</a>
+	</div>
+
+</article>
+
+
+    <article class="post">
+	<div class="meta">
+		<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-03-23T10:48:00+08:00" data-updated="true" itemprop="datePublished">Mar 23<span>rd</span>, 2014</time></div>
+		<div class="tags">
+
+
+	<a class='category' href='/blog/categories/java/'>Java</a>, <a class='category' href='/blog/categories/ji-zhu/'>技术</a>
+
+
+</div>
+		
+	</div>
+	<h1 class="title" itemprop="name"><a href="/blog/2014/03/23/java-8-tutorial/" itemprop="url">Java8指南[Java 8 Tutorial]</a></h1>
+	<div class="entry-content" itemprop="articleBody">
+		<p><img class="center" src="/images/2014/03/java8.png"></p>
+
+<p>本文翻译自<a href="http://winterbe.com/posts/2014/03/16/java-8-tutorial/">Java 8 Tutorial</a></p>
+
+<blockquote><p><a href="https://twitter.com/mreinhold/status/429603588525281280">&ldquo;Java还没死-大家正在纷纷议论&rdquo;</a></p></blockquote>
+
+<p>首先欢迎大家来看我对Java8的介绍。本文将引导你一步步的了解所有新的语言特性。利用简短的代码片段，你将学习如何去使用<code>缺省接口方法（default interface methods）</code>,<code>lambda 表达式</code>,<code>方法引用（method references）</code>和<code>可重复注解（repeatable annotations）</code>.当你看到本文结束的时候，你将非常熟悉像<code>Streams</code>,<code>函数式接口</code>,<code>map 扩展</code>和<code>新的Date API</code>API的变化。</p>
+
+<p>这里没有整篇的文字-仅仅是一系列注释的代码片段。让我们开启本文的愉快之旅吧。</p>
+
+<h1>接口缺省方法（Default Methods for Interfaces）</h1>
+
+<p>Java8容许通过<code>default</code>关键字给接口增加非抽象的方法实现,这个特性也可以叫做<code>扩展方法(Extension Methods)</code>.这里是我们第一个例子：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">interface</span> <span class="nc">Formula</span> <span class="o">{</span>
+</span><span class='line'>    <span class="kt">double</span> <span class="nf">calculate</span><span class="o">(</span><span class="kt">int</span> <span class="n">a</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">default</span> <span class="kt">double</span> <span class="nf">sqrt</span><span class="o">(</span><span class="kt">int</span> <span class="n">a</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">Math</span><span class="o">.</span><span class="na">sqrt</span><span class="o">(</span><span class="n">a</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+		
+		<a href="/blog/2014/03/23/java-8-tutorial/" class="more-link">Read on(阅读全文) &rarr;</a>
+	</div>
+
+</article>
+
+
+    <article class="post">
+	<div class="meta">
+		<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
 <time datetime="2014-01-07T15:22:00+08:00" data-updated="true" itemprop="datePublished">Jan 7<span>th</span>, 2014</time></div>
 		<div class="tags">
 
@@ -171,7 +298,7 @@
 月薪:    10k-20k</p>
 
 <p>公司介绍: <br/>
-我们公司<a href="http://www.ejushang.com">易居尚</a>秉承着<code>让品质走进生活的理念</code>，致力于打造一个品质、高效、便捷的居家用品网络销售平台.咋们公司不打卡，弹性工作制，每天下午有公司大厨做的下午茶，攻城狮童鞋每周可以自由支配20%的工作时间做自己想做的事情，我们技术团队内部有很强互助和知识分享意识（包括技术骚们喜欢的爱情动作片，嘘&hellip;，其他人我不告诉他）当然了还有很多美女和帅哥，想置身互联网和电子商务有理想的的技术骚们，请你加入我们 一起high，<strong>我们不求改变世界，但求超越自我</strong>。也请各位朋友帮忙推荐，推荐成功有神秘礼物相送哦，有意者请联系:<a href="&#109;&#97;&#105;&#x6c;&#x74;&#x6f;&#x3a;&#116;&#x69;&#103;&#x65;&#114;&#x2e;&#x7a;&#x68;&#x6f;&#x75;&#64;&#107;&#x61;&#114;&#x69;&#113;&#117;&#46;&#99;&#x6f;&#109;">&#x74;&#105;&#103;&#101;&#114;&#46;&#x7a;&#x68;&#x6f;&#x75;&#64;&#107;&#x61;&#x72;&#x69;&#x71;&#117;&#46;&#99;&#111;&#109;</a> 或者留言给我，另外也可以通过<a href="http://weibo.com/xmuzyq">@krq_tiger</a>新浪微博与我取的联系.</p>
+我们公司<a href="http://www.ejushang.com">易居尚</a>秉承着<code>让品质走进生活的理念</code>，致力于打造一个品质、高效、便捷的居家用品网络销售平台.咋们公司不打卡，弹性工作制，每天下午有公司大厨做的下午茶，攻城狮童鞋每周可以自由支配20%的工作时间做自己想做的事情，我们技术团队内部有很强互助和知识分享意识（包括技术骚们喜欢的爱情动作片，嘘&hellip;，其他人我不告诉他）当然了还有很多美女和帅哥，想置身互联网和电子商务有理想的的技术骚们，请你加入我们 一起high，<strong>我们不求改变世界，但求超越自我</strong>。也请各位朋友帮忙推荐，推荐成功有神秘礼物相送哦，有意者请联系:<a href="&#109;&#x61;&#x69;&#x6c;&#116;&#x6f;&#x3a;&#116;&#105;&#x67;&#x65;&#x72;&#x2e;&#x7a;&#104;&#111;&#x75;&#x40;&#x6b;&#97;&#114;&#105;&#x71;&#x75;&#46;&#99;&#111;&#109;">&#116;&#105;&#103;&#101;&#x72;&#46;&#122;&#x68;&#x6f;&#x75;&#x40;&#x6b;&#x61;&#114;&#105;&#113;&#117;&#46;&#99;&#x6f;&#x6d;</a> 或者留言给我，另外也可以通过<a href="http://weibo.com/xmuzyq">@krq_tiger</a>新浪微博与我取的联系.</p>
 
 
 		
@@ -439,88 +566,6 @@
 
 		
 		<a href="/blog/2013/10/17/tomcat-start-process/" class="more-link">Read on(阅读全文) &rarr;</a>
-	</div>
-
-</article>
-
-
-    <article class="post">
-	<div class="meta">
-		<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-10-16T14:33:00+08:00" data-updated="true" itemprop="datePublished">Oct 16<span>th</span>, 2013</time></div>
-		<div class="tags">
-
-
-	<a class='category' href='/blog/categories/java/'>Java</a>, <a class='category' href='/blog/categories/tomcat/'>Tomcat</a>, <a class='category' href='/blog/categories/ji-zhu/'>技术</a>
-
-
-</div>
-		
-	</div>
-	<h1 class="title" itemprop="name"><a href="/blog/2013/10/16/tomcat-architecture/" itemprop="url">Tomcat总体结构（Tomcat源代码阅读系列之二）</a></h1>
-	<div class="entry-content" itemprop="articleBody">
-		<p><img class="center" src="/images/2013/10/14/apache_tomcat_bag.jpg">
-本文是<a href="/blog/2013/10/08/tomcat-source-code-study/">Tomcat源代码阅读系列</a>的第二篇文章，我们在本系列的第一篇文章：<a href="/blog/2013/10/14/run-tomcat-in-idea-or-eclipse/">在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码</a>一文中介绍了如何在intelliJ IDEA 和 Eclipse中运行Tomcat源代码，本文介绍一下Tomcat的总体结构。</p>
-
-<blockquote><p>本文没有特别指明的地方，源代码都是针对tomcat7.0.42来说。</p></blockquote>
-
-<h1>Tomcat的总体结构</h1>
-
-<p>Tomcat即是一个Http服务器也是一个Servlet容器，它的总体结构我们可以用下图来描述：</p>
-
-
-		
-		<a href="/blog/2013/10/16/tomcat-architecture/" class="more-link">Read on(阅读全文) &rarr;</a>
-	</div>
-
-</article>
-
-
-    <article class="post">
-	<div class="meta">
-		<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-10-14T14:39:00+08:00" data-updated="true" itemprop="datePublished">Oct 14<span>th</span>, 2013</time></div>
-		<div class="tags">
-
-
-	<a class='category' href='/blog/categories/java/'>Java</a>, <a class='category' href='/blog/categories/tomcat/'>Tomcat</a>, <a class='category' href='/blog/categories/ji-zhu/'>技术</a>
-
-
-</div>
-		
-	</div>
-	<h1 class="title" itemprop="name"><a href="/blog/2013/10/14/run-tomcat-in-idea-or-eclipse/" itemprop="url">在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码（Tomcat源代码阅读系列之一）</a></h1>
-	<div class="entry-content" itemprop="articleBody">
-		<p><img class="center" src="/images/2013/10/14/apache_tomcat_bag.jpg">
-本文是<a href="/blog/2013/10/08/tomcat-source-code-study/">Tomcat源代码阅读系列</a>的第一篇文章，在阅读Tomcat源代码之前，我们首先需要将Tomcat的源代码在IDE里面运行起来，这样方便我们阅读的过程中调试。本文总结一下在IDEA 或者 Eclipse中运行Tomcat源代码环境的搭建过程，同时我们通过Maven来负责项目的构建。</p>
-
-<p>在进行搭建之前，我们首先来说一下总体的思路。我们知道Tomcat运行的时候，一部分是源代码编译以后的可运行的Jar,另外一部分则是运行时的环境（也就是我们从官方下载下来的二进制分发包中的一系列的配置文件以及目录结构，说的更直白点就是CATALINA_HOME环境变量指定的目录）,本文对于第一部分采用IntelliJ IDEA 运行tomcat-7.0.42 tag的源代码，而对于第二部分运行环境，我们则直接采用tomcat-7.0.42的二进制分发包。明白了上述的思路以后，咋们就来一步步的搭建吧。</p>
-
-
-		
-		<a href="/blog/2013/10/14/run-tomcat-in-idea-or-eclipse/" class="more-link">Read on(阅读全文) &rarr;</a>
 	</div>
 
 </article>

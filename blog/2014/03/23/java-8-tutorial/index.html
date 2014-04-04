@@ -1,0 +1,463 @@
+
+<!DOCTYPE HTML>
+
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<title>Java8指南[Java 8 Tutorial] - I'm Tiger,一个有理想爱折腾的程序员!</title>
+	<meta name="author" content="imtiger">
+
+	
+	<meta name="description" content="Java8指南[Java 8 Tutorial] 本文翻译自Java 8 Tutorial &ldquo;Java还没死-大家正在纷纷议论&rdquo; 首先欢迎大家来看我对Java8的介绍。本文将引导你一步步的了解所有新的语言特性。利用简短的代码片段，你将学习如何去使用缺省接口方法（ &hellip;">
+	<meta name="keywords" content="java,java 8,java8">
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<link href="/atom.xml" rel="alternate" title="I'm Tiger,一个有理想爱折腾的程序员!" type="application/atom+xml">
+	
+	<link rel="canonical" href="http://imtiger.github.io/blog/2014/03/23/java-8-tutorial/">
+	<link href="/favicon.png" rel="shortcut icon">
+	<link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+	<link href="/stylesheets/font-awesome.min.css" media="screen, projection" rel="stylesheet" type="text/css">
+	<!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+	<link href='http://fonts.googleapis.com/css?family=Open+Sans:400italic,400,700' rel='stylesheet' type='text/css'>
+	<script type="text/javascript" src="http://codeorigin.jquery.com/jquery-1.7.2.min.js"></script> 
+	
+</head>
+
+
+<body>
+	<div class="container">
+		<div class="left-col">
+			<div class="intrude-less">
+			<header id="header" class="inner"><div class="profilepic">
+	
+	<a href="/"><img src="http://www.gravatar.com/avatar/80695ffc8afc90667bb292139686239b?s=160" alt="Profile Picture" style="width: 160px;" /></a>
+	
+</div>
+<h1><a href="/">I'm Tiger</a></h1>
+<p class="subtitle">一个有理想爱折腾的程序员!</p>
+
+<nav id="main-nav"><ul>
+	<li><a href="/">Home</a></li>
+	<li><a href="/archives">Archive</a></li>
+<!--	<li><a href="/book">Books</a></li> -->
+	<li><a href="/about">About Me</a></li>
+</ul>
+
+
+</nav>
+<nav id="sub-nav">
+	<div class="social">
+		
+		
+		
+        
+        <a class="weibo" href="http://weibo.com/xmuzyq" title="新浪微博">新浪微博</a>
+        
+        
+		<a class="github" href="https://github.com/imtiger" title="GitHub">GitHub</a>
+		
+		
+		<a class="iteye" href="http://xmuzyq.iteye.com" title="我之前的博客">我的Iteye博客</a>
+		
+		
+		
+		
+		
+		
+		
+		
+		<a class="jdon" href="http://www.jdon.com/blog/xmuzyu" title="Jdon">J道</a>
+		
+		
+		<a class="rss" href="/atom.xml" title="RSS">RSS</a>
+		
+	</div>
+</nav>
+<p class="subtitle">信心、恒心、爱心、野心兼具者可谓准成功人士!</p>
+<p style="text-align: right;" class="subtitle">-- imTiger</p>
+
+</header>				
+			</div>
+		</div>	
+		<div class="mid-col">
+			
+				
+			
+			<div class="mid-col-container">
+				<div id="content" class="inner"><article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+
+	<h1 class="title" itemprop="name">Java8指南[Java 8 Tutorial]</h1>
+	<div class="entry-content" itemprop="articleBody"><p><img class="center" src="/images/2014/03/java8.png"></p>
+
+<p>本文翻译自<a href="http://winterbe.com/posts/2014/03/16/java-8-tutorial/">Java 8 Tutorial</a></p>
+
+<blockquote><p><a href="https://twitter.com/mreinhold/status/429603588525281280">&ldquo;Java还没死-大家正在纷纷议论&rdquo;</a></p></blockquote>
+
+<p>首先欢迎大家来看我对Java8的介绍。本文将引导你一步步的了解所有新的语言特性。利用简短的代码片段，你将学习如何去使用<code>缺省接口方法（default interface methods）</code>,<code>lambda 表达式</code>,<code>方法引用（method references）</code>和<code>可重复注解（repeatable annotations）</code>.当你看到本文结束的时候，你将非常熟悉像<code>Streams</code>,<code>函数式接口</code>,<code>map 扩展</code>和<code>新的Date API</code>API的变化。</p>
+
+<p>这里没有整篇的文字-仅仅是一系列注释的代码片段。让我们开启本文的愉快之旅吧。</p>
+
+<h1>接口缺省方法（Default Methods for Interfaces）</h1>
+
+<p>Java8容许通过<code>default</code>关键字给接口增加非抽象的方法实现,这个特性也可以叫做<code>扩展方法(Extension Methods)</code>.这里是我们第一个例子：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">interface</span> <span class="nc">Formula</span> <span class="o">{</span>
+</span><span class='line'>    <span class="kt">double</span> <span class="nf">calculate</span><span class="o">(</span><span class="kt">int</span> <span class="n">a</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">default</span> <span class="kt">double</span> <span class="nf">sqrt</span><span class="o">(</span><span class="kt">int</span> <span class="n">a</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">Math</span><span class="o">.</span><span class="na">sqrt</span><span class="o">(</span><span class="n">a</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<!-- more -->
+
+
+<p>除了calculate抽象方法以外，Formula接口还定义了一个缺省方法<code>sqrt</code>，这样以来，实现类就只需要实现抽象方法即可，缺省方法<code>sqrt</code>可以不用重新实现拿来即用。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">Formula</span> <span class="n">formula</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Formula</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>    <span class="nd">@Override</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kt">double</span> <span class="nf">calculate</span><span class="o">(</span><span class="kt">int</span> <span class="n">a</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="nf">sqrt</span><span class="o">(</span><span class="n">a</span> <span class="o">*</span> <span class="mi">100</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'><span class="o">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">formula</span><span class="o">.</span><span class="na">calculate</span><span class="o">(</span><span class="mi">100</span><span class="o">);</span>     <span class="c1">// 100.0</span>
+</span><span class='line'><span class="n">formula</span><span class="o">.</span><span class="na">sqrt</span><span class="o">(</span><span class="mi">16</span><span class="o">);</span>           <span class="c1">// 4.0</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>formula</code>通过匿名对象实现，上面的代码非常冗长：用了6行的代码实现了如此简单的<code>sqrt(a*100)</code>的计算。正如我们即将在接下来的部分所了解的，在Java8中，我们可以通过更加漂亮的方式来实现单一方法对象。</p>
+
+<h1>Lambda表达式(Lambda expressions)</h1>
+
+<p>让我们用一个之前版本Java中排序一个字符串列表的简单例子开始：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">List</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">names</span> <span class="o">=</span> <span class="n">Arrays</span><span class="o">.</span><span class="na">asList</span><span class="o">(</span><span class="s">&quot;peter&quot;</span><span class="o">,</span> <span class="s">&quot;anna&quot;</span><span class="o">,</span> <span class="s">&quot;mike&quot;</span><span class="o">,</span> <span class="s">&quot;xenia&quot;</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">Collections</span><span class="o">.</span><span class="na">sort</span><span class="o">(</span><span class="n">names</span><span class="o">,</span> <span class="k">new</span> <span class="n">Comparator</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;()</span> <span class="o">{</span>
+</span><span class='line'>    <span class="nd">@Override</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kt">int</span> <span class="nf">compare</span><span class="o">(</span><span class="n">String</span> <span class="n">a</span><span class="o">,</span> <span class="n">String</span> <span class="n">b</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">b</span><span class="o">.</span><span class="na">compareTo</span><span class="o">(</span><span class="n">a</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'><span class="o">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>静态工具方法<code>Collections.sort</code>接受一个列表和比较器对象去排序一个指定列表的元素。你通常创建一个匿名的比较器并将其传递sort方法。</p>
+
+<p>你不需要总是创建匿名对象，Java8中你可以用一种更加简洁的语法，lambda表达式：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">Collections</span><span class="o">.</span><span class="na">sort</span><span class="o">(</span><span class="n">names</span><span class="o">,</span> <span class="o">(</span><span class="n">String</span> <span class="n">a</span><span class="o">,</span> <span class="n">String</span> <span class="n">b</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="o">{</span>
+</span><span class='line'>    <span class="k">return</span> <span class="n">b</span><span class="o">.</span><span class="na">compareTo</span><span class="o">(</span><span class="n">a</span><span class="o">);</span>
+</span><span class='line'><span class="o">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>正如你看到上面的代码更加简短并且易读，但是它可以变得更加简短：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">Collections</span><span class="o">.</span><span class="na">sort</span><span class="o">(</span><span class="n">names</span><span class="o">,</span> <span class="o">(</span><span class="n">String</span> <span class="n">a</span><span class="o">,</span> <span class="n">String</span> <span class="n">b</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="n">b</span><span class="o">.</span><span class="na">compareTo</span><span class="o">(</span><span class="n">a</span><span class="o">));</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>对于只有一行代码的方法，你可以不用{}和return关键字，但是它还可以变得更简短：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">Collections</span><span class="o">.</span><span class="na">sort</span><span class="o">(</span><span class="n">names</span><span class="o">,</span> <span class="o">(</span><span class="n">a</span><span class="o">,</span> <span class="n">b</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="n">b</span><span class="o">.</span><span class="na">compareTo</span><span class="o">(</span><span class="n">a</span><span class="o">));</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Java编译器清楚参数的类型，所以你也可以省略他们。接下来，让我们更加深入的来了解一下lambda表达式的使用。</p>
+
+<p>&hellip;..未完待续&hellip;&hellip;</p>
+</div>
+
+
+<br/>
+<p align="right"><span style="border-top:1px dashed #666">Posted on: 2014/03/23</span></p>
+</article>
+
+
+
+<div class="post-copyright">
+	<div class="avator" style="">
+		<img alt="" src="http://www.gravatar.com/avatar/80695ffc8afc90667bb292139686239b?s=160" width="100" height="100"/>
+	</div>
+	<div class="info">
+			作者： <A href="http://imtiger.net">imtiger</A> <br>
+			出处： <A href="http://imtiger.net">http://imtiger.net/</A>
+			<br>本文通过<a href="http://creativecommons.org/licenses/by-nc/3.0/deed.zh">署名-非商业性使用 3.0</a>进行许可,欢迎转载,但是必须保留本文的署名和连接,谢谢配合！
+			<a href="http://imtiger.net">imtiger</a>。 
+	</div>
+</div>
+
+
+
+
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	
+	
+	  <!-- JiaThis Button BEGIN -->
+<div class="jiathis_style">
+	<span class="jiathis_txt"></span>
+  <a class="jiathis_button_tsina"></a>
+	<a class="jiathis_button_qzone">QQ</a>
+	<a class="jiathis_button_tqq"></a>
+	<a class="jiathis_button_weixin"></a>
+	<a href="http://www.jiathis.com/share?uid=1845643" class="jiathis jiathis_txt jiathis_separator jtico jtico_jiathis" target="_blank"></a>
+	<a class="jiathis_counter_style"></a>
+</div>
+<script type="text/javascript">
+var jiathis_config = {data_track_clickback:'true'};
+</script>
+<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js?uid=1372156002529710" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+
+<!-- UY BEGIN -->
+<div id="uyan_frame"></div>
+<script type="text/javascript" src="http://v2.uyan.cc/code/uyan.js?uid=1845643"></script>
+<!-- UY END -->
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <!-- <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid="></script> -->
+</div>
+
+
+
+</div>
+			</div>
+			<footer id="footer" class="inner"><p>
+</a>本站点采用<a href="http://creativecommons.org/licenses/by-nc/3.0/deed.zh" rel="license">知识共享署名-非商业性使用 3.0 国际版本许可协议</a>进行许可
+</p>
+Copyright &copy; 2014
+
+    imtiger
+
+<br>
+Powered by Octopress.
+
+Design credit: <a href="http://shashankmehta.in/archive/2012/greyshade.html">Shashank Mehta</a></footer>
+			<script src="/javascripts/slash.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script> <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+
+	<script type="text/javascript">
+		var host = location.host;
+		if(host.indexOf("imtiger.net")>=0){
+		var _gaq = _gaq || [];
+		_gaq.push(['_setAccount', 'UA-44429269-1']);
+		_gaq.push(['_trackPageview']);
+
+		(function() {
+			var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+			ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+			var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+		})();
+		}
+	</script>
+
+
+
+<script>
+var host=location.host;
+if(host.indexOf("imtiger.net")>=0){
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?21e144d0df165d6556d664e2836dadfe";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+}
+</script>
+
+
+
+<script type="text/javascript">
+
+(function($){
+	
+	//左折叠栏
+	(function(){
+
+		function isPC() {
+	        var userAgentInfo = navigator.userAgent;
+	        var Agents = new Array("Android", "iPhone", "SymbianOS", "Windows Phone", "iPad", "iPod");
+	        var flag = true;
+	        for (var v = 0; v < Agents.length; v++) {
+	            if (userAgentInfo.indexOf(Agents[v]) > 0) {
+	                flag = false;
+	                break;
+	            }
+	        }
+	        return flag;
+	    }
+
+	    function addSwitchPanel(){
+	    	var leftCol = $(".left-col"),
+	    		midCol = $(".mid-col"),
+	    		intrude = leftCol.find(".intrude-less"),
+	    		switchPanel = $('<a href="javascript:void(0);" class="switchPanel"><span class="btn_click"><em class="arrow"></em></span></a>');
+	    	leftCol.append(switchPanel);
+	    	switchPanel.toggle(function(){
+	    		leftCol.animate({"width": "3%"}, 200);
+	    		intrude.hide();
+	    		midCol.animate({"width": "97%"}, 200);
+	    		switchPanel.addClass("in");
+	    	},function(){
+	    		leftCol.animate({"width": "23%"}, 200);
+	    		midCol.animate({"width": "77%"}, 200);
+	    		intrude.show();
+	    		switchPanel.removeClass("in");
+	    	});
+	    }
+
+	    addSwitchPanel();	
+
+	})();
+
+	//到顶部
+	(function(){
+		var domHeight = $(document).height(),
+			scrollTop = $(document).scrollTop(),
+			winWidth = $(window).width(),
+			winHeight = $(window).height(); 
+
+		if (domHeight>winHeight+500){
+			var toTop = document.createElement("div"),
+				pot_t=0,
+				pot_b=1;
+			
+			toTop.id = "to-top";	
+			toTop.className = "to-top";
+			var toright=15;
+			
+			$(window).bind("scroll.toTop", function(){
+				var scrollTop = $(document).scrollTop();
+					if(scrollTop>290&&pot_t==0){
+						$(toTop).stop().animate({"right":toright,"opacity":"1"},200);
+						pot_t=1;
+						pot_b=0;
+					}else if(scrollTop<290&&pot_b==0){
+						$(toTop).stop().animate({"right":"-60px","opacity":"0"},200);
+						pot_t=0;
+						pot_b=1;
+					}
+			});
+			
+			document.body.appendChild(toTop);
+			toTop.onclick = function(){
+				$("html"+( ! $.browser.opera ? ",body" : "")).animate({scrollTop: 0}, 500);
+			};
+		}
+			
+	})();
+	
+	//时间线
+	(function(){
+		var timeline = $("#timeline"),
+			timelineSingle = $(">ul>li", timeline),
+			duration = 400,
+			line = timeline.find('.line'),
+			singleHeight = timelineSingle.height()+50,
+			Len = timelineSingle.length;
+
+		//计算时间线
+		line.animate({"height": singleHeight*(Len-1)}, Len*duration);
+		timeline.find(".circle").each(function(i){
+			var thisCir = $(this);
+			thisCir.delay(i*duration).animate({"opacity":1},duration);
+			setTimeout(function(){
+				thisCir.removeClass('cur');
+				thisCir.next('.wrap').show(duration);
+			},i*duration);
+			
+		});
+
+		//移入动画
+		timelineSingle.each(function(){
+			var title = $(this).find("h3"),
+				content = $(this).find('dl'),
+				circle = $(this).find('.circle');
+
+			title.hover(
+				itemShow,
+				itemHide
+			);
+			
+			circle.hover(
+				itemShow,
+				itemHide
+			);
+			
+			function itemShow(){
+				content.show();
+		  	circle.addClass('cur');
+			};
+		
+			function itemHide(){
+				content.hide();
+				circle.removeClass('cur');
+			};
+		});
+		
+		
+	})();
+
+
+})(jQuery);
+
+</script>
+
+
+		</div>
+	</div>
+</body>
+</html>

@@ -4,7 +4,7 @@
   <title><![CDATA[Category: 技术 | I'm Tiger,一个有理想爱折腾的程序员!]]></title>
   <link href="http://imtiger.github.io/blog/categories/ji-zhu/atom.xml" rel="self"/>
   <link href="http://imtiger.github.io/"/>
-  <updated>2014-01-13T15:32:00+08:00</updated>
+  <updated>2014-04-04T10:28:21+08:00</updated>
   <id>http://imtiger.github.io/</id>
   <author>
     <name><![CDATA[imtiger]]></name>
@@ -12,6 +12,163 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[How to install mod_jk on mac osx Mavericks(1.9)]]></title>
+    <link href="http://imtiger.github.io/blog/2014/04/03/how-to-install-mod-jk-on-mac-osx-10-dot-9/"/>
+    <updated>2014-04-03T16:53:00+08:00</updated>
+    <id>http://imtiger.github.io/blog/2014/04/03/how-to-install-mod-jk-on-mac-osx-10-dot-9</id>
+    <content type="html"><![CDATA[<p><img class="center" src="/images/2014/04/Mavericks.jpg"></p>
+
+<p>最近要在mac osx 10.9上集成apache 和 Tomcat，采用mod_jk的方式进行集成，但是在过程中遇到了一些在10.8上面没有遇到的蛋疼的问题，本篇文章就做一下总结。</p>
+
+<h1>第一步 下载mod_jk源代码</h1>
+
+<p>首先去<a href="http://tomcat.apache.org/connectors-doc/">官方网站</a>下载mod_jk的代码,在笔者写本篇总结的时候，最新版本的是1.2.39，请根据对应的apache版本选择相应版本的mod_jk下载。</p>
+
+<h1>第二步 安装mod_jk</h1>
+
+<p>笔者将源代码放在~/Download目录下面。接下来我们就来看看如何安装mod_jk.</p>
+
+<p>```bash
+cd ~/Downloads/tomcat-connectors-1.2.39-src/native</p>
+
+<p>./configure CFLAGS=&lsquo;-arch x86_64&rsquo; APXSLDFLAGS=&lsquo;-arch x86_64&rsquo; &mdash;with-apxs=/usr/sbin/apxs
+```</p>
+
+<p>执行上面的命令结果出现了一个错误:</p>
+
+<p><code>bash
+configure: error: could not detect a 32-bit integer type
+</code></p>
+
+<!-- more -->
+
+
+<p>上面错误的描述是无法发现一个32位的整型。</p>
+
+<p>通过查看configure，我们发现configure文件中有如下的语句：</p>
+
+<p><code>bash
+  #ifdef HAVE_INTTYPES_H
+  # include &lt;inttypes.h&gt;
+  #endif
+  #ifdef HAVE_STDINT_H
+  # include &lt;stdint.h&gt;
+  #endif
+</code></p>
+
+<p>初步判断应该在这两个文件中定义了32位的整形。而在mac osx 中的头文件是放在/usr/include目录下的，我们查看此目录发现并没有此头文件，笔者google一下，发现了如下这篇文章：<a href="http://marchtea.com/?p=104">MAC OSX下include头文件缺失引起的问题及解决办法, command line tools 安装</a></p>
+
+<p>上面的文章提到可以用如下的命令安装命令行工具，此命令会安装上文提到的stdint.h文件。</p>
+
+<p><code>bash
+xcode-select --install
+</code>
+运行上面命令以后，我们会发现/usr/include 目录中出现了stdint.h文件。再接着运行一下configure，发现没有任何错误。然后运行<code>make install</code>，安装完成后会在/usr/libexec/apache2/ 生成mod_jk.so文件。</p>
+
+<h1>第三步 配置apache</h1>
+
+<p>修改apache配置文件httpd.conf(在osx 10.9上面，httpd.conf位于/etc/apache2 目录)，增加如下语句：<br/>
+<code>LoadModule jk_module libexec/apache2/mod_jk.so</code></p>
+
+<p>Over.Have fun,gays!</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Java8指南[Java 8 Tutorial]]]></title>
+    <link href="http://imtiger.github.io/blog/2014/03/23/java-8-tutorial/"/>
+    <updated>2014-03-23T10:48:00+08:00</updated>
+    <id>http://imtiger.github.io/blog/2014/03/23/java-8-tutorial</id>
+    <content type="html"><![CDATA[<p><img class="center" src="/images/2014/03/java8.png"></p>
+
+<p>本文翻译自<a href="http://winterbe.com/posts/2014/03/16/java-8-tutorial/">Java 8 Tutorial</a></p>
+
+<blockquote><p><a href="https://twitter.com/mreinhold/status/429603588525281280">&ldquo;Java还没死-大家正在纷纷议论&rdquo;</a></p></blockquote>
+
+<p>首先欢迎大家来看我对Java8的介绍。本文将引导你一步步的了解所有新的语言特性。利用简短的代码片段，你将学习如何去使用<code>缺省接口方法（default interface methods）</code>,<code>lambda 表达式</code>,<code>方法引用（method references）</code>和<code>可重复注解（repeatable annotations）</code>.当你看到本文结束的时候，你将非常熟悉像<code>Streams</code>,<code>函数式接口</code>,<code>map 扩展</code>和<code>新的Date API</code>API的变化。</p>
+
+<p>这里没有整篇的文字-仅仅是一系列注释的代码片段。让我们开启本文的愉快之旅吧。</p>
+
+<h1>接口缺省方法（Default Methods for Interfaces）</h1>
+
+<p>Java8容许通过<code>default</code>关键字给接口增加非抽象的方法实现,这个特性也可以叫做<code>扩展方法(Extension Methods)</code>.这里是我们第一个例子： <br/>
+```java</p>
+
+<p>interface Formula {</p>
+
+<pre><code>double calculate(int a);
+
+default double sqrt(int a) {
+    return Math.sqrt(a);
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<!-- more -->
+
+
+<p>除了calculate抽象方法以外，Formula接口还定义了一个缺省方法<code>sqrt</code>，这样以来，实现类就只需要实现抽象方法即可，缺省方法<code>sqrt</code>可以不用重新实现拿来即用。</p>
+
+<p>```java
+Formula formula = new Formula() {</p>
+
+<pre><code>@Override
+public double calculate(int a) {
+    return sqrt(a * 100);
+}
+</code></pre>
+
+<p>};</p>
+
+<p>formula.calculate(100);     // 100.0
+formula.sqrt(16);           // 4.0
+<code>``
+</code>formula<code>通过匿名对象实现，上面的代码非常冗长：用了6行的代码实现了如此简单的</code>sqrt(a*100)`的计算。正如我们即将在接下来的部分所了解的，在Java8中，我们可以通过更加漂亮的方式来实现单一方法对象。</p>
+
+<h1>Lambda表达式(Lambda expressions)</h1>
+
+<p>让我们用一个之前版本Java中排序一个字符串列表的简单例子开始：
+```java
+List<String> names = Arrays.asList(&ldquo;peter&rdquo;, &ldquo;anna&rdquo;, &ldquo;mike&rdquo;, &ldquo;xenia&rdquo;);</p>
+
+<p>Collections.sort(names, new Comparator<String>() {</p>
+
+<pre><code>@Override
+public int compare(String a, String b) {
+    return b.compareTo(a);
+}
+</code></pre>
+
+<p>});
+<code>``
+静态工具方法</code>Collections.sort`接受一个列表和比较器对象去排序一个指定列表的元素。你通常创建一个匿名的比较器并将其传递sort方法。</p>
+
+<p>你不需要总是创建匿名对象，Java8中你可以用一种更加简洁的语法，lambda表达式：
+```java
+Collections.sort(names, (String a, String b) &ndash;> {</p>
+
+<pre><code>return b.compareTo(a);
+</code></pre>
+
+<p>});
+<code>
+正如你看到上面的代码更加简短并且易读，但是它可以变得更加简短：
+</code>java
+Collections.sort(names, (String a, String b) &ndash;> b.compareTo(a));
+<code>
+对于只有一行代码的方法，你可以不用{}和return关键字，但是它还可以变得更简短：
+</code>java
+Collections.sort(names, (a, b) &ndash;> b.compareTo(a));
+```
+Java编译器清楚参数的类型，所以你也可以省略他们。接下来，让我们更加深入的来了解一下lambda表达式的使用。</p>
+
+<p>&hellip;..未完待续&hellip;&hellip;</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[月薪10k-20k招聘高级Java软件攻城狮]]></title>
@@ -27,7 +184,7 @@
 月薪:    10k-20k</p>
 
 <p>公司介绍: <br/>
-我们公司<a href="http://www.ejushang.com">易居尚</a>秉承着<code>让品质走进生活的理念</code>，致力于打造一个品质、高效、便捷的居家用品网络销售平台.咋们公司不打卡，弹性工作制，每天下午有公司大厨做的下午茶，攻城狮童鞋每周可以自由支配20%的工作时间做自己想做的事情，我们技术团队内部有很强互助和知识分享意识（包括技术骚们喜欢的爱情动作片，嘘&hellip;，其他人我不告诉他）当然了还有很多美女和帅哥，想置身互联网和电子商务有理想的的技术骚们，请你加入我们 一起high，<strong>我们不求改变世界，但求超越自我</strong>。也请各位朋友帮忙推荐，推荐成功有神秘礼物相送哦，有意者请联系:<a href="&#x6d;&#97;&#105;&#x6c;&#116;&#111;&#x3a;&#116;&#x69;&#x67;&#x65;&#x72;&#46;&#x7a;&#104;&#111;&#x75;&#x40;&#x6b;&#x61;&#x72;&#x69;&#x71;&#x75;&#46;&#99;&#111;&#109;">&#x74;&#x69;&#103;&#101;&#x72;&#46;&#x7a;&#x68;&#111;&#x75;&#x40;&#x6b;&#97;&#114;&#x69;&#113;&#x75;&#x2e;&#x63;&#111;&#109;</a> 或者留言给我，另外也可以通过<a href="http://weibo.com/xmuzyq">@krq_tiger</a>新浪微博与我取的联系.</p>
+我们公司<a href="http://www.ejushang.com">易居尚</a>秉承着<code>让品质走进生活的理念</code>，致力于打造一个品质、高效、便捷的居家用品网络销售平台.咋们公司不打卡，弹性工作制，每天下午有公司大厨做的下午茶，攻城狮童鞋每周可以自由支配20%的工作时间做自己想做的事情，我们技术团队内部有很强互助和知识分享意识（包括技术骚们喜欢的爱情动作片，嘘&hellip;，其他人我不告诉他）当然了还有很多美女和帅哥，想置身互联网和电子商务有理想的的技术骚们，请你加入我们 一起high，<strong>我们不求改变世界，但求超越自我</strong>。也请各位朋友帮忙推荐，推荐成功有神秘礼物相送哦，有意者请联系:<a href="&#x6d;&#x61;&#105;&#x6c;&#116;&#x6f;&#x3a;&#116;&#105;&#103;&#101;&#114;&#x2e;&#x7a;&#x68;&#x6f;&#x75;&#x40;&#107;&#x61;&#114;&#x69;&#x71;&#x75;&#x2e;&#99;&#111;&#x6d;">&#116;&#x69;&#103;&#x65;&#x72;&#46;&#122;&#x68;&#x6f;&#117;&#64;&#107;&#97;&#114;&#105;&#113;&#117;&#46;&#x63;&#x6f;&#x6d;</a> 或者留言给我，另外也可以通过<a href="http://weibo.com/xmuzyq">@krq_tiger</a>新浪微博与我取的联系.</p>
 
 <!-- more -->
 
@@ -526,1106 +683,6 @@ synchronized (this) {
 
 
 <p>到这里我们已经清楚了Tomcat中对与StandardSession的创建以及销毁的过程，其实StandardSession仅仅是实现了内存中Session的存储，而Tomcat还支持将Session持久化，以及Session集群节点间的同步。这些内容我们以后再来分析。</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Tomcat类加载器机制（Tomcat源代码阅读系列之六）]]></title>
-    <link href="http://imtiger.github.io/blog/2013/10/28/tomcat-class-loader/"/>
-    <updated>2013-10-28T14:06:00+08:00</updated>
-    <id>http://imtiger.github.io/blog/2013/10/28/tomcat-class-loader</id>
-    <content type="html"><![CDATA[<p><img class="center" src="/images/2013/10/14/apache_tomcat_bag.jpg">
-本文是<a href="/blog/2013/10/08/tomcat-source-code-study/">Tomcat源代码阅读系列</a>的第六篇文章，本系列前五篇文章如下：  <br/>
-<a href="/blog/2013/10/14/run-tomcat-in-idea-or-eclipse/">在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码（Tomcat源代码阅读系列之一）</a>   <br/>
-<a href="/blog/2013/10/16/tomcat-architecture/">Tomcat总体结构                             （Tomcat源代码阅读系列之二）</a>  <br/>
-<a href="/blog/2013/10/17/tomcat-start-process/">Tomcat启动过程（Tomcat源代码阅读系列之三）</a> <br/>
-<a href="/blog/2013/10/21/tomcat-shutdown/">Tomcat关闭过程（Tomcat源代码阅读系列之四）</a><br/>
-<a href="/blog/2013/10/24/tomcat-request-process/">Tomcat请求处理流程（Tomcat源代码阅读系列之五）</a></p>
-
-<p>前面几篇我们分析了Tomcat的启动，关闭以及请求处理的流程，本篇将接着分析Tomcat的类加载器机制，如果大家对Java的类加载器机制不熟悉的话，建议首先熟悉一下Java的类加载器机制后再来查看本篇文章，对于Java的类加载器机制，大家可以参考自行Google或者参考笔者的另外一篇文章：<a href="/blog/2009/11/09/java-classloader/">Java Classloader机制解析</a>.</p>
-
-<!-- more -->
-
-
-<p>要说Tomcat的Classloader机制，我们还得从Bootstrap开始。在BootStrap初始化的时候，调用了<code>org.apache.catalina.startup.Bootstrap#initClassLoaders</code>方法，这个方法里面创建了3个ClassLoader,它们分别是commonLoader,catalinaLoader,sharedLoader，其中catalinaLoader,sharedLoader的父亲加载器是commonLoader，initClassLoaders执行的过程中会执行createClassLoader，而createClassLoader是根据conf/catalina.properties文件中common.loader，server.loader，shared.loader的值来初始化，它的代码如下：
-```java org.apache.catalina.startup.Bootstrap#createClassLoader
-private ClassLoader createClassLoader(String name, ClassLoader parent)</p>
-
-<pre><code>throws Exception {
-
-String value = CatalinaProperties.getProperty(name + ".loader");
-// 1 
-if ((value == null) || (value.equals("")))
-    return parent;
-
-// 2
-value = replace(value);
-
-List&lt;Repository&gt; repositories = new ArrayList&lt;Repository&gt;();
-
-StringTokenizer tokenizer = new StringTokenizer(value, ",");
-while (tokenizer.hasMoreElements()) {
-    String repository = tokenizer.nextToken().trim();
-    if (repository.length() == 0) {
-        continue;
-    }
-
-    // Check for a JAR URL repository
-    try {
-        @SuppressWarnings("unused")
-        URL url = new URL(repository);
-        repositories.add(
-                new Repository(repository, RepositoryType.URL));
-        continue;
-    } catch (MalformedURLException e) {
-        // Ignore
-    }
-
-    // Local repository
-    if (repository.endsWith("*.jar")) {
-        repository = repository.substring
-            (0, repository.length() - "*.jar".length());
-        repositories.add(
-                new Repository(repository, RepositoryType.GLOB));
-    } else if (repository.endsWith(".jar")) {
-        repositories.add(
-                new Repository(repository, RepositoryType.JAR));
-    } else {
-        repositories.add(
-                new Repository(repository, RepositoryType.DIR));
-    }
-}
-// 3
-ClassLoader classLoader = ClassLoaderFactory.createClassLoader
-    (repositories, parent);
-
-
-return classLoader;
-</code></pre>
-
-<p>}
-```</p>
-
-<p>以上代码删除了与本篇无关的代码，下面我们分别来分析一下标注的地方：</p>
-
-<ol>
-<li>标注1的代码（第5行）判断如果catalina.properties中没有配置对应的loader属性的话，直接返回父加载器，而默认情况下，server.loader,shared.loader为空，那么此时的catalinaLoader,sharedLoader其实是同一个ClassLoader.</li>
-<li>标注2（第9行）的地方根据环境变量的配置替换字符串中的值.默认情况下，common.loader的值为common.loader=${catalina.base}/lib,${catalina.base}/lib/<em>.jar,${catalina.home}/lib,${catalina.home}/lib/</em>.jar,这里会将catalina.base和catalina.home用环境变量的值替换。</li>
-<li>标注3（第46行）的代码最终调用<code>org.apache.catalina.startup.ClassLoaderFactory#createClassLoader</code>静态工厂方法创建了URLClassloader的实例，而具体的URL其实就是*.loader属性配置的内容，此外如果parent为null的话，则直接用系统类加载器。</li>
-</ol>
-
-
-<p>上面分析了Tomcat在启动的时候，初始化的几个ClassLoader，接下来我们再来继续看看，这些ClassLoader具体都用在什么地方。</p>
-
-<p>我们接着来看org.apache.catalina.startup.Bootstrap#init方法，在初始化完3个classLoader以后，接下来首先通过catalinaLoader加载了<code>org.apache.catalina.startup.Catalina</code>l类，然后通过放射调用了org.apache.catalina.startup.Catalina#setParentClassLoader,具体代码片段如下：
-```java org.apache.catalina.startup.Bootstrap#init
-Class&lt;?> startupClass =</p>
-
-<pre><code>catalinaLoader.loadClass
-("org.apache.catalina.startup.Catalina");
-</code></pre>
-
-<p>Object startupInstance = startupClass.newInstance();</p>
-
-<p>String methodName = &ldquo;setParentClassLoader&rdquo;;
-Class&lt;?> paramTypes[] = new Class[1];
-paramTypes[0] = Class.forName(&ldquo;java.lang.ClassLoader&rdquo;);
-Object paramValues[] = new Object[1];
-paramValues[0] = sharedLoader;
-Method method =</p>
-
-<pre><code>startupInstance.getClass().getMethod(methodName, paramTypes);
-</code></pre>
-
-<p>method.invoke(startupInstance, paramValues);
-<code>
-通过上面的代码，我们可以清楚的看到调用了Catalina的setParentClassLoader放，那么到这里我们可能又要想知道，设置了parentClassLoader以后，sharedLoader又是在哪里使用的呢？这就需要我们接着来分析容器启动的代码。我们通过查看`org.apache.catalina.startup.Catalina#getParentClassLoader`调用栈，我们看到在StandardContext的startInternal方法中调用了它，那么我们查看一下它的代码，包含了如下代码片段：
-</code>java org.apache.catalina.core.StandardContext#startInternal
-if (getLoader() == null) {</p>
-
-<pre><code>        WebappLoader webappLoader = new WebappLoader(getParentClassLoader());
-        webappLoader.setDelegate(getDelegate());
-        setLoader(webappLoader);
-</code></pre>
-
-<p>}
-try {</p>
-
-<pre><code>if (ok) {
-
-    // Start our subordinate components, if any
-    if ((loader != null) &amp;&amp; (loader instanceof Lifecycle))
-        ((Lifecycle) loader).start();
-    //other code    
-}
-</code></pre>
-
-<p>catch(Exception e){
-}
-```
-通过查看上面的代码，我们看到在StandardContext启动的时候，会创建webapploader，创建webapploader的时候会将getParentClassLoader方法返回的结果（这里返回的其实就是sharedLoader）赋值给自己的parentClassLoader变量,接着又会调用到Webapploader的start方法，因为WebappLoader符合Tomcat组件生命周期管理的模板方法模式，因此会调用到它的startInternal方法。我们接下来就来看看WebappLoader的startInternal，我们摘取一部分与本篇相关的代码片段如下：</p>
-
-<p>```java org.apache.catalina.loader.WebappLoader#startInternal
-classLoader = createClassLoader();
-classLoader.setResources(container.getResources());
-classLoader.setDelegate(this.delegate);
-classLoader.setSearchExternalFirst(searchExternalFirst);</p>
-
-<p><code>
-从上的代码可以看到调用了createClassLoader方法创建一个classLoader，那么我们再看来看看createClassLoader的代码：
-</code>java org.apache.catalina.loader.WebappLoader#createClassLoader
-private WebappClassLoader createClassLoader()</p>
-
-<pre><code>throws Exception {
-
-Class&lt;?&gt; clazz = Class.forName(loaderClass);
-WebappClassLoader classLoader = null;
-
-if (parentClassLoader == null) {
-    parentClassLoader = container.getParentClassLoader();
-}
-Class&lt;?&gt;[] argTypes = { ClassLoader.class };
-Object[] args = { parentClassLoader };
-Constructor&lt;?&gt; constr = clazz.getConstructor(argTypes);
-classLoader = (WebappClassLoader) constr.newInstance(args);
-
-return classLoader;
-</code></pre>
-
-<p>}
-<code>``
-在上面的代码里面，loaderClass是WebappLoader的实例变量，其值为</code>org.apache.catalina.loader.WebappClassLoader`，那么上面的代码其实就是通过反射调用了WebappClassLoader的构造函数，然后传递了sharedLoader作为其父亲加载器。</p>
-
-<p>代码阅读到这里，我们已经基本清楚了Tomcat中ClassLoader的总体结构，总结如下：
-在Tomcat存在common,cataina,shared三个公共的classloader,默认情况下，这三个classloader其实是同一个，都是common classloader,而针对每个webapp，也就是context（对应代码中的StandardContext类），都有自己的WebappClassLoader来加载每个应用自己的类。上面的描述，我们可以通过下图形象化的描述：
-<img class="center" src="/images/2013/10/30/tomcat-classloader.png"></p>
-
-<p>清楚了Tomcat总体的ClassLoader结构以后，咋们就来进一步来分析一下WebAppClassLoader的代码，我们知道Java的ClassLoader机制有parent-first的机制，而这种机制是在loadClass方法保证的，一般情况下，我们只需要重写findClass方法就好了，而对于WebAppClassLoader，通过查看源代码，我们发现loadClass和findClass方法都进行了重写，那么我们首先就来看看它的loadClass方法,它的代码如下：
-```java org.apache.catalina.loader.WebappClassLoader#loadClass
-public synchronized Class&lt;?> loadClass(String name, boolean resolve)</p>
-
-<pre><code>throws ClassNotFoundException {
-
-if (log.isDebugEnabled())
-    log.debug("loadClass(" + name + ", " + resolve + ")");
-Class&lt;?&gt; clazz = null;
-
-// Log access to stopped classloader
-if (!started) {
-    try {
-        throw new IllegalStateException();
-    } catch (IllegalStateException e) {
-        log.info(sm.getString("webappClassLoader.stopped", name), e);
-    }
-}
-
-// (0) Check our previously loaded local class cache
-// 1 
-clazz = findLoadedClass0(name);
-if (clazz != null) {
-    if (log.isDebugEnabled())
-        log.debug("  Returning class from cache");
-    if (resolve)
-        resolveClass(clazz);
-    return (clazz);
-}
-
-// (0.1) Check our previously loaded class cache
-// 2
-clazz = findLoadedClass(name);
-if (clazz != null) {
-    if (log.isDebugEnabled())
-        log.debug("  Returning class from cache");
-    if (resolve)
-        resolveClass(clazz);
-    return (clazz);
-}
-
-// (0.2) Try loading the class with the system class loader, to prevent
-//       the webapp from overriding J2SE classes
-// 3 
-try {
-    clazz = system.loadClass(name);
-    if (clazz != null) {
-        if (resolve)
-            resolveClass(clazz);
-        return (clazz);
-    }
-} catch (ClassNotFoundException e) {
-    // Ignore
-}
-
-// (0.5) Permission to access this class when using a SecurityManager
-if (securityManager != null) {
-    int i = name.lastIndexOf('.');
-    if (i &gt;= 0) {
-        try {
-            securityManager.checkPackageAccess(name.substring(0,i));
-        } catch (SecurityException se) {
-            String error = "Security Violation, attempt to use " +
-                "Restricted Class: " + name;
-            log.info(error, se);
-            throw new ClassNotFoundException(error, se);
-        }
-    }
-}
-
-//4 
-boolean delegateLoad = delegate || filter(name);
-
-// (1) Delegate to our parent if requested
-// 5 
-if (delegateLoad) {
-    if (log.isDebugEnabled())
-        log.debug("  Delegating to parent classloader1 " + parent);
-    ClassLoader loader = parent;
-    if (loader == null)
-        loader = system;
-    try {
-        clazz = Class.forName(name, false, loader);
-        if (clazz != null) {
-            if (log.isDebugEnabled())
-                log.debug("  Loading class from parent");
-            if (resolve)
-                resolveClass(clazz);
-            return (clazz);
-        }
-    } catch (ClassNotFoundException e) {
-        // Ignore
-    }
-}
-
-// (2) Search local repositories
-if (log.isDebugEnabled())
-    log.debug("  Searching local repositories");
-// 6 
-try {
-    clazz = findClass(name);
-    if (clazz != null) {
-        if (log.isDebugEnabled())
-            log.debug("  Loading class from local repository");
-        if (resolve)
-            resolveClass(clazz);
-        return (clazz);
-    }
-} catch (ClassNotFoundException e) {
-    // Ignore
-}
-
-// (3) Delegate to parent unconditionally
-// 7
-if (!delegateLoad) {
-    if (log.isDebugEnabled())
-        log.debug("  Delegating to parent classloader at end: " + parent);
-    ClassLoader loader = parent;
-    if (loader == null)
-        loader = system;
-    try {
-        clazz = Class.forName(name, false, loader);
-        if (clazz != null) {
-            if (log.isDebugEnabled())
-                log.debug("  Loading class from parent");
-            if (resolve)
-                resolveClass(clazz);
-            return (clazz);
-        }
-    } catch (ClassNotFoundException e) {
-        // Ignore
-    }
-}
-
-throw new ClassNotFoundException(name);
-</code></pre>
-
-<p>}</p>
-
-<p>```
-我们一步步的来分析一下上面的代码做了什么事情。</p>
-
-<ol>
-<li>标注1(第18行)代码，首先从当前ClassLoader的本地缓存中加载类，如果找到则返回。</li>
-<li>标注2(第29行)代码，在本地缓存没有的情况下，调用ClassLoader的findLoadedClass方法查看jvm是否已经加载过此类，如果已经加载则直接返回。</li>
-<li>标注3(第41行)代码，通过系统的来加载器加载此类，这里防止应用写的类覆盖了J2SE的类,这句代码非常关键，如果不写的话，就会造成你自己写的类有可能会把J2SE的类给替换调，另外假如你写了一个javax.servlet.Servlet类，放在当前应用的WEB-INF/class中，如果没有此句代码的保证，那么你自己写的类就会替换到Tomcat容器Lib中包含的类。</li>
-<li>标注4(第68行)代码，判断是否需要委托给父类加载器进行加载，delegate属性默认为false，那么delegatedLoad的值就取决于filter的返回值了，filter方法中根据包名来判断是否需要进行委托加载，默认情况下会返回false.因此delegatedLoad为false</li>
-<li>标注5(第72行)代码，因为delegatedLoad为false,那么此时不会委托父加载器去加载，这里其实是没有遵循parent-first的加载机制。</li>
-<li>标注6(第96行)调用findClass方法在webapp级别进行加载</li>
-<li>标注7(第111行)如果还是没有加载到类，并且不采用委托机制的话，则通过父类加载器去加载。</li>
-</ol>
-
-
-<p>通过上面的描述，我们可以知道Tomcat在加载webapp级别的类的时候，默认是不遵守parent-first的，这样做的好处是更好的实现了应用的隔离，但是坏处就是加大了内存浪费，同样的类库要在不同的app中都要加载一份。</p>
-
-<p>上面分析完了loadClass，我们接着在来分析一下findClass，通过分析findClass的代码，最终会调用<code>org.apache.catalina.loader.WebappClassLoader#findClassInternal</code>方法，那我们就来分析一下它的代码：
-```java org.apache.catalina.loader.WebappClassLoader#findClassInternal
-protected Class&lt;?> findClassInternal(String name)</p>
-
-<pre><code>throws ClassNotFoundException {
-
-//
-if (!validate(name))
-    throw new ClassNotFoundException(name);
-
-String tempPath = name.replace('.', '/');
-String classPath = tempPath + ".class";
-
-ResourceEntry entry = null;
-
-if (securityManager != null) {
-    PrivilegedAction&lt;ResourceEntry&gt; dp =
-        new PrivilegedFindResourceByName(name, classPath);
-    entry = AccessController.doPrivileged(dp);
-} else {
-    // 1 
-    entry = findResourceInternal(name, classPath);
-}
-
-if (entry == null)
-    throw new ClassNotFoundException(name);
-
-Class&lt;?&gt; clazz = entry.loadedClass;
-if (clazz != null)
-    return clazz;
-
-synchronized (this) {
-    clazz = entry.loadedClass;
-    if (clazz != null)
-        return clazz;
-
-    if (entry.binaryContent == null)
-        throw new ClassNotFoundException(name);
-
-    try {
-        // 2
-        clazz = defineClass(name, entry.binaryContent, 0,
-                entry.binaryContent.length,
-                new CodeSource(entry.codeBase, entry.certificates));
-    } catch (UnsupportedClassVersionError ucve) {
-        throw new UnsupportedClassVersionError(
-                ucve.getLocalizedMessage() + " " +
-                sm.getString("webappClassLoader.wrongVersion",
-                        name));
-    }
-    entry.loadedClass = clazz;
-    entry.binaryContent = null;
-    entry.source = null;
-    entry.codeBase = null;
-    entry.manifest = null;
-    entry.certificates = null;
-}
-
-return clazz;
-</code></pre>
-
-<p>}
-```
-上面的代码标注1（第19行）的地方通过名称去当前webappClassLoader的仓库中查找对应的类文件，标注2(第38行)的代码，将找到的类文件通过defineClass转变为Jvm可以识别的Class对象返回。</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Tomcat请求处理流程（Tomcat源代码阅读系列之五）]]></title>
-    <link href="http://imtiger.github.io/blog/2013/10/24/tomcat-request-process/"/>
-    <updated>2013-10-24T09:54:00+08:00</updated>
-    <id>http://imtiger.github.io/blog/2013/10/24/tomcat-request-process</id>
-    <content type="html"><![CDATA[<p><img class="center" src="/images/2013/10/14/apache_tomcat_bag.jpg">
-本文是<a href="/blog/2013/10/08/tomcat-source-code-study/">Tomcat源代码阅读系列</a>的第五篇文章，本系列前四篇文章如下：<br/>
-<a href="/blog/2013/10/14/run-tomcat-in-idea-or-eclipse/">在IntelliJ IDEA 和 Eclipse运行tomcat 7源代码（Tomcat源代码阅读系列之一）</a> <br/>
-<a href="/blog/2013/10/16/tomcat-architecture/">Tomcat总体结构                             （Tomcat源代码阅读系列之二）</a><br/>
-<a href="/blog/2013/10/17/tomcat-start-process/">Tomcat启动过程（Tomcat源代码阅读系列之三）</a><br/>
-<a href="/blog/2013/10/21/tomcat-shutdown/">Tomcat关闭过程（Tomcat源代码阅读系列之四）</a></p>
-
-<p><img class="center" src="/images/2013/11/08/tomcat-pipeline.png">
-前面已经分析完了Tomcat的启动和关闭过程，本篇就来接着分析一下Tomcat中请求的处理过程。</p>
-
-<!-- more -->
-
-
-<p>在开始本文之前，咋们首先来看看一个Http请求处理的过程，一般情况下是<code>浏览器发送http请求-&gt;建立Socket连接-&gt;通过Socket读取数据-&gt;根据http协议解析数据-&gt;调用后台服务完成响应</code>,详细的流程图如上图所示，等读者读完本篇，应该就清楚了上图所表达的意思。Tomcat既是一个HttpServer也是一个Servlet 容器，那么这里必然也涉及到如上过程，首先根据HTTP协议规范解析请求数据，然后将请求转发给Servlet进行处理，因此顺应这样的思路，本文也将从<strong>Http协议请求解析</strong>，<strong>请求如何转发给Servlet</strong>两个方面来进行分析。首先来看Http协议请求解析。</p>
-
-<h1>Http协议请求解析</h1>
-
-<p>在<a href="/blog/2013/10/17/tomcat-start-process/">Tomcat启动过程（Tomcat源代码阅读系列之三）</a>一文中，我们已经知道Tomcat启动以后，默认情况下会通过<code>org.apache.tomcat.util.net.JIoEndpoint.Acceptor</code>监听Socket连接，当监听到有Socket连接的时候，就会调用<code>org.apache.tomcat.util.net.JIoEndpoint#processSocket</code>方法进行处理，下面我们就来看看此方法的代码，为了节省版面，只保留与本文相关的代码。
-```java org.apache.tomcat.util.net.JIoEndpoint#processSocket
-protected boolean processSocket(Socket socket) {</p>
-
-<pre><code>    // Process the request from this socket
-    try {
-        SocketWrapper&lt;Socket&gt; wrapper = new SocketWrapper&lt;Socket&gt;(socket);
-        wrapper.setKeepAliveLeft(getMaxKeepAliveRequests());
-        // During shutdown, executor may be null - avoid NPE
-        if (!running) {
-            return false;
-        }
-        getExecutor().execute(new SocketProcessor(wrapper));
-    } catch (RejectedExecutionException x) {
-       //exception handler ...
-       return false;
-    }
-    return true;
-</code></pre>
-
-<p>}
-<code>
-通过上面的代码，我们可以看出首先将Socket封装为SocketWrapper，然后通过SocketProcessor来进行处理，因为Tomcat必然面对用户并发请求，因此这里Socket的处理通过新的线程池来处理。接下来我们再来看看SocketProcess的代码，同样省略了一些非核心的代码，代码如下：
-</code>java org.apache.tomcat.util.net.JIoEndpoint.SocketProcessor#run
-public void run() {</p>
-
-<pre><code>    boolean launch = false;
-    synchronized (socket) {
-        try {
-            SocketState state = SocketState.OPEN;
-
-            try {
-                // SSL handshake
-                serverSocketFactory.handshake(socket.getSocket());
-            } catch (Throwable t) {
-                ExceptionUtils.handleThrowable(t);
-                if (log.isDebugEnabled()) {
-                    log.debug(sm.getString("endpoint.err.handshake"), t);
-                }
-                // Tell to close the socket
-                state = SocketState.CLOSED;
-            }
-
-            if ((state != SocketState.CLOSED)) {
-                if (status == null) {
-                    // 1 
-                    state = handler.process(socket, SocketStatus.OPEN);
-                } else {
-                    state = handler.process(socket,status);
-                }
-            }
-            if (state == SocketState.CLOSED) {
-                // Close socket
-                if (log.isTraceEnabled()) {
-                    log.trace("Closing socket:"+socket);
-                }
-                countDownConnection();
-                try {
-                    socket.getSocket().close();
-                } catch (IOException e) {
-                    // Ignore
-                }
-            } else if (state == SocketState.OPEN ||
-                    state == SocketState.UPGRADING  ||
-                    state == SocketState.UPGRADED){
-                socket.setKeptAlive(true);
-                socket.access();
-                launch = true;
-            } else if (state == SocketState.LONG) {
-                socket.access();
-                waitingRequests.add(socket);
-            }
-        } finally {
-           //other code
-        }
-    }
-    socket = null;
-    // Finish up this request
-}
-</code></pre>
-
-<p>}
-<code>
-默认情况下，代码会运行到标注1的地方，标注1的地方又通过`org.apache.tomcat.util.net.JIoEndpoint.Handler#process`的方法进行处理，而通过前面Tomcat启动的文章，我们已经知道handler属性是在`org.apache.coyote.http11.Http11Protocol`的构造方法中初始化的，构造方法如下：
-</code>java org.apache.coyote.http11.Http11Protocol#Http11Protocol
-public Http11Protocol() {</p>
-
-<pre><code>endpoint = new JIoEndpoint();
-cHandler = new Http11ConnectionHandler(this);
-((JIoEndpoint) endpoint).setHandler(cHandler);
-setSoLinger(Constants.DEFAULT_CONNECTION_LINGER);
-setSoTimeout(Constants.DEFAULT_CONNECTION_TIMEOUT);
-setTcpNoDelay(Constants.DEFAULT_TCP_NO_DELAY);
-</code></pre>
-
-<p>}
-<code>``
-从构造方法中，我们可以清楚的看到，其实初始化了</code>org.apache.coyote.http11.Http11Protocol.Http11ConnectionHandler<code>的实例，那么接下来我们就来看看它的process方法，因为Http11ConnectionHandler继承了</code>org.apache.coyote.AbstractProtocol.AbstractConnectionHandler`，而自己没有实现process方法，因此会调用到父类的process方法，那么接下来我们就来看看AbstractConnectionHandler的process方法，代码如下：</p>
-
-<p>```java org.apache.coyote.AbstractProtocol.AbstractConnectionHandler#process
-public SocketState process(SocketWrapper<S> socket,</p>
-
-<pre><code>    SocketStatus status) {
-Processor&lt;S&gt; processor = connections.remove(socket.getSocket());
-
-if (status == SocketStatus.DISCONNECT &amp;&amp; processor == null) {
-    //nothing more to be done endpoint requested a close
-    //and there are no object associated with this connection
-    return SocketState.CLOSED;
-}
-
-socket.setAsync(false);
-
-try {
-    if (processor == null) {
-        processor = recycledProcessors.poll();
-    }
-    if (processor == null) {
-        processor = createProcessor();
-    }
-
-    initSsl(socket, processor);
-
-    SocketState state = SocketState.CLOSED;
-    do {
-        if (status == SocketStatus.DISCONNECT &amp;&amp;
-                !processor.isComet()) {
-            // Do nothing here, just wait for it to get recycled
-            // Don't do this for Comet we need to generate an end
-            // event (see BZ 54022)
-        } else if (processor.isAsync() ||
-                state == SocketState.ASYNC_END) {
-            state = processor.asyncDispatch(status);
-        } else if (processor.isComet()) {
-            state = processor.event(status);
-        } else if (processor.isUpgrade()) {
-            state = processor.upgradeDispatch();
-        } else {
-            state = processor.process(socket);
-        }
-
-        if (state != SocketState.CLOSED &amp;&amp; processor.isAsync()) {
-            state = processor.asyncPostProcess();
-        }
-
-        if (state == SocketState.UPGRADING) {
-            // Get the UpgradeInbound handler
-            UpgradeInbound inbound = processor.getUpgradeInbound();
-            // Release the Http11 processor to be re-used
-            release(socket, processor, false, false);
-            // Create the light-weight upgrade processor
-            processor = createUpgradeProcessor(socket, inbound);
-            inbound.onUpgradeComplete();
-        }
-    } while (state == SocketState.ASYNC_END ||
-            state == SocketState.UPGRADING);
-
-    return state;
-} catch(java.net.SocketException e) {
-            // exception handler   
-}
-
-return SocketState.CLOSED;
-</code></pre>
-
-<p>}
-```</p>
-
-<p>通过查看上面的代码，默认一个新连接的情况下，会调用<code>org.apache.coyote.Processor#process</code>方法,而Processor的实例实在<code>org.apache.coyote.AbstractProtocol.AbstractConnectionHandler#createProcessor</code>中创建的，通过查看createProcessor代码，我们发现是创建了一个org.apache.coyote.http11.Http11Processor的实例，那么接下来，我们就来看看它的process方法，因为Http11Processor继承了AbstractHttp11Processor，最终其实调用的是AbstractHttp11Processor的process方法，代码如下：</p>
-
-<p>```java org.apache.coyote.http11.AbstractHttp11Processor#process
-public SocketState process(SocketWrapper<S> socketWrapper)</p>
-
-<pre><code>throws IOException {
-RequestInfo rp = request.getRequestProcessor();
-rp.setStage(org.apache.coyote.Constants.STAGE_PARSE);
-
-// Setting up the I/O
-// 1 
-setSocketWrapper(socketWrapper);
-getInputBuffer().init(socketWrapper, endpoint);
-getOutputBuffer().init(socketWrapper, endpoint);
-
-// Flags
-error = false;
-keepAlive = true;
-comet = false;
-openSocket = false;
-sendfileInProgress = false;
-readComplete = true;
-if (endpoint.getUsePolling()) {
-    keptAlive = false;
-} else {
-    keptAlive = socketWrapper.isKeptAlive();
-}
-
-if (disableKeepAlive()) {
-    socketWrapper.setKeepAliveLeft(0);
-}
-
-while (!error &amp;&amp; keepAlive &amp;&amp; !comet &amp;&amp; !isAsync() &amp;&amp;
-        upgradeInbound == null &amp;&amp; !endpoint.isPaused()) {
-
-    // Parsing the request header
-    try {
-        setRequestLineReadTimeout();
-        //2 
-        if (!getInputBuffer().parseRequestLine(keptAlive)) {
-            if (handleIncompleteRequestLineRead()) {
-                break;
-            }
-        }
-
-        if (endpoint.isPaused()) {
-            // 503 - Service unavailable
-            response.setStatus(503);
-            error = true;
-        } else {
-            // Make sure that connectors that are non-blocking during
-            // header processing (NIO) only set the start time the first
-            // time a request is processed.
-            if (request.getStartTime() &lt; 0) {
-                request.setStartTime(System.currentTimeMillis());
-            }
-            keptAlive = true;
-            // Set this every time in case limit has been changed via JMX
-            request.getMimeHeaders().setLimit(endpoint.getMaxHeaderCount());
-            // Currently only NIO will ever return false here
-            // 3
-            if (!getInputBuffer().parseHeaders()) {
-                // We've read part of the request, don't recycle it
-                // instead associate it with the socket
-                openSocket = true;
-                readComplete = false;
-                break;
-            }
-            if (!disableUploadTimeout) {
-                setSocketTimeout(connectionUploadTimeout);
-            }
-        }
-    } catch (IOException e) {
-        if (getLog().isDebugEnabled()) {
-            getLog().debug(
-                    sm.getString("http11processor.header.parse"), e);
-        }
-        error = true;
-        break;
-    } catch (Throwable t) {
-        ExceptionUtils.handleThrowable(t);
-        UserDataHelper.Mode logMode = userDataHelper.getNextMode();
-        if (logMode != null) {
-            String message = sm.getString(
-                    "http11processor.header.parse");
-            switch (logMode) {
-                case INFO_THEN_DEBUG:
-                    message += sm.getString(
-                            "http11processor.fallToDebug");
-                    //$FALL-THROUGH$
-                case INFO:
-                    getLog().info(message);
-                    break;
-                case DEBUG:
-                    getLog().debug(message);
-            }
-        }
-        // 400 - Bad Request
-        response.setStatus(400);
-        adapter.log(request, response, 0);
-        error = true;
-    }
-
-    if (!error) {
-        // Setting up filters, and parse some request headers
-        rp.setStage(org.apache.coyote.Constants.STAGE_PREPARE);
-        try {
-            prepareRequest();
-        } catch (Throwable t) {
-            ExceptionUtils.handleThrowable(t);
-            if (getLog().isDebugEnabled()) {
-                getLog().debug(sm.getString(
-                        "http11processor.request.prepare"), t);
-            }
-            // 400 - Internal Server Error
-            response.setStatus(400);
-            adapter.log(request, response, 0);
-            error = true;
-        }
-    }
-
-    if (maxKeepAliveRequests == 1) {
-        keepAlive = false;
-    } else if (maxKeepAliveRequests &gt; 0 &amp;&amp;
-            socketWrapper.decrementKeepAlive() &lt;= 0) {
-        keepAlive = false;
-    }
-
-    // Process the request in the adapter
-    if (!error) {
-        try {
-            // 4
-            rp.setStage(org.apache.coyote.Constants.STAGE_SERVICE);
-            adapter.service(request, response);
-            // Handle when the response was committed before a serious
-            // error occurred.  Throwing a ServletException should both
-            // set the status to 500 and set the errorException.
-            // If we fail here, then the response is likely already
-            // committed, so we can't try and set headers.
-            if(keepAlive &amp;&amp; !error) { // Avoid checking twice.
-                error = response.getErrorException() != null ||
-                        (!isAsync() &amp;&amp;
-                        statusDropsConnection(response.getStatus()));
-            }
-            setCometTimeouts(socketWrapper);
-        } catch (InterruptedIOException e) {
-            error = true;
-        } catch (HeadersTooLargeException e) {
-            error = true;
-            // The response should not have been committed but check it
-            // anyway to be safe
-            if (!response.isCommitted()) {
-                response.reset();
-                response.setStatus(500);
-                response.setHeader("Connection", "close");
-            }
-        } catch (Throwable t) {
-            ExceptionUtils.handleThrowable(t);
-            getLog().error(sm.getString(
-                    "http11processor.request.process"), t);
-            // 500 - Internal Server Error
-            response.setStatus(500);
-            adapter.log(request, response, 0);
-            error = true;
-        }
-    }
-
-    // Finish the handling of the request
-    rp.setStage(org.apache.coyote.Constants.STAGE_ENDINPUT);
-
-    if (!isAsync() &amp;&amp; !comet) {
-        if (error) {
-            // If we know we are closing the connection, don't drain
-            // input. This way uploading a 100GB file doesn't tie up the
-            // thread if the servlet has rejected it.
-            getInputBuffer().setSwallowInput(false);
-        }
-        endRequest();
-    }
-
-    rp.setStage(org.apache.coyote.Constants.STAGE_ENDOUTPUT);
-
-    // If there was an error, make sure the request is counted as
-    // and error, and update the statistics counter
-    if (error) {
-        response.setStatus(500);
-    }
-    request.updateCounters();
-
-    if (!isAsync() &amp;&amp; !comet || error) {
-        getInputBuffer().nextRequest();
-        getOutputBuffer().nextRequest();
-    }
-
-    if (!disableUploadTimeout) {
-        if(endpoint.getSoTimeout() &gt; 0) {
-            setSocketTimeout(endpoint.getSoTimeout());
-        } else {
-            setSocketTimeout(0);
-        }
-    }
-
-    rp.setStage(org.apache.coyote.Constants.STAGE_KEEPALIVE);
-
-    if (breakKeepAliveLoop(socketWrapper)) {
-        break;
-    }
-}
-
-rp.setStage(org.apache.coyote.Constants.STAGE_ENDED);
-
-if (error || endpoint.isPaused()) {
-    return SocketState.CLOSED;
-} else if (isAsync() || comet) {
-    return SocketState.LONG;
-} else if (isUpgrade()) {
-    return SocketState.UPGRADING;
-} else {
-    if (sendfileInProgress) {
-        return SocketState.SENDFILE;
-    } else {
-        if (openSocket) {
-            if (readComplete) {
-                return SocketState.OPEN;
-            } else {
-                return SocketState.LONG;
-            }
-        } else {
-            return SocketState.CLOSED;
-        }
-    }
-}
-</code></pre>
-
-<p>}</p>
-
-<p>```
-上面的代码有点长，但是经过分析，我们还是可以看清楚主干，我已经在代码中将主流程通过数字标注了，我们就来一一看看标注了数字的地方：</p>
-
-<ol>
-<li>标注1的地方（第7行）将Socket的输入流和输出流通过InternalInputBuffer进行了包装，InternalInputBuffer是在Http11Processor的构造函数中初始化的。</li>
-<li>标注2的地方（第35行）调用了InternalInputBuffer的parseRequesLine方法解析http请求的请求行。(关于http请求行和请求头请看下文解释)</li>
-<li>标注3的地方（第57行）调用了InternalInputBuffer的prarseHeaders方法解析http请求的请求头。解析完了以后，会将http header保存在<code>org.apache.tomcat.util.http.MimeHeaders</code></li>
-<li>标注4的地方（第128行）调用了org.apache.coyote.Adapter#service方法，次方法就会最终调用到具体的Servlet.</li>
-</ol>
-
-
-<p>对于Http请求行和请求头，大家可以看下面的例子：
-```js Http get request
-GET /contextpath/querystring HTTP/1.1</p>
-
-<p>Host: 127.0.0.1:8080</p>
-
-<p>User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:23.0) Gecko/20100101 Firefox/23.0</p>
-
-<p>Accept: text/html,application/xhtml+xml,application/xml;q=0.9,<em>/</em>;q=0.8</p>
-
-<p>Accept-Language: en-US,en;q=0.5</p>
-
-<p>Accept-Encoding: gzip, deflate</p>
-
-<p>Cookie: JSESSIONID=9F5897FEF3CDBCB234C050C132DCAE52; <strong>atuvc=384%7C39; </strong>utma=96992031.358732763.1380383869.1381468490.1381554710.38; __utmz=96992031.1380383869.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); Hm_lvt_21e144d0df165d6556d664e2836dadfe=1381330561,1381368826,1381395666,1381554711</p>
-
-<p>Connection: keep-alive</p>
-
-<p>Cache-Control: max-age=0
-<code>``
-在上面的Http协议get请求中，其中请求行就是第一行，</code>GET /contextpath/querystring HTTP/1.1`,余下的都是请求头。这里面需要注意根据Http协议的要求，请求行末尾必须是CRLF，而请求行与请求头，以及请求头之间必须用空行隔开，而空行也必须只包含CRLF。对于Http协议请求头的规范可以参考<a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html">这里</a>。</p>
-
-<p>通过上面的描述，我们可以整理出如下的一个请求解析流程：
-<code>java Request http header parse
-org.apache.tomcat.util.net.JIoEndpoint.Acceptor#run
--&gt;org.apache.tomcat.util.net.JIoEndpoint.SocketProcessor#run(请求处理线程池中运行)
---&gt;org.apache.coyote.AbstractProtocol.AbstractConnectionHandler#process
----&gt;org.apache.coyote.http11.AbstractHttp11Processor#process
-----&gt;org.apache.coyote.http11.InternalInputBuffer#parseRequestLine
-----&gt;org.apache.coyote.http11.InternalInputBuffer#parseHeaders
-----&gt;org.apache.catalina.connector.CoyoteAdapter#service
-</code></p>
-
-<h1>如何转发到Servlet</h1>
-
-<p>上面我们说了一个请求过来是如何根据http协议解析Socket的数据，最终将生成<code>org.apache.coyote.Request</code>和<code>org.apache.coyote.Response</code>，接下来我们就来看看request,reponse是如何一步步的进入最终的Servlet进行处理的。这一步的入口就是CoyoteAdapter的service方法。
-接下来我们就来看看它的代码：
-```java org.apache.catalina.connector.CoyoteAdapter#service
-public void service(org.apache.coyote.Request req,</p>
-
-<pre><code>                org.apache.coyote.Response res)
-throws Exception {
-
-
-Request request = (Request) req.getNote(ADAPTER_NOTES);
-Response response = (Response) res.getNote(ADAPTER_NOTES);
-
-//1 
-if (request == null) {
-
-    // Create objects
-    request = connector.createRequest();
-    request.setCoyoteRequest(req);
-    response = connector.createResponse();
-    response.setCoyoteResponse(res);
-
-    // Link objects
-    request.setResponse(response);
-    response.setRequest(request);
-
-    // Set as notes
-    req.setNote(ADAPTER_NOTES, request);
-    res.setNote(ADAPTER_NOTES, response);
-
-    // Set query string encoding
-    req.getParameters().setQueryStringEncoding
-        (connector.getURIEncoding());
-
-}
-
-if (connector.getXpoweredBy()) {
-    response.addHeader("X-Powered-By", POWERED_BY);
-}
-
-boolean comet = false;
-boolean async = false;
-
-try {
-
-    // Parse and set Catalina and configuration specific
-    // request parameters
-    req.getRequestProcessor().setWorkerThreadName(Thread.currentThread().getName());
-    //2
-    boolean postParseSuccess = postParseRequest(req, request, res, response);
-    if (postParseSuccess) {
-        //check valves if we support async
-        request.setAsyncSupported(connector.getService().getContainer().getPipeline().isAsyncSupported());
-        // Calling the container
-        //3
-        connector.getService().getContainer().getPipeline().getFirst().invoke(request, response);
-
-        // other code
-
-    }
-    // other code
-
-} catch (IOException e) {
-    // Ignore
-} finally {
-    req.getRequestProcessor().setWorkerThreadName(null);
-    // Recycle the wrapper request and response
-    if (!comet &amp;&amp; !async) {
-        request.recycle();
-        response.recycle();
-    } else {
-        // Clear converters so that the minimum amount of memory
-        // is used by this processor
-        request.clearEncoders();
-        response.clearEncoders();
-    }
-}
-</code></pre>
-
-<p>}
-```
-为了可以清楚的看到主流程，上面删除了一部分非主流程的代码，接下来我们逐一分析一下标注了数字的地方：</p>
-
-<ol>
-<li>标注1的代码(第9行)将<code>org.apache.coyote.Request</code>和<code>org.apache.coyote.Response</code>对象转变为<code>org.apache.catalina.connector.Request</code>,<code>org.apache.catalina.connector.Response</code>类型的对象。其中coyote包中的Request仅仅只是包含了解析出来的http协议的数据，而connector包中的Request才是真正Servlet容器中的HttpServletRequest，它里面包含了完成请求需要的host,context和wrapper信息,在这里每一个wrapper其实都对应web.xml配置的一个Servlet。</li>
-<li>标注2（第44行）的代码调用了postParseRequest方法，这个方法里面做的事情非常多，但是最终都是为了根据Request对象找到对应的Host,Conext和Wrapper对象，也就是说最终要清楚这个请求应该由哪个Servlet来处理。</li>
-<li>标注3（第50）的代码将已经设置好了Host,Context,Wrapper对象的Request通过Pipeline机制链式传递给最终的Servlet。</li>
-</ol>
-
-
-<p>上面只是从整体上告诉了读者<code>org.apache.catalina.connector.CoyoteAdapter#service</code>方法做的事情，接下来我们进一步分解每一个步骤都具体做了哪些工作。第一步比较简单，大家可以自己阅读，我们关键来看2，3步。首先我们来看看postParseRequest方法。
-通过分析org.apache.catalina.connector.CoyoteAdapter#postParseRequest的代码，我们会发现它最终是通过<code>org.apache.tomcat.util.http.mapper.Mapper#map</code>方法来达到匹配请求到对应的Context和Wrapper(Servlet包装类)目的。具体代码如下：
-```java org.apache.catalina.connector.CoyoteAdapter#postParseRequest
-connector.getMapper().map(serverName, decodedURI, version,</p>
-
-<pre><code>                                  request.getMappingData());
-        request.setContext((Context) request.getMappingData().context);
-        request.setWrapper((Wrapper) request.getMappingData().wrapper);
-</code></pre>
-
-<p><code>``
-那我们再来看看此方法。通过分析它的代码，我们发现最终其实是调用了几个</code>internalMap**`方法将找到的Context,Wrapper设置到org.apache.catalina.connector.Request对象的org.apache.tomcat.util.http.mapper.MappingData类型的属性中,map方法执行完以后，然后接下来就从MappingData中获取已经找到的Context和Wrapper，再设置到Request的context和wrapper中。</p>
-
-<p>接下来我们再来分析第3步，第3步通过pipeline链式调用机制最终调用了Servlet对象，而对于pipeline其实是运用了责任链模式，它将各个阀门链接起来，然后一步步的调用，而至于有多少个阀门（Valve）对象，主要来源于两个地方，一个是conf/server.xml中配置的valve，我们知道所有的容器都是支持pipeline机制的，另外一个就是每一个容器的构造其中自己初始化的阀门对象。接下来一一看一下。对于StandardEngine来说有一个与之对应的StandardEngineValve，对于StandardHost有一个StandardHostValve与之对应，StandardContext有一个StandardContextValve与之对应，StandardWrapper与StandardWrapperValve对应,通过分析代码，我们可以得到如下的一个调用链。
-<code>java
--&gt;org.apache.catalina.core.StandardEngineValve#invoke
---&gt;org.apache.catalina.valves.AccessLogValve#invoke
----&gt;org.apache.catalina.valves.ErrorReportValve#invoke
-----&gt;org.apache.catalina.core.StandardHostValve#invoke
------&gt;org.apache.catalina.authenticator.AuthenticatorBase#invoke
-------&gt;org.apache.catalina.core.StandardContextValve#invoke
--------&gt;org.apache.catalina.core.StandardWrapperValve#invoke
-</code>
-上述的调用栈中，最后会调用到StandardWrapperValve，它其实也是最终调用Servlet的地方，接下来我们就来看看它的代码：
-```java
-public final void invoke(Request request, Response response)</p>
-
-<pre><code>throws IOException, ServletException {
-
-// Initialize local variables we may need
-boolean unavailable = false;
-Throwable throwable = null;
-// This should be a Request attribute...
-long t1=System.currentTimeMillis();
-requestCount++;
-StandardWrapper wrapper = (StandardWrapper) getContainer();
-Servlet servlet = null;
-Context context = (Context) wrapper.getParent();
-
-
-// Allocate a servlet instance to process this request
-try {
-    //1
-    if (!unavailable) {
-        servlet = wrapper.allocate();
-    }
-} catch (UnavailableException e) {
-    container.getLogger().error(
-            sm.getString("standardWrapper.allocateException",
-                    wrapper.getName()), e);
-    long available = wrapper.getAvailable();
-    if ((available &gt; 0L) &amp;&amp; (available &lt; Long.MAX_VALUE)) {
-        response.setDateHeader("Retry-After", available);
-        response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE,
-                   sm.getString("standardWrapper.isUnavailable",
-                                wrapper.getName()));
-    } else if (available == Long.MAX_VALUE) {
-        response.sendError(HttpServletResponse.SC_NOT_FOUND,
-                   sm.getString("standardWrapper.notFound",
-                                wrapper.getName()));
-    }
-} // other code
-
-MessageBytes requestPathMB = request.getRequestPathMB();
-DispatcherType dispatcherType = DispatcherType.REQUEST;
-if (request.getDispatcherType()==DispatcherType.ASYNC) dispatcherType = DispatcherType.ASYNC; 
-request.setAttribute(Globals.DISPATCHER_TYPE_ATTR,dispatcherType);
-request.setAttribute(Globals.DISPATCHER_REQUEST_PATH_ATTR,
-        requestPathMB);
-// Create the filter chain for this request
-ApplicationFilterFactory factory =
-    ApplicationFilterFactory.getInstance();
-ApplicationFilterChain filterChain =
-    factory.createFilterChain(request, wrapper, servlet);
-
-// Reset comet flag value after creating the filter chain
-request.setComet(false);
-
-// Call the filter chain for this request
-// NOTE: This also calls the servlet's service() method
-// 2 
-try {
-    if ((servlet != null) &amp;&amp; (filterChain != null)) {
-        // Swallow output if needed
-        if (context.getSwallowOutput()) {
-            try {
-                SystemLogHandler.startCapture();
-                if (request.isAsyncDispatching()) {
-                    //TODO SERVLET3 - async
-                    ((AsyncContextImpl)request.getAsyncContext()).doInternalDispatch(); 
-                } else if (comet) {
-                    filterChain.doFilterEvent(request.getEvent());
-                    request.setComet(true);
-                } else {
-                    filterChain.doFilter(request.getRequest(), 
-                            response.getResponse());
-                }
-            } finally {
-                String log = SystemLogHandler.stopCapture();
-                if (log != null &amp;&amp; log.length() &gt; 0) {
-                    context.getLogger().info(log);
-                }
-            }
-        } else {
-            if (request.isAsyncDispatching()) {
-                //TODO SERVLET3 - async
-                ((AsyncContextImpl)request.getAsyncContext()).doInternalDispatch();
-            } else if (comet) {
-                request.setComet(true);
-                filterChain.doFilterEvent(request.getEvent());
-            } else {
-                filterChain.doFilter
-                    (request.getRequest(), response.getResponse());
-            }
-        }
-
-    }
-} catch(Exception e){
-// other code
-}
-</code></pre>
-
-<p>}
-```
-为了节省版面，上面的代码已经删除非主流程的代码。接下来我们逐一分析一下标注了数字的地方：</p>
-
-<ol>
-<li>标注1（第17行）的代码实例化了Servlet对象，在实例化的过程中使用了Java双检查锁的机制来实例化Servlet，有兴趣的童鞋可以去看看org.apache.catalina.core.StandardWrapper#allocate的代码。这里需要注意的是在Servlet2.4规范之前，有一个singleThreadMode模型，这个机制类似与之前EJB的无状态会话Bean机制，每个线程过来会通过实例池中取出一个实例来完成响应。在Servlet规范2.4之后，单线程模型已经被废除了。具体细节可以参考<a href="http://docs.oracle.com/javaee/5/api/javax/servlet/SingleThreadModel.html">这里</a> .</li>
-<li>标注2（第55行）的代码其实调用了大家熟悉的Servlet的过滤器链，过滤器链最终就会调用到Servlet.</li>
-</ol>
-
-
-<p>最后，咋们再来看看过滤器滤链的处理，来看看<code>org.apache.catalina.core.ApplicationFilterChain#doFilter</code>，doFilter方法中会根据filterConfig中取的web.xml配置的过滤器，然后一个个调用，等每个过滤器执行完了以后，最终就会调用到Servlet的Service方法。</p>
-
-<p>通过上面的分析，其实我们已经清楚了一个请求过来以后，Tomcat是如何一步步处理的。我们再来做一个总体的总结：</p>
-
-<ol>
-<li>用户浏览器发送请求，请求会发送到对应的Connector监听的Socket端口。</li>
-<li>Connector从Socket流中获取数据，然后根据Http协议将其解析为Request和Reponse对象</li>
-<li>找到Request对象对应的Host,Context,Wrapper</li>
-<li>调用最终的Servelt的service进行处理。</li>
-</ol>
-
 ]]></content>
   </entry>
   
