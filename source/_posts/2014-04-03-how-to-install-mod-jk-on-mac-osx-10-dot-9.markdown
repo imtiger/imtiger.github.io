@@ -59,7 +59,7 @@ xcode-select --install
 `LoadModule jk_module libexec/apache2/mod_jk.so`
 
 
-Over.Have fun,gays!
+Over.Have fun,guys!
 
 
 
