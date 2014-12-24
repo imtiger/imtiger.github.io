@@ -9,7 +9,7 @@
 	<meta name="author" content="imtiger">
 
 	
-	<meta name="description" content="Dec 7th, 2008 Java, 技术 JavaEE资源管理常见策略总结 公所周知JavaEE是多线程的，同时资源管理的策略都是与线程相关的，因此通过合理的资源管理来应对多线程的环境是非常关键的。下面我们就来总结一下JavaEE中常见的资源管理策略。 第一种：实例池 &hellip;">
+	<meta name="description" content="Oct 2nd, 2009 Java, 技术 Java常见内存溢出异常分析 Java虚拟机规范规定JVM的内存分为了好几块，比如堆，栈，程序计数器，方法区等，而Hotspot jvm的实现中，将堆内存分为了三部分，新生代，老年代，持久带，其中持久带实现了规范中规定的方法区， &hellip;">
 	<meta name="keywords" content="java,ios,mac,linux,objective-c,软件设计,软件架构,摄影,imtiger.">
 
   <!-- http://t.co/dKP3o1e -->
@@ -92,6 +92,50 @@
 			<div class="mid-col-container">
 				<div id="content" class="inner">
 <div itemscope itemtype="http://schema.org/Blog">
+
+
+    <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
+	<div class="meta">
+		<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2009-10-02T16:28:00+08:00" data-updated="true" itemprop="datePublished">Oct 2<span>nd</span>, 2009</time></div>
+		<div class="tags">
+
+
+	<a class='category' href='/blog/categories/java/'>Java</a>, <a class='category' href='/blog/categories/ji-zhu/'>技术</a>
+
+
+</div>
+		
+	</div>
+	<h1 class="title" itemprop="name"><a href="/blog/2009/10/02/java-oom-summary/" itemprop="url">Java常见内存溢出异常分析</a></h1>
+	<div class="entry-content" itemprop="articleBody">
+		<p><img class="center" src="http://ww3.sinaimg.cn/bmiddle/a43155b1gw1e32ay9f202g.gif">
+Java虚拟机规范规定JVM的内存分为了好几块，比如堆，栈，程序计数器，方法区等，而Hotspot jvm的实现中，将堆内存分为了三部分，新生代，老年代，持久带，其中持久带实现了规范中规定的方法区，而内存模型中不同的部分都会出现相应的OOM错误，接下来我们就分开来讨论一下。</p>
+
+<h1>栈溢出(StackOverflowError)</h1>
+
+<p>栈溢出抛出<code>java.lang.StackOverflowError</code>错误，出现此种情况是因为方法运行的时候栈的深度超过了虚拟机容许的最大深度所致。</p>
+
+<p>出现这种情况，一般情况下是程序错误所致的，比如写了一个死递归，就有可能造成此种情况。
+下面我们通过一段代码来模拟一下此种情况的内存溢出。</p>
+
+
+		
+		<a href="/blog/2009/10/02/java-oom-summary/" class="more-link">Read on(阅读全文) &rarr;</a>
+	</div>
+
+</article>
 
 
     <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">

@@ -5,15 +5,13 @@
 
 <head>
 	<meta charset="utf-8">
-	<title>月薪10k-20k招聘高级Java软件攻城狮 - I'm Tiger,一个有理想爱折腾的程序员!</title>
+	<title>高性能IO设计的Reactor和Proactor模式 - I'm Tiger,一个有理想爱折腾的程序员!</title>
 	<meta name="author" content="imtiger">
 
 	
-	<meta name="description" content="月薪10k-20k招聘高级Java软件攻城狮 创业快两年，感触颇多，也走过一些弯路，不过总体上还好。随着公司业务的不断扩大，现在需要招聘高级Java软件攻城狮数名，下面简单介绍下： 公司名称: 深圳易居尚网络科技有限公司
-工作地点: 珠海清华科技园
-职位名称: 高级Java软件攻城狮
-月薪: &hellip;">
-	<meta name="keywords" content="java,ios,mac,linux,objective-c,软件设计,软件架构,摄影,imtiger.">
+	<meta name="description" content="高性能IO设计的Reactor和Proactor模式 在高性能的I/O设计中，有两个比较著名的模式Reactor和Proactor模式，其中Reactor模式用于同步I/O，而Proactor运用于异步I/O操作。
+在比较这两个模式之前，我们首先的搞明白几个概念，什么是阻塞和非阻塞， &hellip;">
+	<meta name="keywords" content="io，同步io,异步io,阻塞，非阻塞">
 
   <!-- http://t.co/dKP3o1e -->
   <meta name="HandheldFriendly" content="True">
@@ -22,7 +20,7 @@
 
 	<link href="/atom.xml" rel="alternate" title="I'm Tiger,一个有理想爱折腾的程序员!" type="application/atom+xml">
 	
-	<link rel="canonical" href="http://imtiger.github.io/blog/2013/12/04/java-engineer-recruitment/">
+	<link rel="canonical" href="http://imtiger.github.io/blog/2010/10/12/high-performance-io-design-reactor-and-proactor/">
 	<link href="/favicon.png" rel="shortcut icon">
 	<link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
 	<link href="/stylesheets/font-awesome.min.css" media="screen, projection" rel="stylesheet" type="text/css">
@@ -95,42 +93,57 @@
 			<div class="mid-col-container">
 				<div id="content" class="inner"><article class="post" itemscope itemtype="http://schema.org/BlogPosting">
 
-	<h1 class="title" itemprop="name">月薪10k-20k招聘高级Java软件攻城狮</h1>
-	<div class="entry-content" itemprop="articleBody"><p><img class="center" src="/images/2013/09/27/2013-09-27-01.jpg" width="700" height="350"><br/>
-创业快两年，感触颇多，也走过一些弯路，不过总体上还好。随着公司业务的不断扩大，现在需要招聘高级Java软件攻城狮数名，下面简单介绍下：</p>
+	<h1 class="title" itemprop="name">高性能IO设计的Reactor和Proactor模式</h1>
+	<div class="entry-content" itemprop="articleBody"><p>在高性能的I/O设计中，有两个比较著名的模式Reactor和Proactor模式，其中Reactor模式用于同步I/O，而Proactor运用于异步I/O操作。<br/>
+在比较这两个模式之前，我们首先的搞明白几个概念，什么是阻塞和非阻塞，什么是同步和异步,同步和异步是针对应用程序和内核的交互而言的，
+同步指的是用户进程触发IO操作并等待或者轮询的去查看IO操作是否就绪，而异步是指用户进程触发IO操作以后便开始做自己的事情，而当IO操
+作已经完成的时候会得到IO完成的通知。而阻塞和非阻塞是针对于进程在访问数据的时候，根据IO操作的就绪状态来采取的不同方式，说白了是
+一种读取或者写入操作函数的实现方式，阻塞方式下读取或者写入函数将一直等待，而非阻塞方式下，读取或者写入函数会立即返回一个状态值.<br/>
+一般来说I/O模型可以分为：<code>同步阻塞</code>，<code>同步非阻塞</code>，<code>异步阻塞</code>，<code>异步非阻塞IO</code></p>
 
-<p>公司名称: 深圳易居尚网络科技有限公司<br/>
-工作地点: 珠海清华科技园<br/>
-职位名称: 高级Java软件攻城狮<br/>
-月薪:    10k-20k</p>
+<h1>同步阻塞IO：</h1>
 
-<p>公司介绍: <br/>
-我们公司<a href="http://www.ejushang.com">易居尚</a>秉承着<code>让品质走进生活的理念</code>，致力于打造一个品质、高效、便捷的居家用品网络销售平台.咋们公司不打卡，弹性工作制，每天下午有公司大厨做的下午茶，攻城狮童鞋每周可以自由支配20%的工作时间做自己想做的事情，我们技术团队内部有很强互助和知识分享意识（包括技术骚们喜欢的爱情动作片，嘘&hellip;，其他人我不告诉他）当然了还有很多美女和帅哥，想置身互联网和电子商务有理想的的技术骚们，请你加入我们 一起high，<strong>我们不求改变世界，但求超越自我</strong>。也请各位朋友帮忙推荐，推荐成功有神秘礼物相送哦，有意者请联系:<a href="&#x6d;&#97;&#105;&#108;&#x74;&#111;&#58;&#x74;&#105;&#x67;&#101;&#x72;&#x2e;&#122;&#104;&#x6f;&#x75;&#64;&#x6b;&#97;&#114;&#x69;&#x71;&#x75;&#x2e;&#x63;&#111;&#109;">&#x74;&#105;&#103;&#101;&#114;&#46;&#122;&#x68;&#x6f;&#x75;&#64;&#x6b;&#97;&#114;&#105;&#113;&#x75;&#x2e;&#x63;&#111;&#x6d;</a> 或者留言给我，另外也可以通过<a href="http://weibo.com/xmuzyq">@krq_tiger</a>新浪微博与我取的联系.</p>
+<p>在此种方式下，用户进程在发起一个IO操作以后，必须等待IO操作的完成，只有当真正完成了IO操作以后，用户进程才能运行。JAVA传统的IO模型属于此种方式！</p>
 
-<!-- more -->
+<h1>同步非阻塞IO:</h1>
 
+<p>在此种方式下，用户进程发起一个IO操作以后边可返回做其它事情，但是用户进程需要时不时的询问IO操作是否就绪，这就要求用户进程不停的去询问，从而引入
+不必要的CPU资源浪费。其中目前JAVA的NIO就属于同步非阻塞IO。</p>
 
-<p>最后附上招聘要求：<br/>
-<strong>岗位职责</strong>：<br/>
-1. 业务需求分析；<br/>
-2. 模块设计；<br/>
-3. 代码编写，测试；<br/>
-4. 技术文档编写；<br/>
-5. 协调其他成员完成项目;</p>
+<h1>异步阻塞IO：</h1>
 
-<p><strong>岗位要求</strong>:<br/>
-1. JAVA基础扎实，理解io、多线程、集合等基础框架，对JVM原理有一定的了解；<br/>
-2. 3年及以上使用JAVA开发的经验，对于你用过的开源框架，能了解到它的原理和机制；对Spring,ibatis,struts等开源框架熟悉；<br/>
-3. 熟悉常见的设计模式以及设计原则；<br/>
-4. 熟悉Linux 操作系统以及mysql数据库，对sql优化有一定的经验；<br/>
-5. 喜欢去看及尝试最新的技术，追求编写优雅的代码，从技术趋势和思路上能影响技术团队；<br/>
-6. 学习能力强，适应能力好，具备耐心/细心的品质；<br/>
-7. 3年及以上工作经验。</p>
+<p>此种方式下是指应用发起一个IO操作以后，不等待内核IO操作的完成，等内核完成IO操作以后会通知应用程序，这其实就是同步和异步最关键的区别，同步必须等待
+或者主动的去询问IO是否完成，那么为什么说是阻塞的呢？因为此时是通过select系统调用来完成的，而select函数本身的实现方式是阻塞的，而采用select函数
+有个好处就是它可以同时监听多个文件句柄，从而提高系统的并发性！</p>
+
+<h1>异步非阻塞IO:</h1>
+
+<p>在此种模式下，用户进程只需要发起一个IO操作然后立即返回，等IO操作真正的完成以后，应用程序会得到IO操作完成的通知，此时用户进程只需要对数据进行处理
+就好了，不需要进行实际的IO读写操作，因为真正的IO读取或者写入操作已经由内核完成了。目前Java中还没有支持此种IO模型.</p>
+
+<p>搞清楚了以上概念以后，我们再回过头来看看，Reactor模式和Proactor模式。
+首先来看看Reactor模式，Reactor模式应用于同步I/O的场景。
+我们分别以读操作和写操作为例来看看Reactor中的具体步骤：
+读取操作：
+1. 应用程序注册读就需事件和相关联的事件处理器<br/>
+2. 事件分离器等待事件的发生<br/>
+3. 当发生读就需事件的时候，事件分离器调用第一步注册的事件处理器<br/>
+4. 事件处理器首先执行实际的读取操作，然后根据读取到的内容进行进一步的处理    <br/>
+写入操作类似于读取操作，只不过第一步注册的是写就绪事件。<br/>
+下面我们来看看Proactor模式中读取操作和写入操作的过程：<br/>
+读取操作：<br/>
+1. 应用程序初始化一个异步读取操作，然后注册相应的事件处理器，此时事件处理器不关注读取就绪事件，而是关注读取完成事件，这是区别于Reactor的关键。<br/>
+2. 事件分离器等待读取操作完成事件 <br/>
+3. 在事件分离器等待读取操作完成的时候，操作系统调用内核线程完成读取操作，并将读取的内容放入用户传递过来的缓存区中。这也是区别于Reactor的一点，Proactor中，应用程序需要传递缓存区。<br/>
+4. 事件分离器捕获到读取完成事件后，激活应用程序注册的事件处理器，事件处理器直接从缓存区读取数据，而不需要进行实际的读取操作。   <br/>
+Proactor中写入操作和读取操作，只不过感兴趣的事件是写入完成事件。    <br/>
+从上面可以看出，Reactor和Proactor模式的主要区别就是真正的读取和写入操作是有谁来完成的，Reactor中需要应用程序自己读取或者写入数据，而Proactor模式中，应用程序不需要进行实际的读写过程，它只需要从缓存区读取或者写入即可，操作系统会读取缓存区或者写入缓存区到真正的IO设备.    <br/>
+综上所述，同步和异步是相对于应用和内核的交互方式而言的，同步 需要主动去询问，而异步的时候内核在IO事件发生的时候通知应用程序，而阻塞和非阻塞仅仅是系统在调用系统调用的时候函数的实现方式而已。</p>
 </div>
 
 
 <br/>
-<p align="right"><span style="border-top:1px dashed #666">Posted on: 2013/12/04</span></p>
+<p align="right"><span style="border-top:1px dashed #666">Posted on: 2010/10/12</span></p>
 </article>
 
 
