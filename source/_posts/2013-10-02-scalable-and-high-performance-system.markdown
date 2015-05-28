@@ -21,6 +21,8 @@ categories:
 <!-- more -->
 上面说了无状态的重要性，那么具体如何实现无状态呢？此时一个session框架就会发挥作用了。一般通过cookie来实现，或者也可以采用集中式session管理来完成，说具体点就是多个无状态的应用节点连接一个session 服务器，session服务器将session保存到缓存中，session服务器后端再配有底层持久性数据源，比如数据库，文件系统等等。
 
+如何构建一个Web应用状态管理的Session框架，笔者也写了一篇文章，需要的朋友可以参考：[如何构建Java Web应用的session框架](/blog/2012/05/10/how-to-build-a-session-framework-for-java-web-application/) 
+
   
 #2. 有效使用缓存
 
